@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Teletech AI Tap Game</title>
+
+  <!-- Telegram Mini App SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      color: #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 420px;
+      padding: 20px;
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 10px;
+    }
+
+    .balance {
+      font-size: 22px;
+      margin: 20px 0;
+      color: #38bdf8;
+    }
+
+    .tap-btn {
+      width: 200px;
+      height: 200px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      border: none;
+      color: #000;
+      font-size: 24px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 0 30px rgba(34,197,94,0.6);
+    }
+
+    .tap-btn:active {
+      transform: scale(0.95);
+    }
+
+    .info {
+      margin-top: 20px;
+      font-size: 14px;
+      opacity: 0.8;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app">
+    <h1>🚀 Teletech AI</h1>
+    <p>Tap & Earn</p>
+
+    <div class="balance">
+      Balance: <span id="balance">0</span> TT
+    </div>
+
+    <button class="tap-btn" onclick="tap()">
+      TAP
+    </button>
+
+    <div class="info">
+      One tap = +1 TT
+    </div>
+  </div>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.ready();
+
+    let balance = 0;
+
+    function tap() {
+      balance += 1;
+      document.getElementById("balance").innerText = balance;
+    }
+  </script>
+
+</body>
+</html>
