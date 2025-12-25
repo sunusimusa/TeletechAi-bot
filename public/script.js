@@ -1,6 +1,17 @@
 // ===== TELEGRAM USER =====
 const userId = "1248500925"; // daga Telegram (naka)
 
+let tgUserId = "demo-user";
+
+if (window.Telegram && Telegram.WebApp) {
+  Telegram.WebApp.ready();
+  Telegram.WebApp.expand();
+
+  if (Telegram.WebApp.initDataUnsafe?.user?.id) {
+    tgUserId = Telegram.WebApp.initDataUnsafe.user.id.toString();
+  }
+}
+
 // ===== STORAGE =====
 let balance = 0;
 
