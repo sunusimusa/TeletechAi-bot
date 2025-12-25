@@ -30,26 +30,29 @@ async function tap() {
   balance = data.balance;
   updateBalance(balance);
 }
-
-async function withdraw() {
-  const wallet = prompt("Enter USDT TRC20 wallet:");
+// ===== WITHDRAW (DEMO SAVE) =====
+withdrawBtn.addEventListener("click", () => {
+  const wallet = prompt("Enter your USDT TRC20 wallet:");
   if (!wallet) return;
 
-  const res = await fetch("/withdraw", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, wallet })
+  let withdraws = JSON.parse(localStorage.getItem("teletech_withdraws")) || [];
+
+  withdraws.push({
+    user: myRef || "user",
+    wallet,
+    amount: balance,
+    status: "pending",
+    time: Date.now()
   });
 
-  const data = await res.json();
-  if (data.error) {
-    alert(data.error);
-  } else {
-    alert("Withdraw request sent!");
-    balance = 0;
-    updateBalance(balance);
-  }
-}
+  localStorage.setItem("teletech_withdraws", JSON.stringify(withdraws));
+
+  alert("Withdraw request sent (DEMO)");
+  balance = 0;
+  localStorage.setItem(STORAGE_KEY, balance);
+  updateBalance(balance);
+});
+
 
 function updateBalance(val) {
   document.getElementById("balance").innerText = val + " TT";
