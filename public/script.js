@@ -1,63 +1,45 @@
-// 🔹 TELEGRAM USER
-const tg = window.Telegram.WebApp;
-tg.ready();
-
-// KARBAR TELEGRAM ID KAI TSAYE
-const userId = tg.initDataUnsafe?.user?.id;
-
-if (!userId) {
-  alert("Telegram user not detected");
-}
-
-// ELEMENTS
+const userId = "1248500925"; // TELEGRAM USER ID
 const balanceEl = document.getElementById("balance");
-const tapBtn = document.getElementById("tapBtn");
 const withdrawBtn = document.getElementById("withdrawBtn");
 
-// INIT USER
-async function initUser() {
-  const res = await fetch("/start", {
+/* INIT */
+async function init() {
+  const res = await fetch("/user", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
+    body: JSON.stringify({ userId }),
   });
+
   const data = await res.json();
   updateBalance(data.balance);
 }
 
-// TAP
+/* TAP */
 async function tap() {
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
+    body: JSON.stringify({ userId }),
   });
-  const data = await res.json();
 
-  if (data.error) {
-    alert(data.error);
-  } else {
+  const data = await res.json();
+  if (data.balance !== undefined) {
     updateBalance(data.balance);
   }
 }
 
-// WITHDRAW
+/* WITHDRAW */
 async function withdraw() {
   const wallet = prompt("Enter your USDT TRC20 wallet:");
-
-  if (!wallet || wallet.length < 10) {
-    alert("Invalid wallet");
-    return;
-  }
+  if (!wallet) return;
 
   const res = await fetch("/withdraw", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, wallet })
+    body: JSON.stringify({ userId, wallet }),
   });
 
   const data = await res.json();
-
   if (data.error) {
     alert(data.error);
   } else {
@@ -66,20 +48,10 @@ async function withdraw() {
   }
 }
 
-// UPDATE UI
-function updateBalance(amount) {
-  balanceEl.innerText = amount + " TT";
-
-  if (amount >= 1000) {
-    withdrawBtn.style.display = "block";
-  } else {
-    withdrawBtn.style.display = "none";
-  }
+/* UPDATE UI */
+function updateBalance(balance) {
+  balanceEl.innerText = balance + " TT";
+  withdrawBtn.style.display = balance >= 1000 ? "block" : "none";
 }
 
-// EVENTS
-tapBtn.addEventListener("click", tap);
-withdrawBtn.addEventListener("click", withdraw);
-
-// START
-initUser();
+init();
