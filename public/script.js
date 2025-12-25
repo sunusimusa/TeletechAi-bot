@@ -1,29 +1,25 @@
-// ================= TELEGRAM USER =================
-let userId = "1248500925"; // TEMP: naka ID (daga Telegram)
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-// idan a Mini App ne
-if (window.Telegram && Telegram.WebApp) {
-  Telegram.WebApp.ready();
+// TELEGRAM USER ID
+const userId = tg.initDataUnsafe?.user?.id || "demo-user";
 
-  if (Telegram.WebApp.initDataUnsafe?.user?.id) {
-    userId = Telegram.WebApp.initDataUnsafe.user.id.toString();
-  }
-}
+// ELEMENTS
+const balanceEl = document.getElementById("balance");
+const withdrawBtn = document.getElementById("withdrawBtn");
 
-// ================= INIT USER =================
+// INIT
 async function init() {
   const res = await fetch("/user", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId })
   });
-
   const data = await res.json();
   updateBalance(data.balance);
-  checkWithdraw(data.balance);
 }
 
-// ================= TAP =================
+// TAP
 async function tap() {
   const res = await fetch("/tap", {
     method: "POST",
@@ -32,55 +28,40 @@ async function tap() {
   });
 
   const data = await res.json();
-
-  if (data.error) {
-    alert(data.error);
-    return;
+  if (data.balance !== undefined) {
+    updateBalance(data.balance);
   }
-
-  updateBalance(data.balance);
-  checkWithdraw(data.balance);
 }
 
-// ================= WITHDRAW =================
-async function withdraw() {
-  const wallet = prompt("Enter your USDT TRC20 wallet");
+// UPDATE BALANCE
+function updateBalance(amount) {
+  balanceEl.innerText = amount + " TT";
 
+  if (amount >= 1000) {
+    withdrawBtn.style.display = "block";
+  } else {
+    withdrawBtn.style.display = "none";
+  }
+}
+
+// WITHDRAW
+async function withdraw() {
+  const wallet = prompt("Enter your USDT TRC20 wallet:");
   if (!wallet) return;
 
   const res = await fetch("/withdraw", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId,
-      wallet
-    })
+    body: JSON.stringify({ userId, wallet })
   });
 
   const data = await res.json();
-
   if (data.error) {
     alert(data.error);
   } else {
     alert("Withdraw request sent!");
     updateBalance(0);
-    checkWithdraw(0);
   }
 }
 
-// ================= UI =================
-function updateBalance(amount) {
-  document.getElementById("balance").innerText = amount + " TT";
-}
-
-function checkWithdraw(amount) {
-  const btn = document.getElementById("withdrawBtn");
-  if (amount >= 1000) {
-    btn.style.display = "block";
-  } else {
-    btn.style.display = "none";
-  }
-}
-
-// ================= START =================
 init();
