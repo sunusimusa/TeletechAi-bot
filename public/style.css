@@ -1,1 +1,16 @@
+body {
+  background: #0b132b;
+  color: white;
+  text-align: center;
+  font-family: Arial;
+}
 
+button {
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  font-size: 30px;
+  background: green;
+  color: white;
+  border: none;
+}
