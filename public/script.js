@@ -126,3 +126,57 @@ function finishAd() {
     alert(`🎉 You earned +${AD_REWARD} TT`);
   };
 }
+// ===== REFERRAL SYSTEM (DEMO) =====
+const REF_KEY = "teletech_ref";
+const MY_REF_KEY = "teletech_my_ref";
+
+// rewards
+const REF_INVITER_REWARD = 100;
+const REF_NEWUSER_REWARD = 50;
+
+// generate my referral code
+let myRef = localStorage.getItem(MY_REF_KEY);
+if (!myRef) {
+  myRef = Math.random().toString(36).substring(2, 8).toUpperCase();
+  localStorage.setItem(MY_REF_KEY, myRef);
+}
+
+// show referral link
+const refLinkInput = document.getElementById("refLink");
+if (refLinkInput) {
+  const baseUrl = window.location.origin + window.location.pathname;
+  refLinkInput.value = `${baseUrl}?ref=${myRef}`;
+}
+
+// copy button
+const copyBtn = document.getElementById("copyRefBtn");
+if (copyBtn) {
+  copyBtn.onclick = () => {
+    refLinkInput.select();
+    document.execCommand("copy");
+    alert("Referral link copied!");
+  };
+}
+
+// check incoming referral
+const urlParams = new URLSearchParams(window.location.search);
+const incomingRef = urlParams.get("ref");
+
+let refData = JSON.parse(localStorage.getItem(REF_KEY)) || {
+  used: false,
+  inviter: null
+};
+
+if (incomingRef && !refData.used && incomingRef !== myRef) {
+  // mark referral as used
+  refData.used = true;
+  refData.inviter = incomingRef;
+  localStorage.setItem(REF_KEY, JSON.stringify(refData));
+
+  // reward new user
+  balance += REF_NEWUSER_REWARD;
+  localStorage.setItem(STORAGE_KEY, balance);
+  updateBalance(balance);
+
+  alert(`🎉 Welcome bonus! +${REF_NEWUSER_REWARD} TT`);
+}
