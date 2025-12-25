@@ -1,16 +1,31 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Teletech AI</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>🚀 Teletech AI</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+  <h1>🚀 Teletech AI</h1>
+  <p>Tap & Earn</p>
 
-<h1>🚀 Teletech AI</h1>
-<p>Balance: <span id="balance">0 TT</span></p>
+  <!-- BALANCE -->
+  <h2>
+    Balance:
+    <span id="balance">0 TT</span>
+  </h2>
 
-<button onclick="tap()">TAP</button>
+  <!-- TAP BUTTON -->
+  <button id="tapBtn">TAP</button>
 
-<script src="script.js"></script>
+  <!-- WITHDRAW BUTTON (HIDDEN BY DEFAULT) -->
+  <br /><br />
+  <button id="withdrawBtn" style="display:none;">
+    Withdraw
+  </button>
+
+  <!-- SCRIPT -->
+  <script src="script.js"></script>
 </body>
 </html>
