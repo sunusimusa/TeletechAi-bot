@@ -1,91 +1,89 @@
 import express from "express";
-import cors from "cors";
 import fs from "fs";
 import path from "path";
+import cors from "cors";
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-const DB_FILE = "./data/users.json";
+const PORT = process.env.PORT || 5000;
+const DATA_FILE = "./data/users.json";
 const WITHDRAW_FILE = "./data/withdraws.json";
 
-// ===== helpers =====
-function readJSON(file, fallback) {
-  if (!fs.existsSync(file)) return fallback;
-  return JSON.parse(fs.readFileSync(file));
-}
-function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
-}
+// ensure files exist
+if (!fs.existsSync("./data")) fs.mkdirSync("./data");
+if (!fs.existsSync(DATA_FILE)) fs.writeFileSync(DATA_FILE, "{}");
+if (!fs.existsSync(WITHDRAW_FILE)) fs.writeFileSync(WITHDRAW_FILE, "[]");
 
-// ===== START USER =====
+const readUsers = () => JSON.parse(fs.readFileSync(DATA_FILE));
+const writeUsers = (d) => fs.writeFileSync(DATA_FILE, JSON.stringify(d, null, 2));
+
+const readWithdraws = () => JSON.parse(fs.readFileSync(WITHDRAW_FILE));
+const writeWithdraws = (d) => fs.writeFileSync(WITHDRAW_FILE, JSON.stringify(d, null, 2));
+
+/* CREATE / GET USER */
 app.post("/user", (req, res) => {
   const { userId } = req.body;
   if (!userId) return res.status(400).json({ error: "No userId" });
 
-  const users = readJSON(DB_FILE, {});
+  const users = readUsers();
   if (!users[userId]) {
     users[userId] = { balance: 0, lastTap: 0 };
-    writeJSON(DB_FILE, users);
+    writeUsers(users);
   }
+
   res.json({ balance: users[userId].balance });
 });
 
-// ===== TAP =====
+/* TAP */
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
-  const users = readJSON(DB_FILE, {});
-  const user = users[userId];
+  const users = readUsers();
 
-  if (!user) return res.status(400).json({ error: "User not found" });
+  if (!users[userId]) return res.status(400).json({ error: "User not found" });
 
   const now = Date.now();
-  if (now - user.lastTap < 1000) {
+  if (now - users[userId].lastTap < 1000) {
     return res.status(429).json({ error: "Too fast" });
   }
 
-  user.balance += 1;
-  user.lastTap = now;
-  writeJSON(DB_FILE, users);
+  users[userId].balance += 1;
+  users[userId].lastTap = now;
 
-  res.json({ balance: user.balance });
+  writeUsers(users);
+  res.json({ balance: users[userId].balance });
 });
 
-// ===== WITHDRAW =====
+/* WITHDRAW (MIN 1000) */
 app.post("/withdraw", (req, res) => {
   const { userId, wallet } = req.body;
+  const users = readUsers();
+  const withdraws = readWithdraws();
 
-  const users = readJSON(DB_FILE, {});
-  const withdraws = readJSON(WITHDRAW_FILE, []);
-
-  if (!users[userId]) {
-    return res.status(400).json({ error: "User not found" });
-  }
-
-  if (users[userId].balance < 1000) {
+  if (!users[userId]) return res.status(400).json({ error: "User not found" });
+  if (users[userId].balance < 1000)
     return res.status(400).json({ error: "Minimum withdraw is 1000 TT" });
-  }
-
-  if (!wallet || wallet.length < 10) {
+  if (!wallet || wallet.length < 10)
     return res.status(400).json({ error: "Invalid wallet" });
-  }
 
   withdraws.push({
     userId,
     wallet,
     amount: users[userId].balance,
     status: "pending",
-    time: Date.now()
+    time: Date.now(),
   });
 
   users[userId].balance = 0;
-  writeJSON(DB_FILE, users);
-  writeJSON(WITHDRAW_FILE, withdraws);
+
+  writeUsers(users);
+  writeWithdraws(withdraws);
 
   res.json({ success: true });
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log("Server running on", PORT));
+app.listen(PORT, () => {
+  console.log("Server running on port", PORT);
+});
