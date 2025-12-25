@@ -1,16 +1,35 @@
 body {
   background: #0b132b;
-  color: white;
+  color: #fff;
   text-align: center;
-  font-family: Arial;
+  font-family: Arial, sans-serif;
 }
 
-button {
-  width: 200px;
-  height: 200px;
+#tapBtn {
+  width: 220px;
+  height: 220px;
+  margin: 40px auto;
   border-radius: 50%;
-  font-size: 30px;
-  background: green;
-  color: white;
+  background: radial-gradient(circle, #2ecc71, #27ae60);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 40px rgba(46, 204, 113, 0.8);
+  cursor: pointer;
+}
+
+#tapBtn img {
+  width: 120px;
+  height: 120px;
+}
+
+#withdrawBtn {
+  margin-top: 20px;
+  padding: 12px 30px;
+  font-size: 16px;
   border: none;
+  border-radius: 8px;
+  background: #f1c40f;
+  color: #000;
+  cursor: pointer;
 }
