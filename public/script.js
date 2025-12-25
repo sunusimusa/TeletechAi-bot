@@ -1,51 +1,102 @@
-const tg = window.Telegram.WebApp;
-tg.ready();
+/* ===============================
+   TELETECH AI – FRONTEND SCRIPT
+   =============================== */
 
-// ✅ GASKIYAR TELEGRAM USER ID
-const userId = tg.initDataUnsafe?.user?.id;
+/*
+  👉 A NAN NE ZAKA SA TELEGRAM USER ID
+  Idan Mini App ne daga Telegram:
+  window.Telegram.WebApp.initDataUnsafe.user.id
+*/
 
-if (!userId) {
-  alert("Telegram user not found");
+let userId = "demo-user"; // DEFAULT (idan ba Telegram ba)
+
+// ====== TELEGRAM AUTO DETECT ======
+if (window.Telegram && window.Telegram.WebApp) {
+  const tg = window.Telegram.WebApp;
+  tg.ready();
+
+  if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+    userId = tg.initDataUnsafe.user.id.toString();
+  }
 }
 
-// START / CREATE USER
+// ====== INIT USER ======
 async function init() {
-  const res = await fetch("/start", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
-  });
-  const data = await res.json();
-  loadBalance();
+  try {
+    const res = await fetch("/user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
+
+    const data = await res.json();
+    updateBalance(data.balance);
+  } catch (e) {
+    console.error("Init error", e);
+  }
 }
 
-// LOAD BALANCE
-async function loadBalance() {
-  const res = await fetch(`/balance/${userId}`);
-  const data = await res.json();
-  updateBalance(data.balance);
-}
-
-// TAP
+// ====== TAP ======
 async function tap() {
-  const res = await fetch("/tap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
-  });
-  const data = await res.json();
+  try {
+    const res = await fetch("/tap", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
 
-  if (data.error) {
-    alert(data.error);
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    updateBalance(data.balance);
+  } catch (e) {
+    console.error("Tap error", e);
+  }
+}
+
+// ====== WITHDRAW ======
+async function withdraw() {
+  const wallet = prompt("Enter your wallet address:");
+
+  if (!wallet) {
+    alert("Wallet is required");
     return;
   }
 
-  updateBalance(data.balance);
+  try {
+    const res = await fetch("/withdraw", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: userId,
+        wallet: wallet
+      })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+    } else {
+      alert("Withdraw request sent!");
+      updateBalance(0);
+    }
+  } catch (e) {
+    console.error("Withdraw error", e);
+  }
 }
 
-// UPDATE UI
+// ====== UPDATE BALANCE UI ======
 function updateBalance(amount) {
-  document.getElementById("balance").innerText = amount + " TT";
+  const el = document.getElementById("balance");
+  if (el) {
+    el.innerText = amount + " TT";
+  }
 }
 
+// ====== START ======
 init();
