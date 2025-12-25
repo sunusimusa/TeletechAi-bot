@@ -47,6 +47,13 @@ async function withdraw() {
     updateBalance(0);
   }
 }
+function updateBalance(amount) {
+  document.getElementById("balance").innerText = amount;
+
+  if (amount >= 1000) {
+    document.getElementById("withdrawBtn").style.display = "block";
+  }
+}
 
 /* UPDATE UI */
 function updateBalance(balance) {
