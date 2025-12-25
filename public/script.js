@@ -3,6 +3,11 @@ const userId = "1248500925"; // daga Telegram (naka)
 
 let tgUserId = "demo-user";
 
+// haptic feedback (Telegram)
+if (Telegram.WebApp.HapticFeedback) {
+  Telegram.WebApp.HapticFeedback.impactOccurred("light");
+}
+
 if (window.Telegram && Telegram.WebApp) {
   Telegram.WebApp.ready();
   Telegram.WebApp.expand();
