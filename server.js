@@ -3,12 +3,16 @@ import cors from "cors";
 import fs from "fs";
 
 const app = express();
+const PORT = process.env.PORT || 3000;
+
 app.use(cors());
 app.use(express.json());
 
 const DB_FILE = "./data.json";
 
+/* helpers */
 function readDB() {
+  if (!fs.existsSync(DB_FILE)) return {};
   return JSON.parse(fs.readFileSync(DB_FILE, "utf8"));
 }
 
@@ -16,28 +20,32 @@ function writeDB(data) {
   fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
 }
 
-// Create user / start
+/* START / CREATE USER */
 app.post("/start", (req, res) => {
   const { userId } = req.body;
   if (!userId) return res.status(400).json({ error: "No userId" });
 
   const db = readDB();
   if (!db[userId]) {
-    db[userId] = { balance: 0, lastTap: 0 };
+    db[userId] = {
+      balance: 0,
+      lastTap: 0,
+      wallet: null
+    };
     writeDB(db);
   }
+
   res.json({ ok: true });
 });
 
-// Get balance
+/* GET BALANCE */
 app.get("/balance/:userId", (req, res) => {
   const db = readDB();
   const user = db[req.params.userId];
-  if (!user) return res.json({ balance: 0 });
-  res.json({ balance: user.balance });
+  res.json({ balance: user ? user.balance : 0 });
 });
 
-// Tap
+/* TAP (ANTI-CHEAT: 1 tap/sec) */
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
   const now = Date.now();
@@ -45,57 +53,7 @@ app.post("/tap", (req, res) => {
   const db = readDB();
   const user = db[userId];
   if (!user) return res.status(400).json({ error: "User not found" });
-// sauran app.use(...)
 
-// USER
-app.post("/user", ...);
-
-// TAP
-app.post("/tap", ...);
-
-// 👉 A NAN KA SAKA SHI 👇
-
-// WITHDRAW (MIN 1000 TT)
-app.post("/withdraw", (req, res) => {
-  const { userId, wallet } = req.body;
-
-  let users = readJSON(USERS_FILE);
-  let withdraws = readJSON(WITHDRAWS_FILE);
-
-  if (!users[userId]) {
-    return res.status(400).json({ error: "User not found" });
-  }
-
-  if (users[userId].balance < 1000) {
-    return res.status(400).json({ error: "Minimum withdraw is 1000 TT" });
-  }
-
-  if (!wallet || wallet.length < 10) {
-    return res.status(400).json({ error: "Invalid wallet address" });
-  }
-
-  withdraws.push({
-    userId: userId,
-    wallet: wallet,
-    amount: users[userId].balance,
-    status: "pending",
-    time: Date.now()
-  });
-
-  users[userId].balance = 0;
-
-  writeJSON(USERS_FILE, users);
-  writeJSON(WITHDRAWS_FILE, withdraws);
-
-  res.json({ success: true, msg: "Withdraw request sent" });
-});
-
-// 👉 KADA KA SA KOMAI A KASA DA WANNAN
-app.listen(PORT, () => {
-  console.log("Server running on port " + PORT);
-});
-  
-  // Anti-cheat: 1 tap per second
   if (now - user.lastTap < 1000) {
     return res.status(429).json({ error: "Too fast" });
   }
@@ -107,7 +65,39 @@ app.listen(PORT, () => {
   res.json({ balance: user.balance });
 });
 
-const PORT = process.env.PORT || 3000;
+/* WITHDRAW (MIN 1000 TT) */
+app.post("/withdraw", (req, res) => {
+  const { userId, wallet } = req.body;
+
+  const db = readDB();
+  const user = db[userId];
+  if (!user) return res.status(400).json({ error: "User not found" });
+
+  if (user.balance < 1000) {
+    return res.status(400).json({ error: "Minimum withdraw is 1000 TT" });
+  }
+
+  if (!wallet || wallet.length < 10) {
+    return res.status(400).json({ error: "Invalid wallet address" });
+  }
+
+  user.wallet = wallet;
+  user.balance = 0;
+
+  if (!db.withdraws) db.withdraws = [];
+  db.withdraws.push({
+    userId,
+    wallet,
+    amount: 1000,
+    time: Date.now(),
+    status: "pending"
+  });
+
+  writeDB(db);
+  res.json({ success: true, msg: "Withdraw request sent" });
+});
+
+/* START SERVER */
 app.listen(PORT, () => {
   console.log("Server running on port", PORT);
 });
