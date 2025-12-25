@@ -34,6 +34,21 @@
 <!-- TASKS -->
 <div id="tasks">
   <h3>Tasks</h3>
+  <button id="watchAdBtn" class="btn">
+  🎥 Watch Ad (+50 TT)
+</button>
+
+<!-- AD MODAL -->
+<div id="adModal" class="modal hidden">
+  <div class="modal-box">
+    <h3>Advertisement</h3>
+    <p id="adText">Ad is playing...</p>
+    <p id="countdown">15</p>
+    <button id="closeAdBtn" disabled>
+      Please wait...
+    </button>
+  </div>
+</div>
 
   <button class="taskBtn" onclick="completeTask('join')">
     🔔 Join Telegram Channel (+50 TT)
