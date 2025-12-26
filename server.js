@@ -84,6 +84,7 @@ app.post("/tap", (req, res) => {
     energy: users[userId].energy
   });
 });
+
 // ==========================
 // TASK REWARD SYSTEM
 // ==========================
