@@ -20,12 +20,12 @@ async function loadUser() {
 
   const data = await res.json();
 
-  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("balance").innerText = data.balance + " TT";
   document.getElementById("energy").innerText = data.energy;
 }
 
 // ==========================
-// TAP FUNCTION
+// TAP
 // ==========================
 async function tap() {
   const res = await fetch("/tap", {
@@ -36,7 +36,7 @@ async function tap() {
 
   const data = await res.json();
 
-  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("balance").innerText = data.balance + " TT";
   document.getElementById("energy").innerText = data.energy;
 }
 
@@ -46,14 +46,11 @@ async function tap() {
 document.getElementById("refLink").value =
   window.location.origin + "?ref=" + userId;
 
-// ==========================
-// COPY LINK
-// ==========================
 function copyLink() {
   navigator.clipboard.writeText(
     window.location.origin + "?ref=" + userId
   );
-  alert("Copied!");
+  alert("Invite link copied!");
 }
 
 // ==========================
