@@ -74,3 +74,18 @@ body {
   color: black;
   font-weight: bold;
 }
+.tap-circle {
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #32ff7e, #1e9e57);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.15s ease;
+}
+
+.tap-circle.active {
+  transform: scale(0.9);
+  box-shadow: 0 0 40px #00ff99;
+}
