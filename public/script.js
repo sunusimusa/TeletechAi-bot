@@ -61,6 +61,15 @@ async function loadRefCount() {
     "Referrals: " + data.count;
 }
 
+async function loadAd() {
+  const res = await fetch("/ads");
+  const ad = await res.json();
+
+  document.getElementById("adLink").href = ad.link;
+  document.getElementById("adImage").src = ad.image;
+}
+
+loadAd();
 // ==========================
 // ON LOAD
 // ==========================
