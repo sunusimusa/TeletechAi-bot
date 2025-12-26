@@ -164,4 +164,11 @@ app.get("/admin", (req, res) => {
   res.json({ success: true });
 });
 
+app.get("/", (req, res) => {
+  res.send(`
+    <h2>🚀 TeleTech AI Server Running</h2>
+    <p>Go to <a href="/admin?pass=admin123">Admin Dashboard</a></p>
+  `);
+});
+
 app.listen(3000, () => console.log("Running..."));
