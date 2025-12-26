@@ -75,6 +75,25 @@ app.post("/tap", (req, res) => {
   res.json(users[userId]);
 });
 
+// DAILY REWARD
+app.post("/daily", (req, res) => {
+  const { userId } = req.body;
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+
+  if (!users[userId]) return res.json({ error: "User not found" });
+
+  if (now - users[userId].lastDaily < DAY) {
+    return res.json({ error: "Already claimed" });
+  }
+
+  users[userId].balance += 20;
+  users[userId].lastDaily = now;
+  saveUsers();
+
+  res.json({ reward: 20, balance: users[userId].balance });
+});
+
 // ================= ADMIN =================
 app.get("/admin", (req, res) => {
   if (req.query.pass !== "admin123") return res.send("Access denied");
