@@ -8,45 +8,6 @@ if (!userId) {
   localStorage.setItem("uid", userId);
 }
 
-async function loadUser() {
-  const res = await fetch("/user", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
-  });
-
-  const data = await res.json();
-
-  document.getElementById("balance").innerText = data.balance;
-  document.getElementById("energy").innerText = data.energy;
-}
-
-async function tap() {
-  const res = await fetch("/tap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
-  });
-
-  const data = await res.json();
-
-  document.getElementById("balance").innerText = data.balance;
-  document.getElementById("energy").innerText = data.energy;
-}
-
-loadUser();
-// ==========================
-// REFERRAL LINK GENERATOR
-// ==========================
-document.getElementById("refLink").value =
-  window.location.origin + "?ref=" + userId;
-
-// ==========================
-// ENERGY CONFIG
-// ==========================
-const MAX_ENERGY = 100;
-const ENERGY_REGEN_TIME = 30000; // 30 seconds
-
 // ==========================
 // LOAD USER
 // ==========================
@@ -61,22 +22,12 @@ async function loadUser() {
 
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
-
-  localStorage.setItem("energy", data.energy);
-  localStorage.setItem("lastEnergy", Date.now());
 }
 
 // ==========================
 // TAP FUNCTION
 // ==========================
 async function tap() {
-  let energy = parseInt(localStorage.getItem("energy") || 0);
-
-  if (energy <= 0) {
-    alert("⚡ Energy ya ƙare!");
-    return;
-  }
-
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -86,98 +37,18 @@ async function tap() {
   const data = await res.json();
 
   document.getElementById("balance").innerText = data.balance;
-
-  energy--;
-  localStorage.setItem("energy", energy);
-  document.getElementById("energy").innerText = energy;
+  document.getElementById("energy").innerText = data.energy;
 }
 
 // ==========================
-// ENERGY AUTO REFILL
+// REFERRAL LINK
 // ==========================
-setInterval(() => {
-  let energy = parseInt(localStorage.getItem("energy") || 0);
-
-  if (energy < MAX_ENERGY) {
-    energy++;
-    localStorage.setItem("energy", energy);
-    document.getElementById("energy").innerText = energy;
-  }
-}, ENERGY_REGEN_TIME);
+document.getElementById("refLink").value =
+  window.location.origin + "?ref=" + userId;
 
 // ==========================
-loadUser();
-// ==========================
-// DAILY LOGIN BONUS
-// ==========================
-const BONUS_AMOUNT = 10;
-const BONUS_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
-
-function checkDailyBonus() {
-  const lastBonus = localStorage.getItem("lastBonus");
-  const now = Date.now();
-
-  if (!lastBonus || now - lastBonus >= BONUS_INTERVAL) {
-    giveDailyBonus();
-  }
-}
-
-function giveDailyBonus() {
-  let balance = parseInt(document.getElementById("balance").innerText);
-
-  balance += BONUS_AMOUNT;
-  document.getElementById("balance").innerText = balance;
-
-  localStorage.setItem("lastBonus", Date.now());
-
-  alert("🎁 Daily Bonus: +" + BONUS_AMOUNT + " TT");
-}
-checkDailyBonus();
-// ==========================
-// REFERRAL SYSTEM
-// ==========================
-
-const REF_BONUS = 20;
-
-// Get referral from URL
-const urlParams = new URLSearchParams(window.location.search);
-const refId = urlParams.get("ref");
-
-// Save referrer once
-if (refId && !localStorage.getItem("referredBy")) {
-  localStorage.setItem("referredBy", refId);
-}
-
-// Give bonus to referrer
-function giveReferralBonus() {
-  const referredBy = localStorage.getItem("referredBy");
-  const bonusGiven = localStorage.getItem("bonusGiven");
-
-  if (referredBy && !bonusGiven) {
-    fetch("/referral", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        referrerId: referredBy
-      })
-    });
-
-    localStorage.setItem("bonusGiven", "true");
-  }
-}
-giveReferralBonus();
-// COPY REF LINK
-function copyLink() {
-  const link = document.getElementById("refLink");
-  link.select();
-  link.setSelectionRange(0, 99999);
-  document.execCommand("copy");
-  alert("Referral link copied!");
-}
-
 // LOAD REF COUNT
+// ==========================
 async function loadRefCount() {
   const res = await fetch("/ref-count", {
     method: "POST",
@@ -190,5 +61,8 @@ async function loadRefCount() {
     "Referrals: " + data.count;
 }
 
-// kira shi bayan load
+// ==========================
+// ON LOAD
+// ==========================
+loadUser();
 loadRefCount();
