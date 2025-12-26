@@ -41,5 +41,10 @@ async function tap() {
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
 }
-
+function copyLink() {
+  navigator.clipboard.writeText(
+    window.location.origin + "?ref=" + userId
+  );
+  alert("Link copied!");
+}
 loadUser();
