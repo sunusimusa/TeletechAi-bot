@@ -4,52 +4,52 @@
   <meta charset="UTF-8" />
   <title>TeleTech AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Telegram WebApp -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
 
-  <h1>🚀 TeleTech AI</h1>
-  <h3>Tap & Earn</h3>
+  <div class="app">
 
-  <!-- TAP BUTTON -->
-  <div id="tap" onclick="tap()">TAP</div>
+    <h1>⚡ TeleTech AI</h1>
 
-  <!-- STATS -->
-  <p>⚡ Energy: <span id="energy">0</span></p>
-  <p>💰 Balance: <span id="balance">0</span></p>
+    <div class="stats">
+      <div class="box">
+        <span>Balance</span>
+        <h2 id="balance">0</h2>
+      </div>
 
-  <!-- REFERRAL -->
-  <input id="refLink" readonly />
-  <button onclick="copyLink()">Copy Invite Link</button>
+      <div class="box">
+        <span>Energy</span>
+        <h2 id="energy">0</h2>
+      </div>
+    </div>
 
-  <!-- DAILY -->
-  <button id="dailyBtn" onclick="claimDaily()">🎁 Daily Reward</button>
-  <p id="dailyMsg"></p>
+    <!-- TAP BUTTON -->
+    <div id="tap" onclick="tap()">
+      <span>TAP</span>
+    </div>
 
-  <!-- WITHDRAW -->
-  <h3>Withdraw</h3>
-  <input id="wallet" placeholder="Enter wallet address" />
-  <button onclick="withdraw()">Withdraw</button>
-  <p id="withdrawMsg"></p>
+    <!-- DAILY -->
+    <button class="btn" onclick="claimDaily()">🎁 Daily Reward</button>
+    <p id="dailyMsg"></p>
 
-  <!-- SCRIPT -->
+    <!-- REFERRAL -->
+    <div class="ref-box">
+      <input id="refLink" readonly />
+      <button onclick="copyLink()">Copy Invite</button>
+    </div>
+
+    <!-- WITHDRAW -->
+    <div class="withdraw">
+      <input id="wallet" placeholder="Wallet Address" />
+      <button onclick="withdraw()">Withdraw</button>
+      <p id="withdrawMsg"></p>
+    </div>
+
+  </div>
+
   <script src="script.js"></script>
-
-  <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
-
-    function copyLink() {
-      const link = document.getElementById("refLink").value;
-      navigator.clipboard.writeText(link);
-      alert("Copied!");
-    }
-  </script>
-
 </body>
 </html>
