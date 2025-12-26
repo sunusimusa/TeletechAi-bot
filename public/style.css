@@ -89,3 +89,8 @@ body {
   transform: scale(0.9);
   box-shadow: 0 0 40px #00ff99;
 }
+#tapImg {
+  width: 120px;
+  height: 120px;
+  pointer-events: none;
+}
