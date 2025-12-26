@@ -1,6 +1,3 @@
-// ==========================
-// USER ID
-// ==========================
 let userId = localStorage.getItem("uid");
 
 if (!userId) {
@@ -8,9 +5,6 @@ if (!userId) {
   localStorage.setItem("uid", userId);
 }
 
-// ==========================
-// LOAD USER
-// ==========================
 async function loadUser() {
   const res = await fetch("/user", {
     method: "POST",
@@ -24,9 +18,6 @@ async function loadUser() {
   document.getElementById("energy").innerText = data.energy;
 }
 
-// ==========================
-// TAP
-// ==========================
 async function tap() {
   const res = await fetch("/tap", {
     method: "POST",
@@ -40,9 +31,6 @@ async function tap() {
   document.getElementById("energy").innerText = data.energy;
 }
 
-// ==========================
-// REF LINK
-// ==========================
 document.getElementById("refLink").value =
   window.location.origin + "?ref=" + userId;
 
@@ -53,5 +41,4 @@ function copyLink() {
   alert("Invite link copied!");
 }
 
-// ==========================
 loadUser();
