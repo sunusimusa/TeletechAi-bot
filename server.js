@@ -5,6 +5,22 @@ const path = require("path");
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
+async function checkTelegramJoin(userId, channel) {
+  const url = `${TELEGRAM_API}/getChatMember?chat_id=@${channel}&user_id=${userId}`;
+
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+
+    if (!data.ok) return false;
+
+    const status = data.result.status;
+    return ["member", "administrator", "creator"].includes(status);
+  } catch (e) {
+    return false;
+  }
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
