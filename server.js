@@ -4,15 +4,8 @@ const path = require("path");
 
 const app = express();
 app.use(express.json());
+app.use(express.static("public"));
 
-// =======================
-// STATIC FRONTEND
-// =======================
-app.use(express.static(path.join(__dirname, "public")));
-
-// =======================
-// DATABASE
-// =======================
 const DB_FILE = "./users.json";
 let users = {};
 
@@ -24,19 +17,14 @@ function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
 }
 
-// =======================
-// ANTI-SPAM MEMORY
-// =======================
-const tapCooldown = {};
+// CONFIG
 const MAX_ENERGY = 100;
-const ENERGY_REGEN_TIME = 30 * 1000; // 30 seconds
+const ENERGY_REGEN = 30000; // 30 sec
+const tapCooldown = {};
 
-// =======================
-// CREATE / GET USER
-// =======================
+// ================= USER =================
 app.post("/user", (req, res) => {
   const { userId, ref } = req.body;
-  if (!userId) return res.json({ error: "No userId" });
 
   if (!users[userId]) {
     users[userId] = {
@@ -47,25 +35,16 @@ app.post("/user", (req, res) => {
     };
   }
 
-  // ✅ ENERGY REGEN
+  // ENERGY REGEN
   const now = Date.now();
-  const passed = Math.floor((now - users[userId].lastEnergy) / ENERGY_REGEN_TIME);
-
+  const passed = Math.floor((now - users[userId].lastEnergy) / ENERGY_REGEN);
   if (passed > 0) {
-    users[userId].energy = Math.min(
-      MAX_ENERGY,
-      users[userId].energy + passed
-    );
+    users[userId].energy = Math.min(MAX_ENERGY, users[userId].energy + passed);
     users[userId].lastEnergy = now;
   }
 
-  // ✅ REFERRAL
-  if (
-    ref &&
-    ref !== userId &&
-    users[ref] &&
-    !users[ref].refs.includes(userId)
-  ) {
+  // REFERRAL
+  if (ref && ref !== userId && users[ref] && !users[ref].refs.includes(userId)) {
     users[ref].balance += 10;
     users[ref].refs.push(userId);
   }
@@ -74,28 +53,20 @@ app.post("/user", (req, res) => {
   res.json(users[userId]);
 });
 
-// =======================
-// TAP
-// =======================
+// ================= TAP =================
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
-  if (!users[userId]) return res.json({ error: "User not found" });
-
   const now = Date.now();
 
-  // regen before tap
-  const passed = Math.floor((now - users[userId].lastEnergy) / ENERGY_REGEN_TIME);
-  if (passed > 0) {
-    users[userId].energy = Math.min(
-      MAX_ENERGY,
-      users[userId].energy + passed
-    );
-    users[userId].lastEnergy = now;
-  }
+  if (!users[userId]) return res.json({ error: "User not found" });
 
-  if (users[userId].energy <= 0) {
+  if (tapCooldown[userId] && now - tapCooldown[userId] < 500) {
     return res.json(users[userId]);
   }
+
+  tapCooldown[userId] = now;
+
+  if (users[userId].energy <= 0) return res.json(users[userId]);
 
   users[userId].energy -= 1;
   users[userId].balance += 1;
@@ -104,62 +75,27 @@ app.post("/tap", (req, res) => {
   res.json(users[userId]);
 });
 
-// =======================
-// REF COUNT
-// =======================
-app.post("/ref-count", (req, res) => {
-  const { userId } = req.body;
-  res.json({ count: users[userId]?.refs?.length || 0 });
-});
-
-// =======================
-// ADMIN PANEL
-// =======================
-const ADMIN_PASSWORD = "admin123";
-
+// ================= ADMIN =================
 app.get("/admin", (req, res) => {
-  if (req.query.pass !== ADMIN_PASSWORD)
-    return res.send("❌ Access denied");
+  if (req.query.pass !== "admin123") return res.send("Access denied");
 
   let html = `
-  <html>
-  <head>
-    <title>Admin</title>
-    <style>
-      body { background:#111; color:white; font-family:sans-serif; }
-      table { width:100%; border-collapse:collapse; }
-      td, th { border:1px solid #333; padding:8px; }
-      th { background:#222; }
-    </style>
-  </head>
-  <body>
-  <h2>📊 Admin Dashboard</h2>
-  <table>
-    <tr><th>User</th><th>Balance</th><th>Energy</th><th>Refs</th></tr>
+  <h2>Admin Panel</h2>
+  <table border="1">
+  <tr><th>User</th><th>Balance</th><th>Energy</th><th>Refs</th></tr>
   `;
 
   for (let id in users) {
-    html += `
-      <tr>
-        <td>${id}</td>
-        <td>${users[id].balance}</td>
-        <td>${users[id].energy}</td>
-        <td>${users[id].refs.length}</td>
-      </tr>
-    `;
+    html += `<tr>
+      <td>${id}</td>
+      <td>${users[id].balance}</td>
+      <td>${users[id].energy}</td>
+      <td>${users[id].refs.length}</td>
+    </tr>`;
   }
 
-  html += "</table></body></html>";
+  html += "</table>";
   res.send(html);
 });
 
-// =======================
-// FALLBACK
-// =======================
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
-// =======================
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on", PORT));
+app.listen(3000, () => console.log("Server running"));
