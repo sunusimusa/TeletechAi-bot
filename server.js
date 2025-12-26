@@ -104,7 +104,51 @@ app.post("/referral", (req, res) => {
 app.get("/", (req, res) => {
   res.send("TeleTech AI Server Running");
 });
+// ========================
+// ADMIN AUTH (simple)
+// ========================
+const ADMIN_PASSWORD = "admin123"; // canza daga baya
 
+app.get("/admin", (req, res) => {
+  const pass = req.query.pass;
+
+  if (pass !== ADMIN_PASSWORD) {
+    return res.send("❌ Access denied");
+  }
+
+  res.send(`
+    <html>
+    <head>
+      <title>Admin Dashboard</title>
+      <style>
+        body { font-family: Arial; background:#0d1117; color:white; padding:20px; }
+        table { width:100%; border-collapse: collapse; }
+        th, td { border:1px solid #444; padding:8px; }
+        th { background:#222; }
+      </style>
+    </head>
+    <body>
+      <h2>📊 Admin Dashboard</h2>
+      <table>
+        <tr>
+          <th>User ID</th>
+          <th>Balance</th>
+          <th>Energy</th>
+          <th>Referrals</th>
+        </tr>
+        ${Object.entries(users).map(([id, u]) => `
+          <tr>
+            <td>${id}</td>
+            <td>${u.balance}</td>
+            <td>${u.energy}</td>
+            <td>${u.refs?.length || 0}</td>
+          </tr>
+        `).join("")}
+      </table>
+    </body>
+    </html>
+  `);
+});
 // ==========================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
