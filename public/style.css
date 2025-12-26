@@ -1,58 +1,39 @@
 body {
-  background: #0b1020;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(180deg, #0b1220, #05070d);
   color: white;
   text-align: center;
-  font-family: Arial;
+}
+
+.container {
+  padding-top: 50px;
 }
 
 #tapBtn {
-  width: 220px;
-  height: 220px;
-  margin: 40px auto;
+  width: 240px;
+  height: 240px;
   border-radius: 50%;
   background: radial-gradient(circle, #2ecc71, #27ae60);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32px;
-  font-weight: bold;
+  margin: 40px auto;
+  box-shadow: 0 0 40px rgba(46, 204, 113, 0.8);
   cursor: pointer;
-}
-.ad-box {
-  margin: 30px auto;
-  padding: 15px;
-  background: #111827;
-  border-radius: 12px;
-  width: 90%;
-  max-width: 320px;
-  text-align: center;
-  box-shadow: 0 0 10px rgba(0,255,200,0.2);
+  transition: transform 0.1s ease;
 }
 
-.ad-title {
-  color: #00ffcc;
-  font-size: 14px;
-  margin-bottom: 8px;
+#tapBtn:active {
+  transform: scale(0.95);
 }
 
-.ad-img {
-  width: 100%;
-  border-radius: 10px;
+#tapBtn img {
+  width: 130px;
+  height: 130px;
 }
 
-.ad-btn {
+.info {
+  color: #aaa;
   margin-top: 10px;
-  padding: 10px 20px;
-  background: #00ffcc;
-  border: none;
-  border-radius: 20px;
-  color: #000;
-  font-weight: bold;
-  cursor: pointer;
-}
-.logo {
-  width: 110px;
-  margin: 20px auto 10px;
-  display: block;
-  border-radius: 50%;
 }
