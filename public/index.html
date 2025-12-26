@@ -4,7 +4,11 @@
   <meta charset="UTF-8" />
   <title>TeleTech AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- Telegram -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
@@ -35,21 +39,22 @@
     <button class="btn" onclick="claimDaily()">🎁 Daily Reward</button>
     <p id="dailyMsg"></p>
 
+    <!-- TASKS -->
     <h3>🎯 Tasks</h3>
 
-<div class="task">
-  <button onclick="openTask('tg')">📢 Join Telegram Channel</button>
-</div>
+    <div class="task">
+      <button onclick="openTask('tg')">📢 Join Telegram Channel</button>
+    </div>
 
-<div class="task">
-  <button onclick="openTask('yt')">▶️ Subscribe YouTube</button>
-</div>
+    <div class="task">
+      <button onclick="openTask('yt')">▶️ Subscribe YouTube</button>
+    </div>
 
-<div class="task">
-  <button onclick="openTask('chat')">💬 Join Public Chat</button>
-</div>
+    <div class="task">
+      <button onclick="openTask('chat')">💬 Join Public Chat</button>
+    </div>
 
-<p id="taskMsg"></p>
+    <p id="taskMsg"></p>
 
     <!-- REFERRAL -->
     <div class="ref-box">
@@ -66,6 +71,7 @@
 
   </div>
 
+  <!-- JS MUST BE LAST -->
   <script src="script.js"></script>
 </body>
 </html>
