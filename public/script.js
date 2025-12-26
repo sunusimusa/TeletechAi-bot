@@ -1,28 +1,14 @@
-// Telegram Init
-let tg = window.Telegram?.WebApp;
+const tg = window.Telegram?.WebApp;
 if (tg) tg.expand();
 
-// USER ID
-let userId = localStorage.getItem("userId");
+const userId =
+  localStorage.getItem("uid") || Math.floor(Math.random() * 1000000);
+localStorage.setItem("uid", userId);
 
-if (!userId) {
-  if (tg && tg.initDataUnsafe?.user) {
-    userId = tg.initDataUnsafe.user.id;
-  } else {
-    userId = Math.floor(Math.random() * 1000000);
-  }
-  localStorage.setItem("userId", userId);
-}
-
-// Referral link
-document.getElementById("refLink").value =
-  window.location.origin + "?ref=" + userId;
-
-// Get ref param
 const params = new URLSearchParams(window.location.search);
 const ref = params.get("ref");
 
-// Load user
+// LOAD USER
 async function loadUser() {
   const res = await fetch("/user", {
     method: "POST",
@@ -48,9 +34,10 @@ async function tap() {
   document.getElementById("energy").innerText = data.energy;
 }
 
-// COPY LINK
+// COPY REF
 function copyLink() {
-  navigator.clipboard.writeText(document.getElementById("refLink").value);
+  const link = `${location.origin}?ref=${userId}`;
+  navigator.clipboard.writeText(link);
   alert("Copied!");
 }
 
