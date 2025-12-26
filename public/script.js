@@ -1,12 +1,10 @@
-// CREATE USER ID
 let userId = localStorage.getItem("uid");
 
 if (!userId) {
-  userId = "user_" + Math.floor(Math.random() * 1000000000);
+  userId = Math.floor(Math.random() * 1000000);
   localStorage.setItem("uid", userId);
 }
 
-// LOAD BALANCE
 async function loadUser() {
   const res = await fetch("/user", {
     method: "POST",
@@ -15,10 +13,11 @@ async function loadUser() {
   });
 
   const data = await res.json();
-  document.getElementById("balance").innerText = "Balance: " + data.balance + " TT";
+
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("energy").innerText = data.energy;
 }
 
-// TAP FUNCTION
 async function tap() {
   const res = await fetch("/tap", {
     method: "POST",
@@ -27,7 +26,14 @@ async function tap() {
   });
 
   const data = await res.json();
-  document.getElementById("balance").innerText = "Balance: " + data.balance + " TT";
+
+  if (data.error) {
+    alert("⚡ Energy ya ƙare!");
+    return;
+  }
+
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("energy").innerText = data.energy;
 }
 
-window.onload = loadUser;
+loadUser();
