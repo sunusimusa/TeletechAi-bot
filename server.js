@@ -142,6 +142,17 @@ app.post("/task", (req, res) => {
   });
 });
 
+app.post("/wallet", (req, res) => {
+  const { userId, address } = req.body;
+
+  if (!users[userId]) return res.json({ error: "User not found" });
+
+  users[userId].wallet = address;
+  saveUsers();
+
+  res.json({ success: true });
+});
+
 // ==========================
 // TASK / VERIFY JOIN
 // ==========================
