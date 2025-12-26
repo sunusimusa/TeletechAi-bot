@@ -50,3 +50,9 @@ body {
   font-weight: bold;
   cursor: pointer;
 }
+.logo {
+  width: 110px;
+  margin: 20px auto 10px;
+  display: block;
+  border-radius: 50%;
+}
