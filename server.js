@@ -69,5 +69,26 @@ app.get("/ref/:refId/:newId", (req, res) => {
   saveUsers(users);
   res.json({ success: true });
 });
+app.post("/user", (req, res) => {
+  const { userId } = req.body;
+
+  if (!users[userId]) {
+    users[userId] = { balance: 0 };
+  }
+
+  res.json({ balance: users[userId].balance });
+});
+
+app.post("/tap", (req, res) => {
+  const { userId } = req.body;
+
+  if (!users[userId]) {
+    users[userId] = { balance: 0 };
+  }
+
+  users[userId].balance += 1;
+
+  res.json({ balance: users[userId].balance });
+});
 
 app.listen(3000, () => console.log("Server running"));
