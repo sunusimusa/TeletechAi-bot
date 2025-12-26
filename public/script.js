@@ -134,3 +134,4 @@ function giveReferralBonus() {
     localStorage.setItem("bonusGiven", "true");
   }
 }
+giveReferralBonus();
