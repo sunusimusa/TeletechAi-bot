@@ -81,6 +81,26 @@ app.post("/tap", (req, res) => {
     energy: users[userId].energy
   });
 });
+// ==========================
+// ADS SYSTEM
+// ==========================
+const ads = [
+  {
+    title: "Join Crypto Airdrop",
+    link: "https://t.me/yourchannel",
+    image: "https://i.imgur.com/9QZ4FQh.png"
+  },
+  {
+    title: "Earn with Surveys",
+    link: "https://example.com",
+    image: "https://i.imgur.com/3Y1kX9F.png"
+  }
+];
+
+app.get("/ads", (req, res) => {
+  const ad = ads[Math.floor(Math.random() * ads.length)];
+  res.json(ad);
+});
 
 // =======================
 // START SERVER
