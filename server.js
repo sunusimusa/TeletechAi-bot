@@ -1,30 +1,40 @@
 const express = require("express");
 const fs = require("fs");
 const path = require("path");
-// anti spam memory
-const tapCooldown = {};
 
 const app = express();
 app.use(express.json());
 
-// serve frontend
+// =======================
+// STATIC FRONTEND
+// =======================
 app.use(express.static(path.join(__dirname, "public")));
 
+// =======================
 // DATABASE
+// =======================
 const DB_FILE = "./users.json";
 let users = {};
+
 if (fs.existsSync(DB_FILE)) {
   users = JSON.parse(fs.readFileSync(DB_FILE));
 }
+
 function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
 }
 
-// ==========================
-// GET/CREATE USER
-// ==========================
+// =======================
+// ANTI-SPAM MEMORY
+// =======================
+const tapCooldown = {};
+
+// =======================
+// CREATE / GET USER
+// =======================
 app.post("/user", (req, res) => {
   const { userId, ref } = req.body;
+  if (!userId) return res.json({ error: "No userId" });
 
   if (!users[userId]) {
     users[userId] = {
@@ -34,7 +44,7 @@ app.post("/user", (req, res) => {
     };
   }
 
-  // ✅ REFERRAL ANTI-CHEAT
+  // ✅ REFERRAL PROTECTION
   if (
     ref &&
     ref !== userId &&
@@ -49,16 +59,15 @@ app.post("/user", (req, res) => {
   res.json(users[userId]);
 });
 
-// ==========================
+// =======================
 // TAP
-// ==========================
+// =======================
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
-  const now = Date.now();
-
   if (!users[userId]) return res.json({ error: "User not found" });
 
-  // Anti spam (1 tap per 800ms)
+  const now = Date.now();
+
   if (tapCooldown[userId] && now - tapCooldown[userId] < 800) {
     return res.json({ error: "Too fast" });
   }
@@ -72,52 +81,51 @@ app.post("/tap", (req, res) => {
   users[userId].energy -= 1;
   users[userId].balance += 1;
 
-  save();
-
+  saveUsers();
   res.json(users[userId]);
 });
 
-// ==========================
+// =======================
 // REF COUNT
-// ==========================
+// =======================
 app.post("/ref-count", (req, res) => {
   const { userId } = req.body;
-  const count = users[userId]?.refs?.length || 0;
-  res.json({ count });
+  res.json({ count: users[userId]?.refs?.length || 0 });
 });
 
-// ==========================
-// ADMIN
-// ==========================
+// =======================
+// ADMIN PANEL
+// =======================
 const ADMIN_PASSWORD = "admin123";
 
 app.get("/admin", (req, res) => {
-  const pass = req.query.pass;
-  if (pass !== ADMIN_PASSWORD) {
+  if (req.query.pass !== ADMIN_PASSWORD)
     return res.send("❌ Access denied");
-  }
 
   let html = `
-    <html><head><title>Admin</title>
+  <html>
+  <head>
+    <title>Admin</title>
     <style>
-      body { font-family: Arial; background: #111; color: white; padding: 20px; }
-      table { width: 100%; border-collapse: collapse; }
-      th, td { border: 1px solid #444; padding: 8px; }
-      th { background: #222; }
+      body { background:#111; color:white; font-family:sans-serif; }
+      table { width:100%; border-collapse:collapse; }
+      td, th { border:1px solid #333; padding:8px; }
+      th { background:#222; }
     </style>
-    </head><body>
-    <h2>📊 Admin Dashboard</h2>
-    <table>
-      <tr><th>User</th><th>Balance</th><th>Energy</th><th>Refs</th></tr>
+  </head>
+  <body>
+  <h2>📊 Admin Dashboard</h2>
+  <table>
+    <tr><th>User</th><th>Balance</th><th>Energy</th><th>Refs</th></tr>
   `;
 
-  for (const id in users) {
+  for (let id in users) {
     html += `
       <tr>
         <td>${id}</td>
         <td>${users[id].balance}</td>
         <td>${users[id].energy}</td>
-        <td>${users[id].refs?.length || 0}</td>
+        <td>${users[id].refs.length}</td>
       </tr>
     `;
   }
@@ -126,13 +134,13 @@ app.get("/admin", (req, res) => {
   res.send(html);
 });
 
-// ==========================
-// CATCH ALL
-// ==========================
+// =======================
+// FALLBACK
+// =======================
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// ==========================
+// =======================
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log("Server running on " + PORT));
+app.listen(PORT, () => console.log("Server running on", PORT));
