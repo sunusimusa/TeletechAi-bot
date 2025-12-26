@@ -27,18 +27,40 @@ function saveUsers() {
 // ===============================
 // GET USER / CREATE USER
 // ===============================
-app.post("/user", (req, res) => {
+app.post("/tap", (req, res) => {
   const { userId } = req.body;
 
   if (!users[userId]) {
-  users[userId] = {
-    balance: 0,
-    energy: 100,
-    lastEnergyUpdate: Date.now(),
-    refs: []
-  };
+    users[userId] = {
+      balance: 0,
+      energy: 100,
+      lastEnergyUpdate: Date.now(),
+      refs: []
+    };
   }
+
+  // idan energy ta ƙare
+  if (users[userId].energy <= 0) {
+    return res.json({
+      balance: users[userId].balance,
+      energy: users[userId].energy,
+      message: "No energy"
+    });
+  }
+
+  // ƙara balance
+  users[userId].balance += 1;
+
+  // rage energy
+  users[userId].energy -= 1;
+
   saveUsers();
+
+  res.json({
+    balance: users[userId].balance,
+    energy: users[userId].energy
+  });
+});
   
   // Energy auto refill (1 energy / 10 sec)
   const now = Date.now();
