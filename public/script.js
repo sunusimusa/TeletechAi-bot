@@ -99,3 +99,4 @@ function giveDailyBonus() {
 
   alert("🎁 Daily Bonus: +" + BONUS_AMOUNT + " TT");
 }
+checkDailyBonus();
