@@ -74,3 +74,28 @@ setInterval(() => {
 
 // ==========================
 loadUser();
+// ==========================
+// DAILY LOGIN BONUS
+// ==========================
+const BONUS_AMOUNT = 10;
+const BONUS_INTERVAL = 24 * 60 * 60 * 1000; // 24 hours
+
+function checkDailyBonus() {
+  const lastBonus = localStorage.getItem("lastBonus");
+  const now = Date.now();
+
+  if (!lastBonus || now - lastBonus >= BONUS_INTERVAL) {
+    giveDailyBonus();
+  }
+}
+
+function giveDailyBonus() {
+  let balance = parseInt(document.getElementById("balance").innerText);
+
+  balance += BONUS_AMOUNT;
+  document.getElementById("balance").innerText = balance;
+
+  localStorage.setItem("lastBonus", Date.now());
+
+  alert("🎁 Daily Bonus: +" + BONUS_AMOUNT + " TT");
+}
