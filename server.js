@@ -125,6 +125,41 @@ app.post("/task", (req, res) => {
     balance: users[userId].balance
   });
 });
+// ==========================
+// TASK / VERIFY JOIN
+// ==========================
+app.post("/task", async (req, res) => {
+  const { userId, type } = req.body;
+
+  if (!users[userId]) return res.json({ error: "User not found" });
+
+  if (!users[userId].tasks) users[userId].tasks = {};
+
+  if (users[userId].tasks[type]) {
+    return res.json({ error: "Already completed" });
+  }
+
+  // TELEGRAM CHECK
+  if (type === "tg") {
+    const joined = await checkTelegramJoin(userId, "YOUR_CHANNEL_USERNAME");
+    if (!joined) {
+      return res.json({ error: "❌ Join channel first" });
+    }
+  }
+
+  // REWARD
+  const reward = 5;
+  users[userId].balance += reward;
+  users[userId].tasks[type] = true;
+
+  saveUsers();
+
+  res.json({
+    success: true,
+    reward,
+    balance: users[userId].balance
+  });
+});
 
 // DAILY REWARD
 app.post("/daily", (req, res) => {
