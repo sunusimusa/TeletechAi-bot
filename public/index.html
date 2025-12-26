@@ -1,28 +1,27 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <img src="assets/logo.png" class="logo" />
-  <title>Teletech AI</title>
+  <meta charset="UTF-8">
+  <title>TeleTech AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<h1>🚀 Teletech AI</h1>
-<p>Tap & Earn</p>
+  <div class="container">
+    <h1>🚀 Teletech AI</h1>
+    <p>Tap & Earn</p>
 
-<h2>Balance: <span id="balance">0</span> TT</h2>
+    <h2>Balance: <span id="balance">0</span> TT</h2>
 
-<div id="tapBtn" onclick="tap()">TAP</div>
+    <!-- TAP BUTTON -->
+    <div id="tapBtn" onclick="tap()">
+      <img src="tap.png" alt="Tap">
+    </div>
 
-<p>One tap = +1 TT</p>
+    <p class="info">One tap = +1 TT</p>
+  </div>
 
- <!-- AD BANNER -->
-<div class="ad-box">
-  <p class="ad-title">Sponsored</p>
-  <img src="assets/ad.png" class="ad-img">
-  <button class="ad-btn">Learn More</button>
-</div> 
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
