@@ -82,3 +82,23 @@ h1 {
   border-radius: 6px;
   border: none;
 }
+#tap {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2cff8f, #0aa85f);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 40px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+  box-shadow: 0 0 25px rgba(0, 255, 150, 0.6);
+}
+
+#tap:active {
+  transform: scale(0.9);
+  box-shadow: 0 0 10px rgba(0, 255, 150, 0.9);
+}
