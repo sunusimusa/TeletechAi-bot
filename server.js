@@ -3,6 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const REF_BONUS = 10;
 const DAILY_REWARD = 50; // zaka iya canza
+const MIN_WITHDRAW = 100; // zaka iya canzawa
 
 const app = express();
 app.use(express.json());
