@@ -2,38 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TeleTech AI</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-<div class="app">
-
+<div class="container">
   <h1>🚀 TeleTech AI</h1>
-  <p class="sub">Tap & Earn</p>
+  <p class="subtitle">Tap & Earn</p>
 
-  <div class="balance">
-    <span id="balance">0</span> TT
-  </div>
+  <h2 id="balance">0 TT</h2>
 
-  <div id="tapBtn" class="tap-circle" onclick="tap()">
-  <img src="/logo.png" id="tapImg" />
-  </div>
+  <div class="tap-circle" onclick="tap()">
+    <img src="logo.png" alt="Tap" />
   </div>
 
-  <div class="energy">
-    ⚡ Energy: <span id="energy">0</span>
-  </div>
+  <p class="energy">⚡ Energy: <span id="energy">100</span></p>
 
-  <div class="ref-box">
-    <input id="refLink" readonly />
-    <button onclick="copyLink()">Copy Invite Link</button>
-  </div>
-  
+  <input id="refLink" readonly />
   <button onclick="copyLink()">Copy Invite Link</button>
-
 </div>
 
 <script src="script.js"></script>
