@@ -1,35 +1,84 @@
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
+
 body {
-  background: #0f172a;
+  background: radial-gradient(circle at top, #0f172a, #020617);
   color: white;
   text-align: center;
-  font-family: Arial;
+  margin: 0;
+  padding: 20px;
+}
+
+.app {
+  max-width: 400px;
+  margin: auto;
+}
+
+h1 {
+  margin-bottom: 10px;
+}
+
+.stats {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.box {
+  background: #111827;
+  padding: 10px;
+  border-radius: 12px;
+  width: 48%;
 }
 
 #tap {
-  width: 200px;
-  height: 200px;
-  margin: 40px auto;
+  width: 220px;
+  height: 220px;
+  margin: 30px auto;
   border-radius: 50%;
-  background: radial-gradient(circle, #22c55e, #15803d);
+  background: radial-gradient(circle, #22c55e, #16a34a);
   display: flex;
-  justify-content: center;
   align-items: center;
-  font-size: 32px;
+  justify-content: center;
+  font-size: 28px;
   font-weight: bold;
   cursor: pointer;
-  box-shadow: 0 0 40px #22c55e;
+  box-shadow: 0 0 40px rgba(34,197,94,.7);
+  transition: transform .1s;
 }
 
 #tap:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
-#dailyBtn {
-  margin-top: 15px;
-  padding: 12px 25px;
-  border: none;
-  border-radius: 10px;
+
+.btn {
   background: gold;
-  color: black;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 8px;
+  margin: 10px 0;
   font-weight: bold;
   cursor: pointer;
+}
+
+.ref-box {
+  margin-top: 15px;
+}
+
+.ref-box input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+  margin-bottom: 6px;
+}
+
+.withdraw input {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: none;
 }
