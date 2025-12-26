@@ -30,16 +30,24 @@ function saveUsers() {
 app.post("/user", (req, res) => {
   const { userId } = req.body;
 
-  if (!userId) {
-    return res.json({ balance: 0 });
-  }
-
   if (!users[userId]) {
-    users[userId] = { balance: 0 };
-    saveUsers();
+    users[userId] = {
+      balance: 0,
+      energy: 100,
+      lastEnergyUpdate: Date.now()
+    };
   }
 
-  res.json({ balance: users[userId].balance });
+  // Energy auto refill (1 energy / 10 sec)
+  const now = Date.now();
+  const diff = Math.floor((now - users[userId].lastEnergyUpdate) / 10000);
+
+  if (diff > 0) {
+    users[userId].energy = Math.min(100, users[userId].energy + diff);
+    users[userId].lastEnergyUpdate = now;
+  }
+
+  res.json(users[userId]);
 });
 
 // ===============================
@@ -48,18 +56,21 @@ app.post("/user", (req, res) => {
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
 
-  if (!userId) {
-    return res.json({ balance: 0 });
-  }
-
   if (!users[userId]) {
-    users[userId] = { balance: 0 };
+    return res.json({ error: "User not found" });
   }
 
-  users[userId].balance += 1;
-  saveUsers();
+  if (users[userId].energy <= 0) {
+    return res.json({ error: "No energy" });
+  }
 
-  res.json({ balance: users[userId].balance });
+  users[userId].energy -= 1;
+  users[userId].balance += 1;
+
+  res.json({
+    balance: users[userId].balance,
+    energy: users[userId].energy
+  });
 });
 
 // ===============================
