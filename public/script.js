@@ -79,15 +79,15 @@ function openTask(type) {
   let url = "";
 
   if (type === "tg") {
-    url = "https://t.me/YOUR_CHANNEL";
+    url = "https://t.me/TeleAIupdates";
   }
 
   if (type === "yt") {
-    url = "https://youtube.com/@YOUR_CHANNEL";
+    url = "https://youtube.com/@Sunusicrypto";
   }
 
   if (type === "chat") {
-    url = "https://t.me/YOUR_PUBLIC_CHAT";
+    url = "https://t.me/tele_tap_ai";
   }
 
   window.open(url, "_blank");
