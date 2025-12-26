@@ -149,6 +149,8 @@ app.get("/admin", (req, res) => {
     </html>
   `);
 });
+saveUsers()
+
 // ==========================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
