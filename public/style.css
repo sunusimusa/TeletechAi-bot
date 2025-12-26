@@ -36,3 +36,26 @@ body {
 .info {
   color: #aaa;
 }
+#tapBtn {
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #2ecc71, #1e8449);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 40px auto;
+  cursor: pointer;
+  box-shadow: 0 0 40px rgba(46, 204, 113, 0.8);
+  transition: transform 0.1s ease;
+}
+
+#tapBtn:active {
+  transform: scale(0.95);
+}
+
+#tapBtn img {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+}
