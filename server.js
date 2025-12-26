@@ -2,6 +2,7 @@ const express = require("express");
 const fs = require("fs");
 const path = require("path");
 const REF_BONUS = 10;
+const DAILY_REWARD = 50; // zaka iya canza
 
 const app = express();
 app.use(express.json());
