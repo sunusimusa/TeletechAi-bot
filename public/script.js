@@ -34,6 +34,21 @@ async function tap() {
   document.getElementById("energy").innerText = data.energy;
 }
 
+async function loadUser() {
+  const res = await fetch("/user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
+
+  const data = await res.json();
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("energy").innerText = data.energy;
+}
+
+// auto refresh energy every 5s
+setInterval(loadUser, 5000);
+
 // SET REF LINK
 function setRefLink() {
   const link = `${window.location.origin}?ref=${userId}`;
