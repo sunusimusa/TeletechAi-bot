@@ -82,5 +82,38 @@ app.post("/daily", (req, res) => {
     balance: users[userId].balance
   });
 });
+// ==========================
+// WITHDRAW REQUEST
+// ==========================
+app.post("/withdraw", (req, res) => {
+  const { userId, wallet } = req.body;
+
+  if (!users[userId]) {
+    return res.json({ error: "User not found" });
+  }
+
+  if (!wallet || wallet.length < 5) {
+    return res.json({ error: "Invalid wallet address" });
+  }
+
+  if (users[userId].balance < MIN_WITHDRAW) {
+    return res.json({ error: `Minimum withdraw is ${MIN_WITHDRAW}` });
+  }
+
+  // save withdraw request
+  if (!users[userId].withdraws) users[userId].withdraws = [];
+
+  users[userId].withdraws.push({
+    amount: users[userId].balance,
+    wallet,
+    time: Date.now(),
+    status: "pending"
+  });
+
+  users[userId].balance = 0;
+
+  save();
+  res.json({ success: true });
+});
 
 app.listen(3000, () => console.log("Running..."));
