@@ -4,6 +4,7 @@ const path = require("path");
 const REF_BONUS = 10;
 const DAILY_REWARD = 50; // zaka iya canza
 const MIN_WITHDRAW = 100; // zaka iya canzawa
+const ADMIN_PASSWORD = "admin123"; // canza idan kana so
 
 const app = express();
 app.use(express.json());
@@ -100,6 +101,53 @@ app.post("/withdraw", (req, res) => {
     return res.json({ error: `Minimum withdraw is ${MIN_WITHDRAW}` });
   }
 
+  // =======================
+// ADMIN DASHBOARD
+// =======================
+app.get("/admin", (req, res) => {
+  const pass = req.query.pass;
+  if (pass !== ADMIN_PASSWORD) {
+    return res.send("❌ Access Denied");
+  }
+
+  let html = `
+  <h2>Withdraw Requests</h2>
+  <table border="1" cellpadding="10">
+    <tr>
+      <th>User</th>
+      <th>Amount</th>
+      <th>Wallet</th>
+      <th>Status</th>
+      <th>Action</th>
+    </tr>
+  `;
+
+  for (const userId in users) {
+    const u = users[userId];
+    if (!u.withdraws) continue;
+
+    u.withdraws.forEach((w, index) => {
+      html += `
+        <tr>
+          <td>${userId}</td>
+          <td>${w.amount}</td>
+          <td>${w.wallet}</td>
+          <td>${w.status}</td>
+          <td>
+            ${
+              w.status === "pending"
+                ? `<a href="/approve?uid=${userId}&i=${index}&pass=${pass}">Approve</a>`
+                : "Done"
+            }
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  html += "</table>";
+  res.send(html);
+});
   // save withdraw request
   if (!users[userId].withdraws) users[userId].withdraws = [];
 
