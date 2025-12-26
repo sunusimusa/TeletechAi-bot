@@ -52,5 +52,29 @@ async function claimDaily() {
     document.getElementById("balance").innerText = data.balance;
   }
 }
+async function withdraw() {
+  const wallet = document.getElementById("wallet").value;
+
+  if (!wallet) {
+    alert("Enter wallet address");
+    return;
+  }
+
+  const res = await fetch("/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, wallet })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("withdrawMsg").innerText = data.error;
+  } else {
+    document.getElementById("withdrawMsg").innerText =
+      "✅ Withdraw request sent!";
+    document.getElementById("balance").innerText = "0 TT";
+  }
+}
 
 loadUser();
