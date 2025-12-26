@@ -1,39 +1,79 @@
+body {
+  margin: 0;
+  background: radial-gradient(circle at top, #0b1e2d, #020b13);
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+}
+
+h1 {
+  margin-top: 10px;
+}
+
+.subtitle {
+  opacity: 0.8;
+}
+
+#balance {
+  font-size: 32px;
+  margin: 15px 0;
+  font-weight: bold;
+}
+
 .tap-wrapper {
-  width: 260px;
-  height: 260px;
-  margin: 40px auto;
   display: flex;
   justify-content: center;
   align-items: center;
+  margin: 30px 0;
 }
 
 .tap-circle {
-  width: 220px;
-  height: 220px;
+  width: 260px;
+  height: 260px;
   border-radius: 50%;
-  background: radial-gradient(circle, #19ff9a, #009966);
+  background: radial-gradient(circle, #2cff9a, #009f6b);
+  box-shadow: 0 0 40px #00ff9a;
   display: flex;
-  align-items: center;
   justify-content: center;
-  box-shadow: 0 0 35px #00ff9c;
+  align-items: center;
   cursor: pointer;
-  transition: transform 0.1s ease;
-  animation: pulse 2s infinite;
+  transition: transform 0.1s;
 }
 
 .tap-circle:active {
-  transform: scale(0.9);
+  transform: scale(0.92);
 }
 
 .tap-text {
   font-size: 48px;
   font-weight: bold;
   color: #003d2b;
-  font-family: Arial, sans-serif;
 }
 
-@keyframes pulse {
-  0% { box-shadow: 0 0 15px #00ff9c; }
-  50% { box-shadow: 0 0 45px #00ff9c; }
-  100% { box-shadow: 0 0 15px #00ff9c; }
+.energy {
+  margin-top: 10px;
+  font-size: 18px;
+}
+
+input {
+  margin-top: 20px;
+  width: 90%;
+  padding: 10px;
+  border-radius: 6px;
+  border: none;
+}
+
+button {
+  margin-top: 10px;
+  padding: 12px 25px;
+  border: none;
+  border-radius: 8px;
+  background: #00ff9a;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
 }
