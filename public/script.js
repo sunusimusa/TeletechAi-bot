@@ -21,6 +21,15 @@ async function loadUser() {
 }
 
 async function tap() {
+  const circle = document.getElementById("tapBtn");
+
+  // animation start
+  circle.classList.add("active");
+
+  setTimeout(() => {
+    circle.classList.remove("active");
+  }, 150);
+
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -28,15 +37,9 @@ async function tap() {
   });
 
   const data = await res.json();
+
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
-}
-
-function copyLink() {
-  const input = document.getElementById("refLink");
-  input.select();
-  document.execCommand("copy");
-  alert("Copied!");
 }
 
 loadUser();
