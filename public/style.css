@@ -102,3 +102,12 @@ h1 {
   transform: scale(0.9);
   box-shadow: 0 0 10px rgba(0, 255, 150, 0.9);
 }
+@keyframes pulse {
+  0% { box-shadow: 0 0 10px #00ff99; }
+  50% { box-shadow: 0 0 25px #00ff99; }
+  100% { box-shadow: 0 0 10px #00ff99; }
+}
+
+#tap {
+  animation: pulse 2s infinite;
+}
