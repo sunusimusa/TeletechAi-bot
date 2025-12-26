@@ -1,6 +1,4 @@
-// ==========================
-// CREATE / GET USER ID
-// ==========================
+// CREATE USER ID
 let userId = localStorage.getItem("uid");
 
 if (!userId) {
@@ -8,45 +6,28 @@ if (!userId) {
   localStorage.setItem("uid", userId);
 }
 
-// ==========================
-// LOAD USER DATA
-// ==========================
+// LOAD BALANCE
 async function loadUser() {
-  try {
-    const res = await fetch("/user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ userId })
-    });
+  const res = await fetch("/user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
 
-    const data = await res.json();
-    document.getElementById("balance").innerText = data.balance + " TT";
-  } catch (err) {
-    console.error(err);
-  }
+  const data = await res.json();
+  document.getElementById("balance").innerText = "Balance: " + data.balance + " TT";
 }
 
-// ==========================
 // TAP FUNCTION
-// ==========================
 async function tap() {
-  try {
-    const res = await fetch("/tap", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ userId })
-    });
+  const res = await fetch("/tap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
 
-    const data = await res.json();
-    document.getElementById("balance").innerText = data.balance + " TT";
-  } catch (err) {
-    console.error(err);
-  }
+  const data = await res.json();
+  document.getElementById("balance").innerText = "Balance: " + data.balance + " TT";
 }
 
-// Load on page start
 window.onload = loadUser;
