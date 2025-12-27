@@ -17,7 +17,7 @@ const tonConnect = new TON_CONNECT_UI.TonConnectUI({
 let userId = localStorage.getItem("userId");
 
 if (!userId) {
-  userId = tg?.initDataUnsafe?.user?.id || Math.floor(Math.random() * 1000000000);
+  userId = tg?.initDataUnsafe?.user?.id || Math.floor(Math.random() * 1e9);
   localStorage.setItem("userId", userId);
 }
 
@@ -50,7 +50,7 @@ loadUser();
 // TAP SYSTEM
 // ===============================
 async function tap() {
-  if (navigator.vibrate) navigator.vibrate(30);
+  if (navigator.vibrate) navigator.vibrate(40);
 
   const btn = document.getElementById("tap");
   btn.style.transform = "scale(0.9)";
@@ -152,4 +152,4 @@ function copyLink() {
     window.location.origin + "?ref=" + userId
   );
   alert("Invite link copied!");
-    }
+  }
