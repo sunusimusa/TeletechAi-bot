@@ -11,15 +11,14 @@ app.use(express.static("public"));
 // ================= CONFIG =================
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
+
 const DB_FILE = "./users.json";
-
 const MAX_ENERGY = 100;
-const ENERGY_REGEN = 30000; // 30s
+const ENERGY_REGEN = 30000; // 30 sec
 
-let users = {};
-if (fs.existsSync(DB_FILE)) {
-  users = JSON.parse(fs.readFileSync(DB_FILE));
-}
+let users = fs.existsSync(DB_FILE)
+  ? JSON.parse(fs.readFileSync(DB_FILE))
+  : {};
 
 function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
@@ -32,12 +31,8 @@ async function checkTelegramJoin(userId, channel) {
       `${TELEGRAM_API}/getChatMember?chat_id=@${channel}&user_id=${userId}`
     );
     const data = await res.json();
-
     if (!data.ok) return false;
-
-    return ["member", "administrator", "creator"].includes(
-      data.result.status
-    );
+    return ["member", "administrator", "creator"].includes(data.result.status);
   } catch {
     return false;
   }
@@ -95,19 +90,18 @@ app.post("/tap", (req, res) => {
   });
 });
 
-// ================= DAILY =================
+// ================= DAILY REWARD =================
 app.post("/daily", (req, res) => {
   const { userId } = req.body;
-  const now = Date.now();
   const DAY = 86400000;
 
   if (!users[userId]) return res.json({ error: "User not found" });
 
-  if (now - users[userId].lastDaily < DAY)
+  if (Date.now() - users[userId].lastDaily < DAY)
     return res.json({ error: "Already claimed" });
 
+  users[userId].lastDaily = Date.now();
   users[userId].balance += 20;
-  users[userId].lastDaily = now;
 
   saveUsers();
   res.json({ reward: 20, balance: users[userId].balance });
@@ -116,11 +110,9 @@ app.post("/daily", (req, res) => {
 // ================= TASK SYSTEM =================
 app.post("/task", async (req, res) => {
   const { userId, type } = req.body;
-
   if (!users[userId]) return res.json({ error: "User not found" });
 
   if (!users[userId].tasks) users[userId].tasks = {};
-
   if (users[userId].tasks[type])
     return res.json({ error: "Task already done" });
 
@@ -136,7 +128,7 @@ app.post("/task", async (req, res) => {
   res.json({ success: true, reward: 5, balance: users[userId].balance });
 });
 
-// ================= SAVE WALLET =================
+// ================= WALLET =================
 app.post("/wallet", (req, res) => {
   const { userId, address } = req.body;
   if (!users[userId]) return res.json({ error: "User not found" });
@@ -151,8 +143,13 @@ app.post("/wallet", (req, res) => {
 app.get("/admin", (req, res) => {
   if (req.query.pass !== "admin123") return res.send("Access denied");
 
-  let html = `<h2>Admin Panel</h2><table border="1">
-  <tr><th>User</th><th>Balance</th><th>Energy</th><th>Refs</th></tr>`;
+  let html = `
+  <h2>Admin Panel</h2>
+  <table border="1">
+    <tr>
+      <th>User</th><th>Balance</th><th>Energy</th><th>Refs</th>
+    </tr>
+  `;
 
   for (let id in users) {
     html += `
@@ -168,5 +165,7 @@ app.get("/admin", (req, res) => {
   res.send(html);
 });
 
-// ================= START =================
-app.listen(3000, () => console.log("✅ Server running on port 3000"));
+// ================= START SERVER =================
+app.listen(3000, () => {
+  console.log("✅ Server running on port 3000");
+});
