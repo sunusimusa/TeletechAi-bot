@@ -3,7 +3,7 @@ tg.expand();
 
 let userId = null;
 
-// ================= INIT =================
+// INIT USER
 async function init() {
   const res = await fetch("/user", {
     method: "POST",
@@ -15,26 +15,18 @@ async function init() {
 
   const data = await res.json();
 
-  if (data.error) {
-    alert(data.error);
-    return;
-  }
-
   userId = data.id;
-
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
 
-  setReferralLink();
+  setReferral();
   loadBoard();
 }
 
 init();
 
-// ================= TAP =================
+// TAP
 async function tap() {
-  if (!userId) return alert("Loading...");
-
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -46,10 +38,8 @@ async function tap() {
   document.getElementById("energy").innerText = data.energy;
 }
 
-// ================= DAILY =================
+// DAILY
 async function daily() {
-  if (!userId) return alert("Loading...");
-
   const res = await fetch("/daily", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -61,21 +51,21 @@ async function daily() {
   document.getElementById("balance").innerText = data.balance;
 }
 
-// ================= REFERRAL =================
-function setReferralLink() {
+// REF LINK
+function setReferral() {
   document.getElementById("refLink").value =
-    `https://t.me/TeleTechAI_bot?start=${userId}`;
+    `https://t.me/YOUR_BOT_USERNAME?start=${userId}`;
 }
 
+// COPY
 function copyInvite() {
   const input = document.getElementById("refLink");
   input.select();
-  input.setSelectionRange(0, 99999);
-  navigator.clipboard.writeText(input.value);
-  alert("Invite link copied ✅");
+  document.execCommand("copy");
+  alert("Copied!");
 }
 
-// ================= LEADERBOARD =================
+// LEADERBOARD
 async function loadBoard() {
   const res = await fetch("/leaderboard");
   const data = await res.json();
