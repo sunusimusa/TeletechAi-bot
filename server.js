@@ -165,6 +165,8 @@ app.get("/admin", (req, res) => {
   res.send(html);
 });
 
+if (!users[userId].withdraws) users[userId].withdraws = [];
+
 // ================= START SERVER =================
 app.listen(3000, () => {
   console.log("✅ Server running on port 3000");
