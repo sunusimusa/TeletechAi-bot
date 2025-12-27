@@ -224,9 +224,7 @@ setInterval(() => {
     users[user.id].balance += reward;
   });
 
-  saveUsers();
-  console.log("✅ Referral rewards paid");
-}, 24 * 60 * 60 * 1000); // every 24 hours
+  
 
 // ================= START =================
 app.listen(PORT, () => {
