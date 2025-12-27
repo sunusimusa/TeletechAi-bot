@@ -17,24 +17,34 @@ function save() {
 
 // CREATE / LOAD USER
 app.post("/user", (req, res) => {
-  const tgUser = req.body.initData?.user;
-  if (!tgUser) return res.json({ error: "No Telegram user" });
+  const initData = req.body.initData;
+  if (!initData || !initData.user) return res.json({ error: "No user" });
 
-  const id = tgUser.id.toString();
+  const user = initData.user;
+  const userId = user.id.toString();
+  const ref = initData.start_param; // referral code
 
-  if (!users[id]) {
-    users[id] = {
+  if (!users[userId]) {
+    users[userId] = {
       balance: 0,
       energy: 100,
       lastDaily: 0,
       refs: []
     };
+
+    // REFERRAL REWARD
+    if (ref && users[ref] && ref !== userId) {
+      if (!users[ref].refs.includes(userId)) {
+        users[ref].refs.push(userId);
+        users[ref].balance += REF_REWARD;
+      }
+    }
   }
 
   res.json({
-    id,
-    balance: users[id].balance,
-    energy: users[id].energy
+    id: userId,
+    balance: users[userId].balance,
+    energy: users[userId].energy
   });
 });
 
