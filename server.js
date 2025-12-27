@@ -19,10 +19,9 @@ const MAX_ENERGY = 100;
 const ENERGY_REGEN = 30000;
 
 // ================= LOAD USERS =================
-let users = {};
-if (fs.existsSync(DB_FILE)) {
-  users = JSON.parse(fs.readFileSync(DB_FILE));
-}
+let users = fs.existsSync(DB_FILE)
+  ? JSON.parse(fs.readFileSync(DB_FILE))
+  : {};
 
 function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
@@ -75,7 +74,6 @@ app.post("/tap", (req, res) => {
   users[userId].balance += 1;
 
   saveUsers();
-
   res.json({
     balance: users[userId].balance,
     energy: users[userId].energy
@@ -136,95 +134,41 @@ app.post("/withdraw", (req, res) => {
   users[userId].balance -= amount;
   users[userId].withdraws.push({
     amount,
-    time: Date.now(),
-    status: "pending"
+    status: "pending",
+    time: Date.now()
   });
 
   saveUsers();
   res.json({ success: true });
 });
 
+// ================= LEADERBOARD =================
 app.get("/leaderboard", (req, res) => {
   const list = Object.entries(users)
-    .map(([id, u]) => ({
-      userId: id,
-      balance: u.balance || 0
-    }))
+    .map(([id, u]) => ({ id, balance: u.balance }))
     .sort((a, b) => b.balance - a.balance)
     .slice(0, 10);
 
   res.json(list);
 });
 
-app.get("/leaderboard", (req, res) => {
-  const list = Object.entries(users)
+// ================= AUTO PAY REFERRALS =================
+setInterval(() => {
+  console.log("⏳ Auto paying top referrers...");
+
+  const top = Object.entries(users)
     .map(([id, u]) => ({ id, refs: u.refs?.length || 0 }))
-    .sort((a, b) => b.refs - a.refs)
-    .slice(0, 10);
-
-  res.json(list);
-});
-
-app.get("/referrals", (req, res) => {
-  const list = Object.entries(users)
-    .map(([id, u]) => ({
-      userId: id,
-      refs: u.refs ? u.refs.length : 0
-    }))
-    .sort((a, b) => b.refs - a.refs)
-    .slice(0, 3);
-
-  res.json(list);
-});
-
-app.get("/admin/pay-referrals", (req, res) => {
-  if (req.query.pass !== "admin123") return res.send("Denied");
-
-  const sorted = Object.entries(users)
-    .map(([id, u]) => ({
-      id,
-      refs: u.refs?.length || 0
-    }))
     .sort((a, b) => b.refs - a.refs)
     .slice(0, 3);
 
   const rewards = [10, 5, 3];
 
-  sorted.forEach((u, i) => {
-    if (users[u.id]) {
-      users[u.id].balance += rewards[i];
-    }
+  top.forEach((u, i) => {
+    users[u.id].balance += rewards[i] || 0;
   });
 
   saveUsers();
-  res.send("✅ Referral rewards paid successfully");
-});
-
-setInterval(() => {
-  // auto pay top users every 24h
 }, 24 * 60 * 60 * 1000);
-
-// ================= AUTO PAY TOP REFERRALS =================
-setInterval(() => {
-  console.log("⏳ Running daily referral payout...");
-
-  // sort users by referrals count
-  const ranked = Object.entries(users)
-    .map(([id, u]) => ({ id, refs: u.refs?.length || 0 }))
-    .sort((a, b) => b.refs - a.refs)
-    .slice(0, 3); // Top 3
-
-  // Rewards
-  const rewards = [10, 5, 3];
-
-  ranked.forEach((user, index) => {
-    const reward = rewards[index];
-    if (!reward) return;
-
-    users[user.id].balance += reward;
-  });
-
-  
 
 // ================= START =================
 app.listen(PORT, () => {
