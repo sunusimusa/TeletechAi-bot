@@ -14,7 +14,7 @@ const TELEGRAM_API = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}`;
 
 const DB_FILE = "./users.json";
 const MAX_ENERGY = 100;
-const ENERGY_REGEN = 30000; // 30 sec
+const ENERGY_REGEN = 30000; // 30s
 
 let users = fs.existsSync(DB_FILE)
   ? JSON.parse(fs.readFileSync(DB_FILE))
@@ -32,7 +32,9 @@ async function checkTelegramJoin(userId, channel) {
     );
     const data = await res.json();
     if (!data.ok) return false;
-    return ["member", "administrator", "creator"].includes(data.result.status);
+    return ["member", "administrator", "creator"].includes(
+      data.result.status
+    );
   } catch {
     return false;
   }
@@ -50,17 +52,18 @@ app.post("/user", (req, res) => {
       lastDaily: 0,
       refs: [],
       tasks: {},
-      wallet: ""
+      wallet: "",
+      withdraws: []
     };
   }
 
-  // REFERRAL
+  // referral
   if (ref && ref !== userId && users[ref] && !users[ref].refs.includes(userId)) {
     users[ref].refs.push(userId);
     users[ref].balance += 10;
   }
 
-  // ENERGY REGEN
+  // energy regen
   const now = Date.now();
   const diff = Math.floor((now - users[userId].lastEnergy) / ENERGY_REGEN);
   if (diff > 0) {
@@ -90,33 +93,7 @@ app.post("/tap", (req, res) => {
   });
 });
 
-app.post("/withdraw", (req, res) => {
-  const { userId, amount } = req.body;
-
-  if (!users[userId]) return res.json({ error: "User not found" });
-
-  if (amount < 100)
-    return res.json({ error: "Minimum withdraw is 100" });
-
-  if (users[userId].balance < amount)
-    return res.json({ error: "Not enough balance" });
-
-  users[userId].withdraws = users[userId].withdraws || [];
-
-  users[userId].withdraws.push({
-    amount,
-    status: "pending",
-    time: Date.now()
-  });
-
-  users[userId].balance -= amount;
-
-  saveUsers();
-
-  res.json({ success: true });
-});
-
-// ================= DAILY REWARD =================
+// ================= DAILY =================
 app.post("/daily", (req, res) => {
   const { userId } = req.body;
   const DAY = 86400000;
@@ -133,12 +110,12 @@ app.post("/daily", (req, res) => {
   res.json({ reward: 20, balance: users[userId].balance });
 });
 
-// ================= TASK SYSTEM =================
+// ================= TASK =================
 app.post("/task", async (req, res) => {
   const { userId, type } = req.body;
+
   if (!users[userId]) return res.json({ error: "User not found" });
 
-  if (!users[userId].tasks) users[userId].tasks = {};
   if (users[userId].tasks[type])
     return res.json({ error: "Task already done" });
 
@@ -154,89 +131,63 @@ app.post("/task", async (req, res) => {
   res.json({ success: true, reward: 5, balance: users[userId].balance });
 });
 
-app.get("/admin/withdraws", (req, res) => {
-  if (req.query.pass !== "admin123") return res.send("Access denied");
+// ================= WITHDRAW =================
+app.post("/withdraw", (req, res) => {
+  const { userId, amount } = req.body;
 
-  let html = "<h2>Withdraw Requests</h2>";
-
-  for (let uid in users) {
-    users[uid].withdraws?.forEach((w, i) => {
-      html += `
-        <div style="border:1px solid #ccc; padding:10px; margin:10px">
-          <b>User:</b> ${uid}<br/>
-          <b>Amount:</b> ${w.amount}<br/>
-          <b>Status:</b> ${w.status}<br/>
-          <a href="/admin/approve?uid=${uid}&i=${i}&pass=admin123">✅ Approve</a>
-        </div>
-      `;
-    });
-  }
-
-  res.send(html);
-});
-
-app.get("/admin/withdraws", (req, res) => {
-  if (req.query.pass !== "admin123")
-    return res.send("Access denied");
-
-  let html = "<h2>Withdraw Requests</h2>";
-
-  for (let uid in users) {
-    users[uid].withdraws?.forEach((w, i) => {
-      html += `
-        <div style="border:1px solid #ccc; padding:10px; margin:10px">
-          <b>User:</b> ${uid}<br/>
-          <b>Amount:</b> ${w.amount}<br/>
-          <b>Status:</b> ${w.status}<br/>
-          <a href="/admin/approve?uid=${uid}&i=${i}&pass=admin123">✅ Approve</a>
-        </div>
-      `;
-    });
-  }
-
-  res.send(html);
-});
-
-// ================= WALLET =================
-app.post("/wallet", (req, res) => {
-  const { userId, address } = req.body;
   if (!users[userId]) return res.json({ error: "User not found" });
+  if (amount < 100) return res.json({ error: "Minimum withdraw is 100" });
+  if (users[userId].balance < amount)
+    return res.json({ error: "Not enough balance" });
 
-  users[userId].wallet = address;
+  users[userId].withdraws.push({
+    amount,
+    status: "pending",
+    time: Date.now()
+  });
+
+  users[userId].balance -= amount;
   saveUsers();
 
   res.json({ success: true });
 });
 
-// ================= ADMIN =================
+// ================= ADMIN PANEL =================
 app.get("/admin", (req, res) => {
   if (req.query.pass !== "admin123") return res.send("Access denied");
 
-  let html = `
-  <h2>Admin Panel</h2>
-  <table border="1">
-    <tr>
-      <th>User</th><th>Balance</th><th>Energy</th><th>Refs</th>
-    </tr>
-  `;
+  let html = `<h2>Withdraw Requests</h2>`;
 
-  for (let id in users) {
-    html += `
-      <tr>
-        <td>${id}</td>
-        <td>${users[id].balance}</td>
-        <td>${users[id].energy}</td>
-        <td>${users[id].refs.length}</td>
-      </tr>`;
+  for (let uid in users) {
+    users[uid].withdraws.forEach((w, i) => {
+      html += `
+        <div style="border:1px solid #ccc;padding:10px;margin:10px">
+          <b>User:</b> ${uid}<br/>
+          <b>Amount:</b> ${w.amount}<br/>
+          <b>Status:</b> ${w.status}<br/>
+          <a href="/admin/approve?uid=${uid}&i=${i}&pass=admin123">✅ Approve</a>
+        </div>`;
+    });
   }
 
-  html += "</table>";
   res.send(html);
 });
 
-if (!users[userId].withdraws) users[userId].withdraws = [];
+// ================= APPROVE =================
+app.get("/admin/approve", (req, res) => {
+  const { uid, i, pass } = req.query;
+  if (pass !== "admin123") return res.send("Denied");
 
-// ================= START SERVER =================
+  if (!users[uid] || !users[uid].withdraws[i])
+    return res.send("Invalid request");
+
+  users[uid].withdraws[i].status = "approved";
+  saveUsers();
+
+  res.send("✅ Withdrawal Approved");
+});
+
+// ================= START =================
 app.listen(3000, () => {
   console.log("✅ Server running on port 3000");
 });
