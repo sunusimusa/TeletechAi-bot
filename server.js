@@ -32,13 +32,11 @@ function saveUsers() {
 app.post("/user", (req, res) => {
   const { initData } = req.body;
 
-  if (!initData) return res.json({ error: "No init data" });
+  if (!initData || !initData.user) {
+    return res.json({ error: "User not found" });
+  }
 
-  const params = new URLSearchParams(initData);
-  const user = JSON.parse(params.get("user"));
-
-  if (!user || !user.id) return res.json({ error: "User not found" });
-
+  const user = initData.user;
   const userId = user.id.toString();
 
   if (!users[userId]) {
@@ -53,7 +51,11 @@ app.post("/user", (req, res) => {
     };
   }
 
-  res.json(users[userId]);
+  res.json({
+    id: userId,
+    balance: users[userId].balance,
+    energy: users[userId].energy
+  });
 });
 
 // ================= TAP =================
