@@ -1,34 +1,26 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-// USER ID
-let userId = tg?.initDataUnsafe?.user?.id;
+const initData = tg.initData;
+let userId = null;
 
-if (!userId) {
-  userId = localStorage.getItem("userId");
-}
-
-if (!userId) {
-  userId = Math.floor(Math.random() * 1000000000);
-  localStorage.setItem("userId", userId);
-}
-
-// LOAD USER
-async function loadUser() {
+async function init() {
   const res = await fetch("/user", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
+    body: JSON.stringify({ initData })
   });
 
   const data = await res.json();
+  userId = data.id;
+
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
+
+  loadLeaderboard();
+  loadReferrals();
 }
 
-loadUser();
-
-// TAP
 async function tap() {
   const res = await fetch("/tap", {
     method: "POST",
@@ -43,7 +35,6 @@ async function tap() {
   document.getElementById("energy").innerText = data.energy;
 }
 
-// DAILY
 async function claimDaily() {
   const res = await fetch("/daily", {
     method: "POST",
@@ -52,61 +43,23 @@ async function claimDaily() {
   });
 
   const data = await res.json();
-  alert(data.error || "Reward claimed!");
-  if (!data.error) {
-    document.getElementById("balance").innerText = data.balance;
-  }
+  alert(data.error || "Daily claimed!");
 }
 
 async function loadLeaderboard() {
   const res = await fetch("/leaderboard");
   const data = await res.json();
 
-  let html = "";
-  data.forEach((u, i) => {
-    html += `<p>${i + 1}. ${u.userId} — ${u.balance} TT</p>`;
-  });
-
-  document.getElementById("leaderboard").innerHTML = html;
+  document.getElementById("topUsers").innerHTML =
+    data.map((u, i) => `🏆 ${i + 1}. ${u.id} — ${u.balance}`).join("<br>");
 }
 
 async function loadReferrals() {
   const res = await fetch("/referrals");
   const data = await res.json();
 
-  let html = "";
-  const medals = ["🥇", "🥈", "🥉"];
-
-  data.forEach((u, i) => {
-    html += `<p>${medals[i]} ${u.userId} — ${u.refs} referrals</p>`;
-  });
-
-  document.getElementById("refList").innerHTML = html;
+  document.getElementById("topReferrals").innerHTML =
+    data.map((u, i) => `👤 ${i + 1}. ${u.id} — ${u.refs}`).join("<br>");
 }
 
-async function loadLeaderboard() {
-  const res = await fetch("/leaderboard");
-  const data = await res.json();
-
-  let html = "";
-  data.forEach((u, i) => {
-    html += `<div>🏆 ${i + 1}. ${u.userId} — ${u.balance}</div>`;
-  });
-
-  document.getElementById("topUsers").innerHTML = html;
-}
-
-async function loadReferrals() {
-  const res = await fetch("/referrals");
-  const data = await res.json();
-
-  let html = "";
-  data.forEach((u, i) => {
-    html += `<div>👤 ${i + 1}. ${u.userId} — ${u.refs} refs</div>`;
-  });
-
-  document.getElementById("topReferrals").innerHTML = html;
-}
-
-loadLeaderboard();
-loadReferrals();
+init();
