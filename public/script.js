@@ -144,6 +144,27 @@ async function saveWallet(address) {
   });
 }
 
+async function withdraw() {
+  const amount = prompt("Enter amount to withdraw:");
+
+  if (!amount || amount <= 0) return;
+
+  const res = await fetch("/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, amount })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("withdrawMsg").innerText = data.error;
+  } else {
+    document.getElementById("withdrawMsg").innerText =
+      "✅ Withdraw request sent. Waiting for admin approval.";
+  }
+}
+
 // ===============================
 // COPY REF LINK
 // ===============================
