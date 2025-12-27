@@ -57,3 +57,32 @@ async function claimDaily() {
     document.getElementById("balance").innerText = data.balance;
   }
 }
+
+async function loadLeaderboard() {
+  const res = await fetch("/leaderboard");
+  const data = await res.json();
+
+  let html = "";
+  data.forEach((u, i) => {
+    html += `<p>${i + 1}. ${u.userId} — ${u.balance} TT</p>`;
+  });
+
+  document.getElementById("leaderboard").innerHTML = html;
+}
+
+async function loadReferrals() {
+  const res = await fetch("/referrals");
+  const data = await res.json();
+
+  let html = "";
+  const medals = ["🥇", "🥈", "🥉"];
+
+  data.forEach((u, i) => {
+    html += `<p>${medals[i]} ${u.userId} — ${u.refs} referrals</p>`;
+  });
+
+  document.getElementById("refList").innerHTML = html;
+}
+
+loadLeaderboard();
+loadReferrals();
