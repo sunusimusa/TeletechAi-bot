@@ -90,6 +90,32 @@ app.post("/tap", (req, res) => {
   });
 });
 
+app.post("/withdraw", (req, res) => {
+  const { userId, amount } = req.body;
+
+  if (!users[userId]) return res.json({ error: "User not found" });
+
+  if (amount < 100)
+    return res.json({ error: "Minimum withdraw is 100" });
+
+  if (users[userId].balance < amount)
+    return res.json({ error: "Not enough balance" });
+
+  users[userId].withdraws = users[userId].withdraws || [];
+
+  users[userId].withdraws.push({
+    amount,
+    status: "pending",
+    time: Date.now()
+  });
+
+  users[userId].balance -= amount;
+
+  saveUsers();
+
+  res.json({ success: true });
+});
+
 // ================= DAILY REWARD =================
 app.post("/daily", (req, res) => {
   const { userId } = req.body;
