@@ -20,13 +20,13 @@ async function loadUser() {
   });
 
   const data = await res.json();
+
   if (data.error) {
     alert(data.error);
     return;
   }
 
   userId = data.id;
-  userReady = true;
 
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
