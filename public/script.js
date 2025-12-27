@@ -112,6 +112,16 @@ async function completeTask(type) {
   }
 }
 
+function copyInvite() {
+  const input = document.getElementById("refLink");
+  input.select();
+  input.setSelectionRange(0, 99999); // mobile support
+
+  navigator.clipboard.writeText(input.value)
+    .then(() => alert("Invite link copied ✅"))
+    .catch(() => alert("Failed to copy"));
+}
+
 // REFERRALS
 async function loadReferrals() {
   const res = await fetch("/referrals");
