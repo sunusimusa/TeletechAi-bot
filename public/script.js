@@ -49,8 +49,10 @@ async function tap() {
     body: JSON.stringify({ userId })
   });
 
-  const data = await res.json();
-  if (data.error) return;
+  if (data.error) {
+  alert(data.error);
+  return;
+  }
 
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
