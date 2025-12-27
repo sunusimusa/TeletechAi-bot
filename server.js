@@ -84,7 +84,8 @@ app.post("/tap", (req, res) => {
     return res.json({ error: "No energy" });
 
   users[userId].energy -= 1;
-  users[userId].balance += 1;
+users[userId].lastEnergy = Date.now(); // ADD THIS
+users[userId].balance += 1;
 
   saveUsers();
   res.json({
