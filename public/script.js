@@ -1,3 +1,6 @@
+if (!window.Telegram || !window.Telegram.WebApp) {
+  alert("Please open this app inside Telegram!");
+}
 // ================= TELEGRAM INIT =================
 const tg = window.Telegram.WebApp;
 tg.expand();
