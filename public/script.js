@@ -82,6 +82,36 @@ async function loadLeaderboard() {
     data.map((u, i) => `🏆 ${i + 1}. ${u.id} — ${u.balance}`).join("<br>");
 }
 
+function openTask(type) {
+  if (!userId) return alert("Please wait...");
+
+  let url = "";
+
+  if (type === "tg") url = "https://t.me/TeleAIupdates";
+  if (type === "yt") url = "https://youtube.com/@Sunusicrypto";
+  if (type === "chat") url = "https://t.me/tele_tap_ai";
+
+  window.open(url, "_blank");
+
+  setTimeout(() => completeTask(type), 3000);
+}
+
+async function completeTask(type) {
+  const res = await fetch("/task", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, type }),
+  });
+
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error);
+  } else {
+    alert("✅ Task completed! +10");
+    document.getElementById("balance").innerText = data.balance;
+  }
+}
+
 // REFERRALS
 async function loadReferrals() {
   const res = await fetch("/referrals");
