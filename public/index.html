@@ -17,9 +17,6 @@
 
   <h1 class="title">⚡ TeleTech AI</h1>
 
-  <h3>🏆 Top Referrers</h3>
-<div id="leaderboard"></div>
-
   <!-- STATS -->
   <div class="stats">
     <div class="stat-box">
@@ -34,38 +31,33 @@
   </div>
 
   <!-- TAP -->
-  <div id="tap" onclick="tap()">
-    TAP
-  </div>
+  <div id="tap" onclick="tap()">TAP</div>
 
-  <!-- DAILY -->
   <button class="btn yellow" onclick="claimDaily()">🎁 Daily Reward</button>
 
   <!-- TASKS -->
-  <h3 class="section-title">🎯 Tasks</h3>
-
+  <h3>🎯 Tasks</h3>
   <div class="task-list">
     <button onclick="openTask('tg')">📢 Join Telegram</button>
     <button onclick="openTask('yt')">▶️ Subscribe YouTube</button>
     <button onclick="openTask('chat')">💬 Join Public Chat</button>
   </div>
 
-  <h3>🏆 Top 10 Users</h3>
-<div id="leaderboard"></div>
-  
   <p id="taskMsg"></p>
 
   <!-- REFERRAL -->
+  <h3>👥 Invite Friends</h3>
   <div class="ref-box">
     <input id="refLink" readonly />
     <button onclick="copyLink()">Copy Invite</button>
   </div>
 
-  <h3>🏆 Top Players</h3>
-<div id="leaderboard"></div>
+  <!-- LEADERBOARDS -->
+  <h3>🏆 Top 10 Users</h3>
+  <div id="topUsers"></div>
 
-<h3>👥 Top Referrals</h3>
-<div id="refList"></div>
+  <h3>👑 Top Referrals</h3>
+  <div id="topReferrals"></div>
 
   <!-- WALLET -->
   <div class="wallet-box">
@@ -79,10 +71,7 @@
 
 </div>
 
-  <script>
-  loadLeaderboard();
-  </script>
-
 <script src="script.js"></script>
+
 </body>
 </html>
