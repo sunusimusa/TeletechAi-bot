@@ -2,62 +2,44 @@
 <html>
 <head>
   <title>Admin Panel</title>
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      font-family: Arial;
-      padding: 20px;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-    th, td {
-      border: 1px solid #444;
-      padding: 8px;
-      text-align: center;
-    }
-    th {
-      background: #22c55e;
-      color: black;
-    }
-  </style>
 </head>
 <body>
 
-<h2>👑 Admin Dashboard</h2>
-<table id="usersTable">
-  <tr>
-    <th>User ID</th>
-    <th>Balance</th>
-    <th>Energy</th>
-    <th>Referrals</th>
-  </tr>
-</table>
+<h2>Admin Dashboard</h2>
+
+<input id="secret" placeholder="Admin Key" />
+<button onclick="loadUsers()">Load Users</button>
+
+<div id="users"></div>
 
 <script>
 async function loadUsers() {
-  const res = await fetch("/admin");
+  const key = document.getElementById("secret").value;
+
+  const res = await fetch("/admin/users?key=" + key);
   const data = await res.json();
 
-  const table = document.getElementById("usersTable");
-
-  Object.keys(data).forEach(id => {
-    const u = data[id];
-    const row = `
-      <tr>
-        <td>${id}</td>
-        <td>${u.balance}</td>
-        <td>${u.energy}</td>
-        <td>${u.refs ? u.refs.length : 0}</td>
-      </tr>
+  let html = "";
+  data.forEach(u => {
+    html += `
+      <div>
+        <b>${u.id}</b> — ${u.balance}
+        <button onclick="approve('${u.id}')">Approve Withdraw</button>
+      </div>
     `;
-    table.innerHTML += row;
   });
+
+  document.getElementById("users").innerHTML = html;
 }
 
-loadUsers();
+async function approve(id) {
+  await fetch("/admin/approve", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id })
+  });
+  alert("Approved");
+}
 </script>
 
 </body>
