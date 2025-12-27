@@ -5,6 +5,7 @@
   <title>TeleTech AI</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- Telegram + TON -->
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <script src="https://unpkg.com/@tonconnect/sdk@2.2.0/dist/tonconnect.min.js"></script>
 
@@ -52,8 +53,8 @@
     <button onclick="copyLink()">Copy Invite</button>
   </div>
 
-  <!-- LEADERBOARDS -->
-  <h3>🏆 Top 10 Users</h3>
+  <!-- LEADERBOARD -->
+  <h3>🏆 Top Users</h3>
   <div id="topUsers"></div>
 
   <h3>👑 Top Referrals</h3>
@@ -61,20 +62,12 @@
 
   <!-- WALLET -->
   <div class="wallet-box">
-    <button id="connectWalletBtn">🔗 Connect Wallet</button>
-    <p id="walletAddress"></p>
-
     <button onclick="connectWallet()">🔗 Connect TON Wallet</button>
-<p id="walletAddress"></p>
-
-    <input id="wallet" placeholder="Wallet Address" />
-    <button onclick="withdraw()">Withdraw</button>
-    <p id="withdrawMsg"></p>
+    <p id="walletAddress"></p>
   </div>
 
 </div>
-<script src="https://unpkg.com/@tonconnect/sdk@2.2.0/dist/tonconnect.min.js"></script>
-<script src="script.js"></script>
 
+<script src="script.js"></script>
 </body>
 </html>
