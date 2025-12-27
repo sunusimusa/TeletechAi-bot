@@ -1,65 +1,24 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>TeleTech AI</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <!-- Telegram -->
+  <title>Tap App</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- TonConnect -->
-  <script src="https://unpkg.com/@tonconnect/ui@0.0.9/dist/tonconnect-ui.min.js"></script>
-
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-<div class="app">
+<h2>🔥 Tap & Earn</h2>
 
-  <h1 class="title">⚡ TeleTech AI</h1>
-
-  <div class="stats">
-    <div class="stat-box">
-      <span>Balance</span>
-      <h2 id="balance">0</h2>
-    </div>
-    <div class="stat-box">
-      <span>Energy</span>
-      <h2 id="energy">0</h2>
-    </div>
-  </div>
-
-  <div id="tap" onclick="tap()">TAP</div>
-
-  <button class="btn yellow" onclick="claimDaily()">🎁 Daily Reward</button>
-
-  <h3>🎯 Tasks</h3>
-  <div class="task-list">
-    <button onclick="openTask('tg')">📢 Join Telegram</button>
-    <button onclick="openTask('yt')">▶️ Subscribe YouTube</button>
-    <button onclick="openTask('chat')">💬 Join Public Chat</button>
-  </div>
-
-  <h3>👥 Invite Friends</h3>
-  <div class="ref-box">
-    <input id="refLink" readonly />
-    <button onclick="copyInvite()">Copy Invite</button>
-  </div>
-
-  <h3>🏆 Top 10 Users</h3>
-  <div id="topUsers"></div>
-
-  <h3>👑 Top Referrals</h3>
-  <div id="topReferrals"></div>
-
-  <div class="wallet-box">
-    <button onclick="connectWallet()">🔗 Connect Wallet</button>
-    <input id="walletAddress" placeholder="Wallet Address" readonly />
-  </div>
-
+<div>
+  Balance: <span id="balance">0</span><br>
+  Energy: <span id="energy">0</span>
 </div>
+
+<button onclick="tap()">TAP</button>
+<button onclick="daily()">Daily Reward</button>
+
+<h3>Leaderboard</h3>
+<div id="board"></div>
 
 <script src="script.js"></script>
 </body>
