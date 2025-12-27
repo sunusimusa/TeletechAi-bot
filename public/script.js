@@ -123,15 +123,30 @@ function copyInvite() {
     .catch(() => alert("Failed to copy"));
 }
 
-async function connectWallet() {
-  if (!tonConnectUI) {
-    tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: window.location.origin + "/tonconnect-manifest.json",
-    });
-  }
+// REFERRALS
+async function loadReferrals() {
+  const res = await fetch("/referrals");
+  const data = await res.json();
 
+  document.getElementById("topReferrals").innerHTML =
+    data.map((u, i) => `👤 ${i + 1}. ${u.id} — ${u.refs}`).join("<br>");
+}
+
+
+let tonConnectUI;
+
+function initTon() {
+  tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+    manifestUrl: "https://teletechai-bot.onrender.com/tonconnect-manifest.json",
+  });
+}
+
+initTon();
+
+async function connectWallet() {
   try {
     const wallet = await tonConnectUI.connectWallet();
+
     document.getElementById("walletAddress").value = wallet.account.address;
 
     await fetch("/wallet", {
@@ -143,20 +158,11 @@ async function connectWallet() {
       })
     });
 
-    alert("Wallet connected ✅");
+    alert("Wallet connected successfully ✅");
   } catch (e) {
     console.log(e);
     alert("Wallet connection cancelled");
   }
-}
-
-// REFERRALS
-async function loadReferrals() {
-  const res = await fetch("/referrals");
-  const data = await res.json();
-
-  document.getElementById("topReferrals").innerHTML =
-    data.map((u, i) => `👤 ${i + 1}. ${u.id} — ${u.refs}`).join("<br>");
 }
 
 // WALLET
