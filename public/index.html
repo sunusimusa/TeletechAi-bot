@@ -1,28 +1,44 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Tap App</title>
+  <meta charset="UTF-8" />
+  <title>TeleTech AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
 
-<h2>🔥 Tap & Earn</h2>
+<div class="app">
 
-<div>
-  Balance: <span id="balance">0</span><br>
-  Energy: <span id="energy">0</span>
+  <h2>🔥 Tap & Earn</h2>
+
+  <div class="stats">
+    <div>
+      <small>Balance</small>
+      <h3 id="balance">0</h3>
+    </div>
+    <div>
+      <small>Energy</small>
+      <h3 id="energy">0</h3>
+    </div>
+  </div>
+
+  <div id="tap" onclick="tap()">TAP</div>
+
+  <button class="btn" onclick="daily()">🎁 Daily Reward</button>
+
+  <h3>🏆 Leaderboard</h3>
+  <div id="board"></div>
+
+  <h3>👥 Invite Friends</h3>
+  <input id="refLink" readonly />
+  <button onclick="copyInvite()">Copy Invite</button>
+
 </div>
 
-<button onclick="tap()">TAP</button>
-<button onclick="daily()">Daily Reward</button>
-
-<h3>Leaderboard</h3>
-<div id="board"></div>
-
- <input id="refLink" readonly />
-<button onclick="copyInvite()">Copy Invite</button> 
-  
 <script src="script.js"></script>
 </body>
 </html>
