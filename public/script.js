@@ -90,22 +90,22 @@ async function loadLeaderboard() {
 
   let html = "";
   data.forEach((u, i) => {
-    html += `<p>${i+1}. ${u.id} - ${u.refs} refs</p>`;
+    html += `<div>🏆 ${i + 1}. ${u.userId} — ${u.balance}</div>`;
   });
 
-  document.getElementById("leaderboard").innerHTML = html;
+  document.getElementById("topUsers").innerHTML = html;
 }
 
-async function loadLeaderboard() {
-  const res = await fetch("/leaderboard");
+async function loadReferrals() {
+  const res = await fetch("/referrals");
   const data = await res.json();
 
   let html = "";
   data.forEach((u, i) => {
-    html += `<div>🏆 ${i + 1}. ${u.userId} — ${u.balance}</div>`;
+    html += `<div>👤 ${i + 1}. ${u.userId} — ${u.refs} refs</div>`;
   });
 
-  document.getElementById("leaderboard").innerHTML = html;
+  document.getElementById("topReferrals").innerHTML = html;
 }
 
 loadLeaderboard();
