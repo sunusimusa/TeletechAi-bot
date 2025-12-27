@@ -34,8 +34,13 @@ async function loadUser() {
 
   const data = await res.json();
 
-  document.getElementById("balance").innerText = data.balance ?? 0;
-  document.getElementById("energy").innerText = data.energy ?? 0;
+  if (!data || !data.balance) {
+    console.log("User not ready yet");
+    return;
+  }
+
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("energy").innerText = data.energy;
 
   document.getElementById("refLink").value =
     window.location.origin + "?ref=" + userId;
@@ -49,10 +54,16 @@ async function tap() {
     body: JSON.stringify({ userId })
   });
 
+  const data = await res.json();
+
   if (data.error) {
-  alert(data.error);
-  return;
+    alert(data.error);
+    return;
   }
+
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("energy").innerText = data.energy;
+}
 
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
@@ -101,20 +112,24 @@ async function completeTask(type) {
 
 // ================= CONNECT WALLET =================
 document.getElementById("connectWalletBtn").onclick = async () => {
-  const wallet = await tonConnect.connectWallet();
-  if (!wallet) return;
+  try {
+    const wallet = await tonConnect.connectWallet();
+    if (!wallet) return;
 
-  document.getElementById("walletAddress").innerText =
-    wallet.account.address;
+    document.getElementById("walletAddress").innerText =
+      wallet.account.address;
 
-  await fetch("/wallet", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId,
-      address: wallet.account.address
-    })
-  });
+    await fetch("/wallet", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId,
+        address: wallet.account.address
+      })
+    });
+  } catch (e) {
+    alert("Wallet connection failed");
+  }
 };
 
 // ================= WITHDRAW =================
