@@ -158,32 +158,27 @@ app.post("/daily", (req, res) => {
 });
 
 // ================= TASK =================
-app.post("/task", async (req, res) => {
+app.post("/task", (req, res) => {
   const { userId, type } = req.body;
   const user = users[userId];
 
   if (!user) return res.json({ error: "User not found" });
-  if (user.tasks[type]) return res.json({ error: "Already completed" });
 
-  let verified = false;
+  // Idan an taba yin task din
+  if (user.tasks[type]) {
+    return res.json({ success: true, balance: user.balance });
+  }
 
-  if (type === "youtube") verified = true;
-  if (type === "channel") verified = await checkMember(userId, CHANNEL);
-  if (type === "group") verified = await checkMember(userId, GROUP);
-
-  if (!verified) return res.json({ error: "Join required first" });
-
+  // Mark as completed
   user.tasks[type] = true;
-  user.balance += 20;
+  user.balance += 20; // reward
 
   saveUsers();
 
-  await sendTelegramMessage(
-    userId,
-    `✅ <b>Task Completed!</b>\n🎯 ${type}\n💰 +20 coins`
-  );
-
-  res.json({ success: true, balance: user.balance });
+  res.json({
+    success: true,
+    balance: user.balance
+  });
 });
 
 // ================= LEADERBOARD =================
