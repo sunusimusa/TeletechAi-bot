@@ -12,9 +12,11 @@
   color: #ffffff;
   cursor: pointer;
   transition: 0.2s ease;
+  animation: pulse 2s infinite;
 }
 
-#tap:active {
-  transform: scale(0.92);
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.9);
+@keyframes pulse {
+  0% { box-shadow: 0 0 20px rgba(34,211,238,0.5); }
+  50% { box-shadow: 0 0 50px rgba(34,211,238,0.9); }
+  100% { box-shadow: 0 0 20px rgba(34,211,238,0.5); }
 }
