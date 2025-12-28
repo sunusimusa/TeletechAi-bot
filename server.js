@@ -105,6 +105,24 @@ app.post("/user", async (req, res) => {
   res.json(users[userId]);
 });
 
+app.post("/webhook", (req, res) => {
+  const update = req.body;
+
+  if (update.message) {
+    const chatId = update.message.chat.id;
+    const text = update.message.text;
+
+    if (text === "/start") {
+      axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+        chat_id: chatId,
+        text: "🔥 Welcome to TeleTap AI!\nTap and earn rewards 🚀"
+      });
+    }
+  }
+
+  res.sendStatus(200);
+});
+
 // ================= TAP =================
 app.post("/tap", (req, res) => {
   const user = users[req.body.userId];
