@@ -31,6 +31,7 @@ async function init() {
 function updateUI() {
   document.getElementById("balance").innerText = balance;
   document.getElementById("energy").innerText = energy;
+  document.getElementById("level").innerText = data.level;
 
   const percent = Math.min(100, energy);
   document.getElementById("energyFill").style.width = percent + "%";
