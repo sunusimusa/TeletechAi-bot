@@ -1,134 +1,76 @@
 const express = require("express");
 const fs = require("fs");
-const REF_REWARD = 10;
+const path = require("path");
 
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
-const DB = "./users.json";
 
-let users = fs.existsSync(DB) ? JSON.parse(fs.readFileSync(DB)) : {};
+// ================= DATABASE =================
+const DB_FILE = "./users.json";
+let users = fs.existsSync(DB_FILE)
+  ? JSON.parse(fs.readFileSync(DB_FILE))
+  : {};
 
-function save() {
-  fs.writeFileSync(DB, JSON.stringify(users, null, 2));
+function saveUsers() {
+  fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
 }
 
-function checkLevel(user) {
-  if (user.balance >= 1000) user.level = 5;
-  else if (user.balance >= 600) user.level = 4;
-  else if (user.balance >= 300) user.level = 3;
-  else if (user.balance >= 100) user.level = 2;
-  else user.level = 1;
-}
-
-// CREATE / LOAD USER
-app.post("/user", (req, res) => {
-  const initData = req.body.initData;
-  if (!initData || !initData.user) return res.json({ error: "No user" });
-
-  const user = initData.user;
-  const userId = user.id.toString();
-  const ref = initData.start_param; // referral code
-
-  if (!users[userId]) {
-    users[userId] = {
-      balance: 0,
-      energy: 100,
-      level: 1,
-      lastTap: 0
-    };
-
-    // REFERRAL REWARD
-    if (ref && users[ref] && ref !== userId) {
-      if (!users[ref].refs.includes(userId)) {
-        users[ref].refs.push(userId);
-        users[ref].balance += REF_REWARD;
-      }
-    }
-  }
-
-  res.json({
-    id: userId,
-    balance: users[userId].balance,
-    energy: users[userId].energy
-  });
-});
-
-// TAP
+// ================= USER INIT =================
 app.post("/user", (req, res) => {
   const { initData } = req.body;
-
-  const userData = parseTelegramData(initData); // ka riga kana dashi
-  const userId = userData.id;
-  const ref = userData.start_param; // referral id
+  const userId = initData?.user?.id || Math.floor(Math.random() * 999999999);
 
   if (!users[userId]) {
     users[userId] = {
       id: userId,
       balance: 0,
       energy: 100,
-      lastTap: 0,
-      refBy: null,
-      referrals: 0
+      level: 1,
+      lastTap: 0
     };
-
-    // 👉 REFERRAL BONUS
-    if (ref && users[ref] && ref !== userId) {
-      users[userId].refBy = ref;
-      users[ref].balance += 10; // bonus
-      users[ref].referrals += 1;
-    }
   }
 
   res.json(users[userId]);
 });
 
-  // Anti-spam
-const now = Date.now();
+// ================= TAP =================
+app.post("/user", (req, res) => {
+  const { initData } = req.body;
 
-// idan bai taba tap ba
-if (!user.lastTap) user.lastTap = 0;
+  const userId = initData?.user?.id;
+  const ref = initData?.start_param; // referral id
 
-// delay kadan (300ms)
-if (now - user.lastTap < 300) {
-  return res.json({
-    error: "Slow down ⚡",
-    balance: user.balance,
-    energy: user.energy
-  });
-}
+  if (!userId) return res.json({ error: "Invalid user" });
 
-// idan energy ya kare
-if (user.energy <= 0) {
-  return res.json({
-    error: "No energy 😴",
-    balance: user.balance,
-    energy: user.energy
-  });
-}
+  // Create user if not exists
+  if (!users[userId]) {
+    users[userId] = {
+      id: userId,
+      balance: 0,
+      energy: 100,
+      level: 1,
+      lastTap: 0,
+      refBy: null,
+      referrals: 0
+    };
 
-// update
-user.lastTap = now;
-user.energy -= 1;
-user.balance += 1;
-  
-  // Level system
-  if (user.balance >= 1000) user.level = 5;
-  else if (user.balance >= 600) user.level = 4;
-  else if (user.balance >= 300) user.level = 3;
-  else if (user.balance >= 100) user.level = 2;
-  else user.level = 1;
+    // 🔥 REFERRAL LOGIC
+    if (ref && users[ref] && ref !== userId) {
+      users[userId].refBy = ref;
+      users[ref].balance += 20; // referral bonus
+      users[ref].referrals += 1;
+    }
 
-  res.json({
-    balance: user.balance,
-    energy: user.energy,
-    level: user.level
-  });
+    saveUsers();
+  }
+
+  res.json(users[userId]);
 });
 
-// DAILY
+// ================= DAILY =================
 app.post("/daily", (req, res) => {
   const { userId } = req.body;
   const user = users[userId];
@@ -136,51 +78,26 @@ app.post("/daily", (req, res) => {
   if (!user) return res.json({ error: "User not found" });
 
   const now = Date.now();
-  if (now - user.lastDaily < 86400000) {
+  if (now - (user.lastDaily || 0) < 86400000) {
     return res.json({ error: "Come back tomorrow" });
   }
 
   user.lastDaily = now;
   user.balance += 50;
-  saveUsers();
 
   res.json({ balance: user.balance });
 });
 
-// ================= TOKEN CONVERT =================
-app.post("/convert", (req, res) => {
-  const { userId } = req.body;
-
-  const user = users[userId];
-  if (!user) return res.json({ error: "User not found" });
-
-  const rate = 100; // 100 balance = 1 token
-
-  if (user.balance < rate)
-    return res.json({ error: "Not enough balance" });
-
-  const tokens = Math.floor(user.balance / rate);
-
-  user.balance -= tokens * rate;
-  user.token = (user.token || 0) + tokens;
-
-  saveUsers();
-
-  res.json({
-    token: user.token,
-    balance: user.balance
-  });
-});
-
-// LEADERBOARD
+// ================= LEADERBOARD =================
 app.get("/leaderboard", (req, res) => {
-  const list = Obj
-    ect.entries(users)
-    .map(([id, u]) => ({ id, balance: u.balance }))
+  const list = Object.values(users)
     .sort((a, b) => b.balance - a.balance)
     .slice(0, 10);
 
   res.json(list);
 });
 
-app.listen(PORT, () => console.log("Server running on", PORT));
+// ================= START =================
+app.listen(PORT, () => {
+  console.log("🚀 Server running on port", PORT);
+});
