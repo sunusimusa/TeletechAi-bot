@@ -30,6 +30,21 @@ function updateUI(data) {
   }
 }
 
+async function convertToken() {
+  const res = await fetch("/convert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
+
+  const data = await res.json();
+
+  if (data.error) return alert(data.error);
+
+  document.getElementById("token").innerText = data.token;
+  document.getElementById("balance").innerText = data.balance;
+}
+
 // ================= TAP =================
 async function tap() {
   const res = await fetch("/tap", {
