@@ -18,9 +18,7 @@ const GROUP = process.env.GROUP_USERNAME;
 
 // ================= DATABASE =================
 const DB_FILE = "./users.json";
-let users = fs.existsSync(DB_FILE)
-  ? JSON.parse(fs.readFileSync(DB_FILE))
-  : {};
+let users = fs.existsSync(DB_FILE) ? JSON.parse(fs.readFileSync(DB_FILE)) : {};
 
 function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
@@ -28,9 +26,9 @@ function saveUsers() {
 
 // ================= UTILITIES =================
 function updateLevel(user) {
-  const newLevel = Math.floor(user.balance / 100) + 1;
-  if (newLevel > user.level) {
-    user.level = newLevel;
+  const lvl = Math.floor(user.balance / 100) + 1;
+  if (lvl > user.level) {
+    user.level = lvl;
     user.energy = Math.min(ENERGY_MAX, user.energy + 10);
   }
 }
@@ -44,31 +42,23 @@ function regenEnergy(user) {
   }
 }
 
-async function sendTelegramMessage(userId, text) {
+async function sendMessage(userId, text) {
   try {
-    await axios.post(
-      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
-      {
-        chat_id: userId,
-        text,
-        parse_mode: "HTML"
-      }
-    );
+    await axios.post(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`, {
+      chat_id: userId,
+      text,
+      parse_mode: "HTML"
+    });
   } catch (e) {
-    console.log("Telegram error:", e.message);
+    console.log("TG error:", e.message);
   }
 }
 
-async function checkMember(userId, chat) {
+async function isMember(userId, chat) {
   try {
     const res = await axios.get(
       `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`,
-      {
-        params: {
-          chat_id: chat,
-          user_id: userId
-        }
-      }
+      { params: { chat_id: chat, user_id: userId } }
     );
     return ["member", "administrator", "creator"].includes(res.data.result.status);
   } catch {
@@ -76,21 +66,8 @@ async function checkMember(userId, chat) {
   }
 }
 
-async function sendWelcome(userId) {
-  await sendTelegramMessage(
-    userId,
-    `👋 Welcome to *TeleTap AI* 🔥
-
-💰 Earn coins by tapping
-🎁 Daily rewards available
-👥 Invite friends & earn more
-
-🚀 Start now and grow your balance!`
-  );
-}
-
 // ================= USER INIT =================
-app.post("/user", (req, res) => {
+app.post("/user", async (req, res) => {
   const { initData } = req.body;
   const userId = initData?.user?.id;
   const ref = initData?.start_param;
@@ -108,21 +85,19 @@ app.post("/user", (req, res) => {
       lastDaily: 0,
       refBy: null,
       referrals: 0,
-      tasks: {
-        youtube: false,
-        channel: false,
-        group: false
-      }
+      tasks: { youtube: false, channel: false, group: false }
     };
-
-    await sendWelcome(userId);
-  }
 
     if (ref && users[ref] && ref !== userId) {
       users[ref].balance += 20;
       users[ref].referrals += 1;
       users[userId].refBy = ref;
     }
+
+    await sendMessage(
+      userId,
+      `👋 Welcome to *TeleTap AI*\n\n💰 Earn by tapping\n🎁 Daily rewards\n👥 Invite friends`
+    );
 
     saveUsers();
   }
@@ -132,21 +107,17 @@ app.post("/user", (req, res) => {
 
 // ================= TAP =================
 app.post("/tap", (req, res) => {
-  const { userId } = req.body;
-  const user = users[userId];
-
+  const user = users[req.body.userId];
   if (!user) return res.json({ error: "User not found" });
 
   regenEnergy(user);
 
-  if (user.energy <= 0) {
+  if (user.energy <= 0)
     return res.json({ error: "No energy", balance: user.balance });
-  }
 
-  user.energy -= 1;
-  user.balance += 1;
+  user.energy--;
+  user.balance++;
   updateLevel(user);
-
   saveUsers();
 
   res.json({
@@ -158,9 +129,7 @@ app.post("/tap", (req, res) => {
 
 // ================= DAILY =================
 app.post("/daily", (req, res) => {
-  const { userId } = req.body;
-  const user = users[userId];
-
+  const user = users[req.body.userId];
   if (!user) return res.json({ error: "User not found" });
 
   if (Date.now() - user.lastDaily < 86400000)
@@ -168,50 +137,45 @@ app.post("/daily", (req, res) => {
 
   user.lastDaily = Date.now();
   user.balance += 50;
-
   saveUsers();
+
   res.json({ balance: user.balance });
 });
 
-// ================= TASK =================
-app.post("/task", (req, res) => {
+// ================= TASK VERIFY =================
+app.post("/task", async (req, res) => {
   const { userId, type } = req.body;
   const user = users[userId];
-
   if (!user) return res.json({ error: "User not found" });
 
-  // Idan an taba yin task din
-  if (user.tasks[type]) {
-    return res.json({ success: true, balance: user.balance });
-  }
+  if (user.tasks[type]) return res.json({ success: true, balance: user.balance });
 
-  // Mark as completed
+  let ok = false;
+
+  if (type === "youtube") ok = true;
+  if (type === "channel") ok = await isMember(userId, CHANNEL);
+  if (type === "group") ok = await isMember(userId, GROUP);
+
+  if (!ok) return res.json({ error: "Not verified" });
+
   user.tasks[type] = true;
-  user.balance += 20; // reward
+  user.balance += 20;
 
   saveUsers();
-
-  res.json({
-    success: true,
-    balance: user.balance
-  });
+  res.json({ success: true, balance: user.balance });
 });
 
-// ================= LEADERBOARD =================
+// ================= STATS =================
 app.get("/leaderboard", (req, res) => {
-  const list = Object.values(users)
-    .sort((a, b) => b.balance - a.balance)
-    .slice(0, 10);
-
-  res.json(list);
+  res.json(Object.values(users).sort((a, b) => b.balance - a.balance).slice(0, 10));
 });
 
 app.get("/top-referrals", (req, res) => {
-  const list = Object.values(users)
-    .sort((a, b) => b.referrals - a.referrals)
-    .slice(0, 10);
+  res.json(Object.values(users).sort((a, b) => b.referrals - a.referrals).slice(0, 10));
+});
 
-  res.json(list);
+app.get("/stats", (req, res) => {
+  res.json({ total: Object.keys(users).length });
 });
 
 // ================= START =================
