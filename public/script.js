@@ -87,24 +87,22 @@ function copyInvite() {
   alert("Copied!");
 }
 
-async function convertToken() {
-  const res = await fetch("/convert", {
+async function init() {
+  const res = await fetch("/user", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
+    body: JSON.stringify({ initData: tg.initDataUnsafe })
   });
 
   const data = await res.json();
 
-  if (data.error) {
-    alert(data.error);
-    return;
-  }
+  userId = data.id;
 
   document.getElementById("balance").innerText = data.balance;
-  document.getElementById("token").innerText = data.token;
+  document.getElementById("energy").innerText = data.energy;
+  document.getElementById("token").innerText = data.token || 0;
 
-  alert("✅ Token converted!");
+  setReferralLink(); // ✅ nan ne daidai
 }
 
 init();
