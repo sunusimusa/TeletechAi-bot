@@ -72,18 +72,34 @@ app.post("/tap", (req, res) => {
   const user = users[userId];
 
   // Anti-spam
-  if (Date.now() - user.lastTap < 1000) {
-    return res.json({ error: "Too fast" });
-  }
+const now = Date.now();
 
-  if (user.energy <= 0) {
-    return res.json({ error: "No energy" });
-  }
+// idan bai taba tap ba
+if (!user.lastTap) user.lastTap = 0;
 
-  user.lastTap = Date.now();
-  user.energy -= 1;
-  user.balance += 1;
+// delay kadan (300ms)
+if (now - user.lastTap < 300) {
+  return res.json({
+    error: "Slow down ⚡",
+    balance: user.balance,
+    energy: user.energy
+  });
+}
 
+// idan energy ya kare
+if (user.energy <= 0) {
+  return res.json({
+    error: "No energy 😴",
+    balance: user.balance,
+    energy: user.energy
+  });
+}
+
+// update
+user.lastTap = now;
+user.energy -= 1;
+user.balance += 1;
+  
   // Level system
   if (user.balance >= 1000) user.level = 5;
   else if (user.balance >= 600) user.level = 4;
