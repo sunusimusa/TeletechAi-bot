@@ -3,7 +3,7 @@ tg.expand();
 
 let userId = null;
 
-// ================= INIT USER =================
+// ================= INIT =================
 async function init() {
   const res = await fetch("/user", {
     method: "POST",
@@ -13,7 +13,14 @@ async function init() {
 
   const data = await res.json();
 
+  if (data.error === "JOIN_REQUIRED") {
+    alert("🚨 Please join our channel first!");
+    window.open("https://t.me/TeleAIupdates", "_blank");
+    return;
+  }
+
   userId = data.id;
+
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
   document.getElementById("level").innerText = data.level;
@@ -60,28 +67,29 @@ async function daily() {
 
 // ================= TASKS =================
 function openTask(type) {
-  if (type === "youtube") window.open("https://youtube.com/@YOURCHANNEL", "_blank");
+  if (type === "youtube") window.open("https://youtube.com/@Sunusicrypto", "_blank");
   if (type === "channel") window.open("https://t.me/TeleAIupdates", "_blank");
   if (type === "group") window.open("https://t.me/tele_tap_ai", "_blank");
 
-  fetch("/task", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, type })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        document.getElementById("balance").innerText = data.balance;
-        alert("✅ Task completed!");
-      }
+  setTimeout(async () => {
+    const res = await fetch("/task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, type })
     });
+
+    const data = await res.json();
+    if (data.error) return alert(data.error);
+
+    document.getElementById("balance").innerText = data.balance;
+    alert("✅ Task completed!");
+  }, 3000);
 }
 
 // ================= REFERRAL =================
 function setReferralLink() {
-  const link = `https://t.me/TeletechAi_bot?start=${userId}`;
-  document.getElementById("refLink").value = link;
+  document.getElementById("refLink").value =
+    `https://t.me/TeletechAi_bot?start=${userId}`;
 }
 
 function copyInvite() {
@@ -94,7 +102,7 @@ function copyInvite() {
 // ================= LEADERBOARD =================
 function loadLeaderboard() {
   fetch("/leaderboard")
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
       document.getElementById("board").innerHTML =
         data.map((u, i) => `#${i + 1} — ${u.balance} coins`).join("<br>");
@@ -104,7 +112,7 @@ function loadLeaderboard() {
 // ================= TOP REFERRALS =================
 function loadTopRefs() {
   fetch("/top-referrals")
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
       document.getElementById("topRefs").innerHTML =
         data.map((u, i) => `#${i + 1} — ${u.referrals} invites`).join("<br>");
@@ -114,7 +122,7 @@ function loadTopRefs() {
 // ================= TOTAL USERS =================
 function loadStats() {
   fetch("/stats")
-    .then(r => r.json())
+    .then(res => res.json())
     .then(data => {
       document.getElementById("totalUsers").innerText = data.total;
     });
