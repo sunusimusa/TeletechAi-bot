@@ -57,19 +57,17 @@ app.post("/tap", (req, res) => {
 
   const now = Date.now();
 
-  if (now - user.lastTap < 1500) {
-    return res.json({ error: "Too fast" });
+  if (now - user.lastTap < 300) {
+    return res.json({ error: "Slow down" });
   }
 
   if (user.energy <= 0) {
     return res.json({ error: "No energy" });
   }
 
+  user.lastTap = now;
   user.energy -= 1;
   user.balance += 1;
-  user.lastTap = now;
-
-  saveUsers();
 
   res.json({
     balance: user.balance,
