@@ -66,28 +66,30 @@ async function isMember(userId, chat) {
 
 // ================= USER INIT =================
 app.post("/user", async (req, res) => {
-  const init = req.body.initData;
-  const userId = init?.user?.id;
-  const ref = init?.start_param;
+  const { userId, start_param } = req.body;
 
   if (!userId) return res.json({ error: "INVALID_USER" });
-
-  // Check channel join
-  const joined = await isMember(userId, CHANNEL);
-  if (!joined) return res.json({ error: "JOIN_REQUIRED" });
 
   let user = await User.findOne({ telegramId: userId });
 
   if (!user) {
-    user = new User({ telegramId: userId });
+    user = new User({
+      telegramId: userId,
+      energy: ENERGY_MAX,
+      balance: 0,
+      level: 1,
+      lastEnergyUpdate: Date.now(),
+      referrals: 0,
+      tasks: { youtube: false, channel: false, group: false }
+    });
 
-    if (ref && ref !== userId) {
-      const refUser = await User.findOne({ telegramId: ref });
+    if (start_param) {
+      const refUser = await User.findOne({ telegramId: start_param });
       if (refUser) {
         refUser.balance += 20;
         refUser.referrals += 1;
         await refUser.save();
-        user.refBy = ref;
+        user.refBy = start_param;
       }
     }
 
