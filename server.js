@@ -33,10 +33,10 @@ app.post("/user", (req, res) => {
     users[userId] = {
       id: userId,
       balance: 0,
-      energy: 100,
       level: 1,
+      energy: 100,
       lastTap: 0,
-      lastEnergy: Date.now(),
+      lastEnergyUpdate: Date.now()
       lastDaily: 0,
       refBy: null,
       referrals: 0
