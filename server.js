@@ -1,8 +1,5 @@
 const express = require("express");
 const fs = require("fs");
-const path = require("path");
-const ENERGY_MAX = 100;
-const ENERGY_REGEN_TIME = 10000; // 10 seconds
 
 const app = express();
 app.use(express.json());
@@ -10,7 +7,11 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 
-// ================= DATABASE =================
+// ===== CONFIG =====
+const ENERGY_MAX = 100;
+const ENERGY_REGEN_TIME = 5000; // 5 sec
+
+// ===== DATABASE =====
 const DB_FILE = "./users.json";
 let users = fs.existsSync(DB_FILE)
   ? JSON.parse(fs.readFileSync(DB_FILE))
@@ -20,10 +21,9 @@ function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
 }
 
-// ================= USER INIT =================
+// ===== USER INIT =====
 app.post("/user", (req, res) => {
   const { initData } = req.body;
-
   const userId = initData?.user?.id;
   const ref = initData?.start_param;
 
@@ -33,20 +33,20 @@ app.post("/user", (req, res) => {
     users[userId] = {
       id: userId,
       balance: 0,
+      energy: ENERGY_MAX,
       level: 1,
-      energy: 100,
       lastTap: 0,
-      lastEnergyUpdate: Date.now()
+      lastEnergyUpdate: Date.now(),
       lastDaily: 0,
       refBy: null,
       referrals: 0
     };
 
-    // 🎁 Referral bonus
+    // Referral bonus
     if (ref && users[ref] && ref !== userId) {
-      users[userId].refBy = ref;
       users[ref].balance += 20;
       users[ref].referrals += 1;
+      users[userId].refBy = ref;
     }
 
     saveUsers();
@@ -55,22 +55,25 @@ app.post("/user", (req, res) => {
   res.json(users[userId]);
 });
 
-// ================= TAP =================
+// ===== ENERGY REGEN FUNCTION =====
+function regenEnergy(user) {
+  const now = Date.now();
+  const diff = Math.floor((now - user.lastEnergyUpdate) / ENERGY_REGEN_TIME);
+
+  if (diff > 0) {
+    user.energy = Math.min(ENERGY_MAX, user.energy + diff);
+    user.lastEnergyUpdate = now;
+  }
+}
+
+// ===== TAP =====
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
   const user = users[userId];
 
   if (!user) return res.json({ error: "User not found" });
 
-  const now = Date.now();
-
-  // 🔋 ENERGY REGEN (1 energy / 5 sec)
-  const regenTime = 5000;
-  const diff = Math.floor((now - user.lastEnergy) / regenTime);
-  if (diff > 0) {
-    user.energy = Math.min(100, user.energy + diff);
-    user.lastEnergy = now;
-  }
+  regenEnergy(user);
 
   if (user.energy <= 0) {
     return res.json({
@@ -82,6 +85,7 @@ app.post("/tap", (req, res) => {
 
   user.energy -= 1;
   user.balance += 1;
+  user.lastTap = Date.now();
 
   saveUsers();
 
@@ -91,7 +95,7 @@ app.post("/tap", (req, res) => {
   });
 });
 
-// ================= DAILY =================
+// ===== DAILY =====
 app.post("/daily", (req, res) => {
   const { userId } = req.body;
   const user = users[userId];
@@ -110,7 +114,7 @@ app.post("/daily", (req, res) => {
   res.json({ balance: user.balance });
 });
 
-// ================= LEADERBOARD =================
+// ===== LEADERBOARD =====
 app.get("/leaderboard", (req, res) => {
   const list = Object.values(users)
     .sort((a, b) => b.balance - a.balance)
@@ -119,7 +123,7 @@ app.get("/leaderboard", (req, res) => {
   res.json(list);
 });
 
-// ================= START =================
+// ===== START SERVER =====
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
