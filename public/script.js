@@ -77,12 +77,33 @@ async function loadBoard() {
   document.getElementById("board").innerHTML =
     data.map(u => `🏆 ${u.id} — ${u.balance}`).join("<br>");
 }
+document.getElementById("token").innerText = data.token || 0;
 
 function copyInvite() {
   const el = document.getElementById("refLink");
   el.select();
   document.execCommand("copy");
   alert("Copied!");
+}
+
+async function convertToken() {
+  const res = await fetch("/convert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("token").innerText = data.token;
+
+  alert("✅ Token converted!");
 }
 
 init();
