@@ -1,5 +1,6 @@
 const express = require("express");
 const fs = require("fs");
+const axios = require("axios");
 
 const app = express();
 app.use(express.json());
@@ -7,22 +8,25 @@ app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
 
-// CONFIG
+// ================= CONFIG =================
 const ENERGY_MAX = 100;
 const ENERGY_REGEN_TIME = 5000;
 
-// DATABASE
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const CHANNEL = process.env.CHANNEL_USERNAME;
+const GROUP = process.env.GROUP_USERNAME;
+
+// ================= DATABASE =================
 const DB_FILE = "./users.json";
 let users = fs.existsSync(DB_FILE)
   ? JSON.parse(fs.readFileSync(DB_FILE))
   : {};
 
-// SAVE USERS
 function saveUsers() {
   fs.writeFileSync(DB_FILE, JSON.stringify(users, null, 2));
 }
 
-// LEVEL SYSTEM
+// ================= UTILITIES =================
 function updateLevel(user) {
   const newLevel = Math.floor(user.balance / 100) + 1;
   if (newLevel > user.level) {
@@ -31,7 +35,6 @@ function updateLevel(user) {
   }
 }
 
-// ENERGY REGEN
 function regenEnergy(user) {
   const now = Date.now();
   const diff = Math.floor((now - user.lastEnergyUpdate) / ENERGY_REGEN_TIME);
@@ -41,7 +44,39 @@ function regenEnergy(user) {
   }
 }
 
-// USER INIT
+async function sendTelegramMessage(userId, text) {
+  try {
+    await axios.post(
+      `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,
+      {
+        chat_id: userId,
+        text,
+        parse_mode: "HTML"
+      }
+    );
+  } catch (e) {
+    console.log("Telegram error:", e.message);
+  }
+}
+
+async function checkMember(userId, chat) {
+  try {
+    const res = await axios.get(
+      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`,
+      {
+        params: {
+          chat_id: chat,
+          user_id: userId
+        }
+      }
+    );
+    return ["member", "administrator", "creator"].includes(res.data.result.status);
+  } catch {
+    return false;
+  }
+}
+
+// ================= USER INIT =================
 app.post("/user", (req, res) => {
   const { initData } = req.body;
   const userId = initData?.user?.id;
@@ -67,7 +102,6 @@ app.post("/user", (req, res) => {
       }
     };
 
-    // referral bonus
     if (ref && users[ref] && ref !== userId) {
       users[ref].balance += 20;
       users[ref].referrals += 1;
@@ -80,7 +114,7 @@ app.post("/user", (req, res) => {
   res.json(users[userId]);
 });
 
-// TAP
+// ================= TAP =================
 app.post("/tap", (req, res) => {
   const { userId } = req.body;
   const user = users[userId];
@@ -90,11 +124,7 @@ app.post("/tap", (req, res) => {
   regenEnergy(user);
 
   if (user.energy <= 0) {
-    return res.json({
-      error: "No energy",
-      balance: user.balance,
-      energy: user.energy
-    });
+    return res.json({ error: "No energy", balance: user.balance });
   }
 
   user.energy -= 1;
@@ -110,41 +140,53 @@ app.post("/tap", (req, res) => {
   });
 });
 
-// DAILY
+// ================= DAILY =================
 app.post("/daily", (req, res) => {
   const { userId } = req.body;
   const user = users[userId];
 
   if (!user) return res.json({ error: "User not found" });
 
-  const now = Date.now();
-  if (now - user.lastDaily < 86400000) {
+  if (Date.now() - user.lastDaily < 86400000)
     return res.json({ error: "Come back tomorrow" });
-  }
 
-  user.lastDaily = now;
+  user.lastDaily = Date.now();
   user.balance += 50;
-  saveUsers();
 
+  saveUsers();
   res.json({ balance: user.balance });
 });
 
-// TASK
-app.post("/task", (req, res) => {
+// ================= TASK =================
+app.post("/task", async (req, res) => {
   const { userId, type } = req.body;
   const user = users[userId];
 
   if (!user) return res.json({ error: "User not found" });
-  if (user.tasks[type]) return res.json({ error: "Already done" });
+  if (user.tasks[type]) return res.json({ error: "Already completed" });
+
+  let verified = false;
+
+  if (type === "youtube") verified = true;
+  if (type === "channel") verified = await checkMember(userId, CHANNEL);
+  if (type === "group") verified = await checkMember(userId, GROUP);
+
+  if (!verified) return res.json({ error: "Join required first" });
 
   user.tasks[type] = true;
   user.balance += 20;
 
   saveUsers();
+
+  await sendTelegramMessage(
+    userId,
+    `✅ <b>Task Completed!</b>\n🎯 ${type}\n💰 +20 coins`
+  );
+
   res.json({ success: true, balance: user.balance });
 });
 
-// LEADERBOARD
+// ================= LEADERBOARD =================
 app.get("/leaderboard", (req, res) => {
   const list = Object.values(users)
     .sort((a, b) => b.balance - a.balance)
@@ -153,7 +195,7 @@ app.get("/leaderboard", (req, res) => {
   res.json(list);
 });
 
-// START SERVER
+// ================= START =================
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
