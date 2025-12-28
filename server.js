@@ -30,17 +30,14 @@ app.post("/user", (req, res) => {
   if (!userId) return res.json({ error: "Invalid user" });
 
   if (!users[userId]) {
-    users[userId] = {
-      id: userId,
-      balance: 0,
-      energy: ENERGY_MAX,
-      level: 1,
-      lastTap: 0,
-      lastEnergyUpdate: Date.now(),
-      lastDaily: 0,
-      refBy: null,
-      referrals: 0
-    };
+    function updateLevel(user) {
+  const newLevel = Math.floor(user.balance / 100) + 1;
+
+  if (newLevel > user.level) {
+    user.level = newLevel;
+    user.energy = Math.min(ENERGY_MAX, user.energy + 10); // bonus energy
+  }
+    }
 
     // Referral bonus
     if (ref && users[ref] && ref !== userId) {
@@ -83,15 +80,18 @@ app.post("/tap", (req, res) => {
     });
   }
 
-  user.energy -= 1;
-  user.balance += 1;
-  user.lastTap = Date.now();
+    user.energy -= 1;
+    user.balance += 1;
 
-  saveUsers();
+    updateLevel(user);
+    user.lastTap = Date.now();
 
-  res.json({
+    saveUsers();
+
+    res.json({
     balance: user.balance,
-    energy: user.energy
+    energy: user.energy,
+    level: user.level
   });
 });
 
