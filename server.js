@@ -17,11 +17,12 @@ const GROUP = process.env.GROUP_USERNAME;
 const ENERGY_MAX = 100;
 const ENERGY_REGEN_TIME = 5000;
 
-// ================= DATABASE =================
+// ================= CONNECT DB =================
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
+// ================= MODEL =================
 const userSchema = new mongoose.Schema({
   telegramId: String,
   balance: { type: Number, default: 0 },
@@ -71,20 +72,15 @@ app.post("/user", async (req, res) => {
 
   if (!userId) return res.json({ error: "INVALID_USER" });
 
-  // check join channel
+  // Check channel join
   const joined = await isMember(userId, CHANNEL);
   if (!joined) return res.json({ error: "JOIN_REQUIRED" });
 
   let user = await User.findOne({ telegramId: userId });
 
   if (!user) {
-    user = new User({
-      telegramId: userId,
-      energy: ENERGY_MAX,
-      lastEnergyUpdate: Date.now()
-    });
+    user = new User({ telegramId: userId });
 
-    // referral
     if (ref && ref !== userId) {
       const refUser = await User.findOne({ telegramId: ref });
       if (refUser) {
@@ -110,12 +106,10 @@ app.post("/tap", async (req, res) => {
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   regenEnergy(user);
+  if (user.energy <= 0) return res.json({ error: "NO_ENERGY" });
 
-  if (user.energy <= 0)
-    return res.json({ error: "NO_ENERGY" });
-
-  user.energy -= 1;
-  user.balance += 1;
+  user.energy--;
+  user.balance++;
   user.level = Math.floor(user.balance / 100) + 1;
 
   await user.save();
@@ -142,7 +136,7 @@ app.post("/daily", async (req, res) => {
   res.json({ balance: user.balance });
 });
 
-// ================= TASK =================
+// ================= TASKS =================
 app.post("/task", async (req, res) => {
   const { userId, type } = req.body;
   const user = await User.findOne({ telegramId: userId });
@@ -165,20 +159,22 @@ app.post("/task", async (req, res) => {
 });
 
 // ================= STATS =================
-app.get("/leaderboard", async (_, res) => {
+app.get("/leaderboard", async (req, res) => {
   const users = await User.find().sort({ balance: -1 }).limit(10);
   res.json(users);
 });
 
-app.get("/top-referrals", async (_, res) => {
+app.get("/top-referrals", async (req, res) => {
   const users = await User.find().sort({ referrals: -1 }).limit(10);
   res.json(users);
 });
 
-app.get("/stats", async (_, res) => {
+app.get("/stats", async (req, res) => {
   const total = await User.countDocuments();
   res.json({ total });
 });
 
 // ================= START =================
-app.listen(PORT, () => console.log("🚀 Server running on port", PORT));
+app.listen(PORT, () => {
+  console.log("🚀 Server running on port", PORT);
+});
