@@ -75,9 +75,9 @@ async function loadBoard() {
   const data = await res.json();
 
   document.getElementById("board").innerHTML =
+    document.getElementById("token").innerText = data.token || 0;
     data.map(u => `🏆 ${u.id} — ${u.balance}`).join("<br>");
 }
-document.getElementById("token").innerText = data.token || 0;
 
 function copyInvite() {
   const el = document.getElementById("refLink");
