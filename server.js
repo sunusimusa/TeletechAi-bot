@@ -71,6 +71,28 @@ app.post("/user", (req, res) => {
   res.json(users[userId]);
 });
 
+app.post("/task", (req, res) => {
+  const { userId, type } = req.body;
+  const user = users[userId];
+
+  if (!user) return res.json({ error: "User not found" });
+
+  if (user.tasks[type]) {
+    return res.json({ error: "Task already completed" });
+  }
+
+  // reward
+  user.tasks[type] = true;
+  user.balance += 20;
+
+  saveUsers();
+
+  res.json({
+    success: true,
+    balance: user.balance
+  });
+});
+
 // ===== ENERGY REGEN =====
 function regenEnergy(user) {
   const now = Date.now();
