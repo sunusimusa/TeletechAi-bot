@@ -10,6 +10,7 @@ async function init() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       initData: tg.initDataUnsafe
+      updateEnergyBar();
     })
   });
 
@@ -29,6 +30,7 @@ init();
 async function tap() {
   const res = await fetch("/tap", {
     method: "POST",
+    updateEnergyBar();
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId })
   });
