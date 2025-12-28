@@ -1,38 +1,35 @@
+require("dotenv").config();
 const express = require("express");
-const fs = require("fs");
-const axios = require("axios");
 const mongoose = require("mongoose");
+const axios = require("axios");
 
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
-// ================= CONFIG =================
 const PORT = process.env.PORT || 3000;
+
+// ================== CONFIG ==================
 const BOT_TOKEN = process.env.BOT_TOKEN;
 const CHANNEL = process.env.CHANNEL_USERNAME;
-const GROUP = process.env.GROUP_USERNAME;
-const MONGO_URI = process.env.MONGO_URI;
-
 const ENERGY_MAX = 100;
 const ENERGY_REGEN_TIME = 5000;
 
-// ================= CONNECT DB =================
-mongoose.connect(MONGO_URI)
+// ================== DATABASE ==================
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.log("❌ Mongo Error:", err));
+  .catch(err => console.error("❌ Mongo Error:", err));
 
-// ================= USER SCHEMA =================
-const UserSchema = new mongoose.Schema({
-  userId: String,
+const userSchema = new mongoose.Schema({
+  telegramId: String,
   balance: Number,
   token: Number,
   level: Number,
   energy: Number,
   lastEnergyUpdate: Number,
   lastDaily: Number,
-  referrals: Number,
   refBy: String,
+  referrals: Number,
   tasks: {
     youtube: Boolean,
     channel: Boolean,
@@ -40,23 +37,15 @@ const UserSchema = new mongoose.Schema({
   }
 });
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.model("User", userSchema);
 
-// ================= HELPERS =================
+// ================== HELPERS ==================
 function regenEnergy(user) {
   const now = Date.now();
   const diff = Math.floor((now - user.lastEnergyUpdate) / ENERGY_REGEN_TIME);
   if (diff > 0) {
     user.energy = Math.min(ENERGY_MAX, user.energy + diff);
     user.lastEnergyUpdate = now;
-  }
-}
-
-function updateLevel(user) {
-  const lvl = Math.floor(user.balance / 100) + 1;
-  if (lvl > user.level) {
-    user.level = lvl;
-    user.energy = Math.min(ENERGY_MAX, user.energy + 10);
   }
 }
 
@@ -72,32 +61,36 @@ async function isMember(userId, chat) {
   }
 }
 
-// ================= USER INIT =================
+// ================== USER INIT ==================
 app.post("/user", async (req, res) => {
-  const { initData } = req.body;
-  const userId = initData?.user?.id;
-  const ref = initData?.start_param;
+  const init = req.body.initData;
+  const userId = init?.user?.id;
+  const ref = init?.start_param;
 
   if (!userId) return res.json({ error: "INVALID_USER" });
 
-  let user = await User.findOne({ userId });
+  // Check join
+  const joined = await isMember(userId, CHANNEL);
+  if (!joined) return res.json({ error: "JOIN_REQUIRED" });
+
+  let user = await User.findOne({ telegramId: userId });
 
   if (!user) {
-    user = await User.create({
-      userId,
+    user = new User({
+      telegramId: userId,
       balance: 0,
       token: 0,
       level: 1,
       energy: ENERGY_MAX,
       lastEnergyUpdate: Date.now(),
       lastDaily: 0,
-      referrals: 0,
       refBy: null,
+      referrals: 0,
       tasks: { youtube: false, channel: false, group: false }
     });
 
-    if (ref && ref !== userId) {
-      const refUser = await User.findOne({ userId: ref });
+    if (ref) {
+      const refUser = await User.findOne({ telegramId: ref });
       if (refUser) {
         refUser.balance += 20;
         refUser.referrals += 1;
@@ -105,24 +98,25 @@ app.post("/user", async (req, res) => {
         user.refBy = ref;
       }
     }
+
+    await user.save();
   }
 
   res.json(user);
 });
 
-// ================= TAP =================
+// ================== TAP ==================
 app.post("/tap", async (req, res) => {
-  const user = await User.findOne({ userId: req.body.userId });
-  if (!user) return res.json({ error: "User not found" });
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   regenEnergy(user);
-
-  if (user.energy <= 0)
-    return res.json({ error: "No energy" });
+  if (user.energy <= 0) return res.json({ error: "NO_ENERGY" });
 
   user.energy -= 1;
   user.balance += 1;
-  updateLevel(user);
+  user.level = Math.floor(user.balance / 100) + 1;
+
   await user.save();
 
   res.json({
@@ -132,13 +126,13 @@ app.post("/tap", async (req, res) => {
   });
 });
 
-// ================= DAILY =================
+// ================== DAILY ==================
 app.post("/daily", async (req, res) => {
-  const user = await User.findOne({ userId: req.body.userId });
-  if (!user) return res.json({ error: "User not found" });
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   if (Date.now() - user.lastDaily < 86400000)
-    return res.json({ error: "Come back tomorrow" });
+    return res.json({ error: "WAIT_24_HOURS" });
 
   user.lastDaily = Date.now();
   user.balance += 50;
@@ -147,20 +141,20 @@ app.post("/daily", async (req, res) => {
   res.json({ balance: user.balance });
 });
 
-// ================= TASK VERIFY =================
+// ================== TASK ==================
 app.post("/task", async (req, res) => {
   const { userId, type } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "User not found" });
+  const user = await User.findOne({ telegramId: userId });
 
-  if (user.tasks[type]) return res.json({ success: true });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  if (user.tasks[type]) return res.json({ success: true, balance: user.balance });
 
   let ok = false;
   if (type === "youtube") ok = true;
   if (type === "channel") ok = await isMember(userId, CHANNEL);
-  if (type === "group") ok = await isMember(userId, GROUP);
+  if (type === "group") ok = await isMember(userId, process.env.GROUP_USERNAME);
 
-  if (!ok) return res.json({ error: "JOIN_REQUIRED" });
+  if (!ok) return res.json({ error: "NOT_JOINED" });
 
   user.tasks[type] = true;
   user.balance += 20;
@@ -169,7 +163,7 @@ app.post("/task", async (req, res) => {
   res.json({ success: true, balance: user.balance });
 });
 
-// ================= LEADERBOARD =================
+// ================== STATS ==================
 app.get("/leaderboard", async (req, res) => {
   const users = await User.find().sort({ balance: -1 }).limit(10);
   res.json(users);
@@ -181,11 +175,11 @@ app.get("/top-referrals", async (req, res) => {
 });
 
 app.get("/stats", async (req, res) => {
-  const count = await User.countDocuments();
-  res.json({ total: count });
+  const total = await User.countDocuments();
+  res.json({ total });
 });
 
-// ================= START =================
+// ================== START ==================
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
