@@ -33,6 +33,8 @@ const userSchema = new mongoose.Schema({
   lastDaily: { type: Number, default: 0 },
   lastBox: { type: Number, default: 0 },
   teamId: { type: String, default: null },
+  spinCount: { type: Number, default: 1 }, // adadin spins
+lastSpin: { type: Number, default: 0 }
   refBy: String,
   referrals: { type: Number, default: 0 },
   tasks: {
@@ -98,6 +100,27 @@ async function rewardRefChain(userId, amount) {
     currentUser = parent;
     level++;
   }
+}
+
+async function spin() {
+  const res = await fetch("/spin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert("⏳ Come back later!");
+    return;
+  }
+
+  document.getElementById("spinResult").innerText =
+    "🎉 You won: " + data.reward;
+
+  document.getElementById("balance").innerText = data.balance;
+  document.getElementById("energy").innerText = data.energy;
 }
 
 // ================= USER INIT =================
@@ -301,6 +324,32 @@ app.post("/team/join", async (req, res) => {
   await user.save();
 
   res.json({ success: true });
+});
+
+app.post("/spin", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  const now = Date.now();
+
+  // 1 spin every 24 hours
+  if (now - user.lastSpin < 24 * 60 * 60 * 1000) {
+    return res.json({ error: "COME_BACK_LATER" });
+  }
+
+  const reward = SPIN_REWARDS[Math.floor(Math.random() * SPIN_REWARDS.length)];
+
+  if (reward.reward) user.balance += reward.reward;
+  if (reward.energy) user.energy = Math.min(100, user.energy + reward.energy);
+
+  user.lastSpin = now;
+  await user.save();
+
+  res.json({
+    reward: reward.label,
+    balance: user.balance,
+    energy: user.energy
+  });
 });
 
 // ================= START =================
