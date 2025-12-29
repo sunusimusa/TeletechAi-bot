@@ -162,6 +162,28 @@ PHASE 4:
 `);
 }
 
+function openAd() {
+  alert("🚀 Sponsored Ad\nComing soon...");
+  // window.open("https://example.com", "_blank");
+}
+
+// ROTATING ADS
+const ads = [
+  "https://i.imgur.com/3ZQ3Z6Y.png",
+  "https://i.imgur.com/9QZ6J1K.png",
+  "https://i.imgur.com/5WvKxYF.png"
+];
+
+let adIndex = 0;
+
+setInterval(() => {
+  const img = document.getElementById("adImage");
+  if (img) {
+    img.src = ads[adIndex];
+    adIndex = (adIndex + 1) % ads.length;
+  }
+}, 5000);
+
 // ================= STATS =================
 function loadStats() {
   fetch("/stats")
