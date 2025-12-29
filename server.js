@@ -66,18 +66,21 @@ async function isMember(userId, chat) {
 // ================= USER INIT =================
 app.post("/user", async (req, res) => {
   const init = req.body.initData;
-  const userId = init?.user?.id;
+  const userId = init?.user?.id || req.body.userId;
   const ref = init?.start_param;
 
-  if (!userId) return res.json({ error: "INVALID_USER" });
-
-  const joined = await isMember(userId, CHANNEL);
-  if (!joined) return res.json({ error: "JOIN_REQUIRED" });
+  if (!userId) {
+    return res.json({ error: "INVALID_USER" });
+  }
 
   let user = await User.findOne({ telegramId: userId });
 
   if (!user) {
-    user = new User({ telegramId: userId });
+    user = new User({
+      telegramId: userId,
+      energy: ENERGY_MAX,
+      lastEnergyUpdate: Date.now()
+    });
 
     if (ref && ref !== userId) {
       const refUser = await User.findOne({ telegramId: ref });
@@ -92,10 +95,17 @@ app.post("/user", async (req, res) => {
     await user.save();
   }
 
+  // always refresh energy
   regenEnergy(user);
   await user.save();
 
-  res.json(user);
+  res.json({
+    id: user.telegramId,
+    balance: user.balance,
+    energy: user.energy,
+    level: user.level,
+    token: user.token
+  });
 });
 
 // ================= TAP =================
