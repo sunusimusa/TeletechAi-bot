@@ -44,13 +44,12 @@ const userSchema = new mongoose.Schema({
   teamId: { type: String, default: null },
   spinCount: { type: Number, default: 1 }, // adadin spins
 lastSpin: { type: Number, default: 0 }
-  adsSpinCount: { type: Number, default: 0 },
-lastAdsSpin: { type: Number, default: 0 },
   refBy: String,
   referrals: { type: Number, default: 0 },
   tasks: {
     youtube: { type: Boolean, default: false },
-    channel: { type: Boolean, default: false },
+    channel: { type: Boolean, default: falseadsSpinCount: { type: Number, default: 0 },
+lastAdsSpin: { type: Number, default: 0 }, },
     group: { type: Boolean, default: false }
   }
 });
