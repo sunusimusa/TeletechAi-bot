@@ -13,6 +13,24 @@
 
 <div class="app">
 
+  <!-- OPEN BUTTON -->
+<button class="menu-btn" onclick="openFullPage()">☰</button>
+
+<!-- FULL SCREEN PAGE -->
+<div id="fullPage" class="full-page">
+  <div class="page-header">
+    <span onclick="closeFullPage()">← Back</span>
+    <h3>🔥 Spin & Earn</h3>
+  </div>
+
+  <div class="page-content">
+    <h2>🎰 Lucky Spin</h2>
+    <button class="spin-btn" onclick="spin()">SPIN NOW</button>
+
+    <p id="spinResult"></p>
+  </div>
+</div>
+
   <!-- Menu Button -->
 <button class="menu-btn" onclick="openMenu()">☰</button>
 
