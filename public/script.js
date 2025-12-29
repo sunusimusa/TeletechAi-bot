@@ -136,6 +136,32 @@ function loadTopRefs() {
     });
 }
 
+function openRoadmap() {
+  alert(`
+🚀 TELE TECH AI ROADMAP
+
+PHASE 1 (LIVE):
+✔ Tap to Earn
+✔ Referral System
+✔ Daily Rewards
+✔ Leaderboard
+
+PHASE 2 (COMING SOON):
+🔜 Convert to Token
+🔜 Referral Levels
+🔜 Energy Boost
+
+PHASE 3:
+🔜 Withdraw (USDT / TON)
+🔜 NFT Rewards
+
+PHASE 4:
+🔜 Airdrop
+🔜 Mobile App
+🔜 Community DAO
+`);
+}
+
 // ================= STATS =================
 function loadStats() {
   fetch("/stats")
