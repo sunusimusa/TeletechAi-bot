@@ -69,3 +69,91 @@ body {
 .bottom-nav div:hover {
   color: #00ffb3;
 }
+
+body {
+  margin: 0;
+  background: #0d1117;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+
+.app {
+  max-width: 480px;
+  margin: auto;
+  padding-bottom: 90px;
+}
+
+.title {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.tap-circle {
+  width: 220px;
+  height: 220px;
+  margin: 20px auto;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #00ffcc, #00c896);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 0 30px rgba(0,255,200,0.5);
+}
+
+.stats {
+  display: flex;
+  justify-content: space-around;
+  margin: 15px 0;
+}
+
+.stats div {
+  text-align: center;
+}
+
+.energy-bar {
+  width: 90%;
+  height: 10px;
+  background: #333;
+  margin: 10px auto;
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+#energyFill {
+  height: 100%;
+  width: 100%;
+  background: linear-gradient(90deg, #00ff99, #00ffaa);
+  transition: 0.3s;
+}
+
+.actions button,
+.btn {
+  width: 90%;
+  margin: 6px auto;
+  display: block;
+  padding: 12px;
+  background: gold;
+  border: none;
+  border-radius: 12px;
+  font-weight: bold;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+  background: #0f172a;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+}
+
+.bottom-nav div {
+  text-align: center;
+  color: white;
+  font-size: 13px;
+}
