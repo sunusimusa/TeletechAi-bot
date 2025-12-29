@@ -58,3 +58,13 @@ button {
   background: #ffc107;
   font-weight: bold;
 }
+
+.rank-row {
+  display: flex;
+  justify-content: space-between;
+  background: #1f2937;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 6px;
+  color: white;
+}
