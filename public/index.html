@@ -1,90 +1,68 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>TeleTech AI</title>
+<!DOCTYPE html>  <html lang="en">  
+<head>  
+  <meta charset="UTF-8" />  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />  
+  <title>TeleTech AI</title>    <script src="https://telegram.org/js/telegram-web-app.js"></script>    <link rel="stylesheet" href="style.css" />  
+</head>  <body>  <div class="app">    <!-- OPEN BUTTON -->  <button class="menu-btn" onclick="openFullPage()">☰</button>
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    
-  </style>
-</head>
+<!-- FULL SCREEN PAGE -->  <div id="fullPage" class="full-page">  
+  <div class="page-header">  
+    <span onclick="closeFullPage()">← Back</span>  
+    <h3>🔥 Spin & Earn</h3>  
+  </div>    <div class="page-content">  
+    <h2>🎰 Lucky Spin</h2>  
+    <button class="spin-btn" onclick="spin()">SPIN NOW</button>  <p id="spinResult"></p>
 
-<body>
+  </div>  
+</div>    <!-- Menu Button -->  <button class="menu-btn" onclick="openMenu()">☰</button>
 
-<!-- TOP BAR -->
-<div class="top-bar">
-  <div class="menu-btn" onclick="openMenu()">☰</div>
-  <div class="title">TeleTech AI</div>
-  <div class="menu-btn" onclick="openFullPage()">☰</div>
+<!-- Side Menu -->  <div id="sideMenu" class="side-menu">  
+  <span class="close" onclick="closeMenu()">✖</span>  <a href="#" onclick="openPage('profile')">👤 Profile</a>
+<a href="#" onclick="openPage('wallet')">💰 Wallet</a>
+<a href="#" onclick="openPage('leaderboard')">🏆 Leaderboard</a>
+<a href="#" onclick="openPage('spin')">🎰 Spin</a>
+
+</div>    <h3>🏆 Top Teams</h3>  
+<div id="teamBoard" class="team-board"></div>    <div class="leaderboard">  
+  <h3>🏆 Top Inviters</h3>  
+  <div id="topRefs">Loading...</div>  
+  </div>    <h2 class="title">🔥 Tap & Earn</h2>  
+  <p>🔥 Over <span id="totalUsers">0</span> users joined!</p>    <!-- STATS -->    <div class="stats">  
+    <div>  
+      <small>Balance</small>  
+      <h3 id="balance">0</h3>  
+    </div>  <div>  
+  <small>Energy</small>  
+  <h3 id="energy">0</h3>  
+</div>  
+
+<div>  
+  <small>Level</small>  
+  <h3 id="level">1</h3>  
 </div>
 
-<!-- SIDE MENU -->
-<div id="sideMenu" class="side-menu">
-  <div onclick="closeMenu()">❌ Close</div>
-  <a onclick="openPage('profile')">👤 Profile</a>
-  <a onclick="openPage('wallet')">💰 Wallet</a>
-  <a onclick="openPage('leaderboard')">🏆 Leaderboard</a>
-  <a onclick="openPage('spin')">🎰 Spin</a>
-</div>
+  </div>    <!-- ENERGY BAR -->    <div class="energy-bar">  
+    <div id="energyFill"></div>  
+  </div>    <!-- TAP BUTTON -->    <div class="tap-btn" onclick="tap()">TAP</div>    <button onclick="openBox()" class="btn">  
+🎁 Open Box  
+  </button>  
+  <button onclick="spin()">🎡 Lucky Spin</button>  
+<p id="spinResult"></p>  
+  <button onclick="watchAd()">🎥 Watch Ad & Spin</button>  
+<p id="adsInfo"></p>    <!-- DAILY -->  <button class="btn" onclick="daily()">🎁 Daily Reward</button>
 
-<!-- FULL PAGE -->
-<div id="fullPage" class="full-page">
-  <div class="page-header">
-    <span onclick="closeFullPage()">← Back</span>
-    <b>Spin & Earn</b>
-  </div>
+  <!-- TASKS -->    <h3>🎯 Tasks</h3>  
+  <button onclick="openTask('youtube')">▶️ Subscribe YouTube</button>  
+  <button onclick="openTask('channel')">📢 Join Update Channel</button>  
+  <button onclick="openTask('group')">💬 Join Public Chat</button>    <!-- REFERRAL -->    <h3>👥 Invite Friends</h3>  
+  <input id="refLink" readonly />  
+  <button onclick="copyInvite()">Copy Invite</button>    <!-- TOKEN -->  <button onclick="convertToken()">💎 Convert to Token</button>
 
-  <div class="content">
-    <button class="btn" onclick="spin()">🎰 SPIN NOW</button>
-    <p id="spinResult"></p>
-  </div>
-</div>
-
-<!-- MAIN CONTENT -->
-<div class="content">
-
-  <h3>🔥 Tap & Earn</h3>
-
-  <div class="stats">
-    <div><small>Balance</small><h3 id="balance">0</h3></div>
-    <div><small>Energy</small><h3 id="energy">0</h3></div>
-    <div><small>Level</small><h3 id="level">1</h3></div>
-  </div>
-
-  <div class="tap-btn" onclick="tap()">TAP</div>
-
-  <button class="btn" onclick="openBox()">🎁 Open Box</button>
-  <button class="btn" onclick="spin()">🎡 Lucky Spin</button>
-  <button class="btn" onclick="watchAd()">🎥 Watch Ad</button>
-
-  <h3>🎯 Tasks</h3>
-  <button class="btn" onclick="openTask('youtube')">YouTube</button>
-  <button class="btn" onclick="openTask('channel')">Channel</button>
-  <button class="btn" onclick="openTask('group')">Group</button>
-
-  <h3>👥 Invite Friends</h3>
-  <input id="refLink" style="width:100%" readonly />
-  <button class="btn" onclick="copyInvite()">Copy Invite</button>
-
-  <button class="btn" onclick="convertToken()">💎 Convert Token</button>
-
-</div>
-
-<script>
-function openMenu() {
-  document.getElementById("sideMenu").classList.add("open");
-}
-function closeMenu() {
-  document.getElementById("sideMenu").classList.remove("open");
-}
-function openFullPage() {
-  document.getElementById("fullPage").classList.add("active");
-}
-function closeFullPage() {
-  document.getElementById("fullPage").classList.remove("active");
-}
-</script>
-
-</body>
-</html>
+  <p>Token: <span id="token">0</span></p>    <!-- LEADERBOARD -->    <h3>🏆 Leaderboard</h3>  
+  <div id="board"></div>    <h3>🏆 Top Inviters</h3>    <div class="ad-banner" onclick="openAd()">  
+  <img src="https://i.imgur.com/3ZQ3Z6Y.png" alt="Ad Banner">  
+  </div>    <button onclick="openRoadmap()" class="btn">  
+  🚀 Roadmap  
+  </button>  
+<div id="topRefs"></div>  </div>  <script src="script.js"></script>  </body>  
+  </html>
