@@ -157,6 +157,27 @@ app.post("/tap", async (req, res) => {
   });
 });
 
+app.post("/open-box", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  // cooldown (1 box every 6 hours)
+  const now = Date.now();
+  if (user.lastBox && now - user.lastBox < 6 * 60 * 60 * 1000) {
+    return res.json({ error: "COME_BACK_LATER" });
+  }
+
+  // rewards
+  const rewards = [10, 20, 30, 50];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+  user.balance += reward;
+  user.lastBox = now;
+  await user.save();
+
+  res.json({ reward, balance: user.balance });
+});
+
 // ================= DAILY =================
 app.post("/daily", async (req, res) => {
   const user = await User.findOne({ telegramId: req.body.userId });
