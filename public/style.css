@@ -92,3 +92,19 @@ button {
   width: 100%;
   display: block;
 }
+
+.team-board {
+  margin-top: 10px;
+}
+
+.team-row {
+  background: #111;
+  border: 1px solid #333;
+  padding: 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-between;
+  color: #0f0;
+  font-weight: bold;
+}
