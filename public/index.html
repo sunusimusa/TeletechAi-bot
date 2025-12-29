@@ -21,11 +21,79 @@
 
   <p id="tapResult"></p>
 
-  <!-- BUTTONS -->
-  <div class="action-buttons">
-    <button onclick="openBox()">🎁 Open Box</button>
-    <button onclick="spin()">🎡 Lucky Spin</button>
-  </div>
+     <!-- TOP INVITERS -->
+    <section class="section">
+      <h3>🏆 Top Inviters</h3>
+      <div id="topRefs"></div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+      <div>
+        <small>Balance</small>
+        <h3 id="balance">0</h3>
+      </div>
+      <div>
+        <small>Energy</small>
+        <h3 id="energy">0</h3>
+      </div>
+      <div>
+        <small>Level</small>
+        <h3 id="level">1</h3>
+      </div>
+    </section>
+
+    <!-- ENERGY BAR -->
+    <section class="energy-bar">
+      <div id="energyFill"></div>
+    </section>
+
+    <!-- ================= MAIN CONTENT ================= -->
+  <main class="content">
+
+    <!-- HEADER INFO -->
+    <section class="hero">
+      <h2>🔥 Tap & Earn</h2>
+      <p>🔥 Over <span id="totalUsers">0</span> users joined!</p>
+    </section>
+
+      <!-- ACTION BUTTONS -->
+    <section class="actions">
+      <button onclick="openBox()">🎁 Open Box</button>
+      <button onclick="spin()">🎡 Lucky Spin</button>
+      <button onclick="watchAd()">🎥 Watch Ad</button>
+    </section>
+
+  <!-- TASKS -->
+    <section class="tasks">
+      <h3>🎯 Tasks</h3>
+      <button onclick="openTask('youtube')">▶️ Subscribe YouTube</button>
+      <button onclick="openTask('channel')">📢 Join Update Channel</button>
+      <button onclick="openTask('group')">💬 Join Public Chat</button>
+    </section>
+
+    <!-- REFERRAL -->
+    <section class="referral">
+      <h3>👥 Invite Friends</h3>
+      <input id="refLink" readonly />
+      <button onclick="copyInvite()">Copy Invite</button>
+    </section>
+
+    <!-- TOKEN -->
+    <section class="token">
+      <button onclick="convertToken()">💎 Convert to Token</button>
+      <p>Token: <span id="token">0</span></p>
+    </section>
+
+   <!-- AD BANNER -->
+    <section class="ad-banner" onclick="openAd()">
+      <img src="https://i.imgur.com/3ZQ3Z6Y.png" />
+    </section>
+
+    <!-- ROADMAP -->
+    <section class="roadmap">
+      <button onclick="openRoadmap()" class="btn">🚀 Roadmap</button>
+    </section>
 
   <!-- BOTTOM NAV -->
   <div class="bottom-nav">
