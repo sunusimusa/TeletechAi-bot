@@ -22,7 +22,6 @@ mongoose.connect(process.env.MONGODB_URI)
   .catch(err => console.error("❌ Mongo Error:", err));
 
 // ================= MODEL =================
-lastBox: { type: Number, default: 0 },
 const userSchema = new mongoose.Schema({
   telegramId: String,
   balance: { type: Number, default: 0 },
@@ -32,6 +31,7 @@ const userSchema = new mongoose.Schema({
   refLevel: { type: Number, default: 1 },
   lastEnergyUpdate: { type: Number, default: Date.now },
   lastDaily: { type: Number, default: 0 },
+  lastBox: { type: Number, default: 0 },
   refBy: String,
   referrals: { type: Number, default: 0 },
   tasks: {
