@@ -254,4 +254,23 @@ function loadTeamRanking() {
     });
 }
 
+function openMenu() {
+  document.getElementById("sideMenu").style.left = "0";
+}
+
+function closeMenu() {
+  document.getElementById("sideMenu").style.left = "-260px";
+}
+
+function openPage(page) {
+  closeMenu();
+
+  if (page === "spin") {
+    alert("🎰 Spin page");
+  }
+  if (page === "leaderboard") {
+    alert("🏆 Leaderboard");
+  }
+}
+
 loadTeamRanking();
