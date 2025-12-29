@@ -25,7 +25,7 @@ mongoose.connect(process.env.MONGODB_URI)
 const userSchema = new mongoose.Schema({
   telegramId: String,
   balance: { type: Number, default: 0 },
-  energy: { type: Number, default: ENERGY_MAX },
+  energy: { type: Number, default: 100 },
   level: { type: Number, default: 1 },
   referrals: { type: Number, default: 0 },
   refBy: { type: String, default: null },
