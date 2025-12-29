@@ -1,178 +1,71 @@
 body {
   margin: 0;
-  font-family: Arial;
-  background: linear-gradient(180deg, #0b0f1a, #111827);
+  font-family: Arial, sans-serif;
+  background: #0b0f1a;
   color: white;
   text-align: center;
 }
 
 .app {
-  padding: 20px;
+  padding-bottom: 90px;
 }
 
 .title {
-  font-size: 26px;
-  margin-bottom: 10px;
+  margin-top: 20px;
 }
 
-.stats {
-  display: flex;
-  justify-content: space-around;
-  margin: 15px 0;
-}
-
-.energy-bar {
-  width: 90%;
-  height: 10px;
-  background: #222;
-  margin: 10px auto;
-  border-radius: 10px;
-  overflow: hidden;
-}
-
-#energyFill {
-  height: 100%;
-  background: linear-gradient(90deg, cyan, #00ff9d);
-  width: 0%;
-}
-
-.tap-btn {
-  width: 170px;
-  height: 170px;
-  margin: 20px auto;
+.tap-circle {
+  width: 220px;
+  height: 220px;
+  margin: 40px auto;
+  background: radial-gradient(circle, #00ffb3, #00b894);
   border-radius: 50%;
-  background: linear-gradient(135deg, #00ffb3, #00c18c);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 26px;
+  font-size: 36px;
   font-weight: bold;
-  box-shadow: 0 0 20px rgba(0,255,180,0.4);
-}
-
-button {
-  margin: 10px;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: #ffc107;
-  font-weight: bold;
-}
-
-.rank-row {
-  display: flex;
-  justify-content: space-between;
-  background: #1f2937;
-  padding: 10px;
-  border-radius: 8px;
-  margin-bottom: 6px;
-  color: white;
-}
-
-.btn {
-  background: #f5c400;
-  color: #000;
-  padding: 14px 20px;
-  border-radius: 12px;
-  font-size: 16px;
-  border: none;
-  font-weight: bold;
-  margin: 10px 0;
-}
-
-.ad-banner {
-  width: 90%;
-  margin: 15px auto;
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 0 10px rgba(0,0,0,0.4);
-}
-
-.ad-banner img {
-  width: 100%;
-  display: block;
-}
-
-.team-board {
-  margin-top: 10px;
-}
-
-.team-row {
-  background: #111;
-  border: 1px solid #333;
-  padding: 10px;
-  margin-bottom: 6px;
-  border-radius: 8px;
-  display: flex;
-  justify-content: space-between;
-  color: #0f0;
-  font-weight: bold;
-}
-
-.side-menu {
-  position: fixed;
-  top: 0;
-  left: -260px;
-  width: 250px;
-  height: 100%;
-  background: #111;
-  padding: 20px;
-  transition: 0.3s;
-  z-index: 999;
-}
-
-.side-menu a {
-  display: block;
-  color: white;
-  padding: 15px 0;
-  text-decoration: none;
-  font-size: 18px;
-}
-
-.side-menu .close {
-  color: red;
-  font-size: 22px;
   cursor: pointer;
+  animation: pulse 1.5s infinite;
 }
 
-.menu-btn {
-  font-size: 22px;
-  background: none;
-  border: none;
-  color: white;
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.08); }
+  100% { transform: scale(1); }
 }
 
-.full-page {
-  position: fixed;
-  top: 60px; /* ba zai rufe header ba */
-  left: 0;
-  width: 100%;
-  height: calc(100vh - 60px);
-  background: #0b0f1a;
-  overflow-y: auto;
-  transition: 0.3s;
-  z-index: 2000;
-}
-
-.page-header {
+.action-buttons button {
+  width: 90%;
   padding: 15px;
-  background: #111;
-  display: flex;
-  align-items: center;
-  gap: 15px;
-  font-size: 18px;
-}
-
-.page-content {
-  flex: 1;
-  text-align: center;
-  padding: 40px 20px;
-}
-
-.spin-btn {
-  padding: 15px 30px;
-  background: gold;
+  margin: 8px auto;
   border: none;
   border-radius: 10px;
-  font-size: 18px;
+  background: gold;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #111;
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0;
+  border-top: 1px solid #333;
+}
+
+.bottom-nav div {
+  color: white;
+  font-size: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.bottom-nav div:hover {
+  color: #00ffb3;
 }
