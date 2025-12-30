@@ -51,31 +51,38 @@ function updateUI() {
 }
 
 // ================= TAP =================
-function tap() {
+async function tap() {
   if (energy <= 0) {
-    showTapMsg("⚡ No Energy!");
+    document.getElementById("tapResult").innerText = "⚡ No Energy!";
     return;
   }
 
-  energy--;
-  balance++;
+  const btn = document.querySelector(".tap-btn");
+  btn.classList.add("tap-animate");
+
+  const res = await fetch("/tap", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("tapResult").innerText = data.error;
+    btn.classList.remove("tap-animate");
+    return;
+  }
+
+  // 🔥 real values from server
+  balance = data.balance;
+  energy = data.energy;
+  level = data.level;
 
   updateUI();
-  animateTap();
-  showTapMsg("🔥 +1 Coin!");
-}
 
-function animateTap() {
-  const btn = document.querySelector(".tap-btn");
-  if (!btn) return;
-  btn.classList.add("tap-animate");
-  setTimeout(() => btn.classList.remove("tap-animate"), 150);
-}
-
-function showTapMsg(text) {
-  const el = document.getElementById("tapResult");
-  if (!el) return;
-  el.innerText = text;
+  document.getElementById("tapResult").innerText = "🔥 +1 Coin!";
+  setTimeout(() => btn.classList.remove("tap-animate"), 120);
 }
 
 // ================= DAILY =================
