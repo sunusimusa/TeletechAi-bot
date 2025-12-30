@@ -44,6 +44,12 @@ init();
 
 // ================= TAP =================
 async function tap() {
+  const btn = document.querySelector(".tap-btn");
+
+  // animation effect
+  btn.classList.add("tap-animate");
+  setTimeout(() => btn.classList.remove("tap-animate"), 150);
+
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -51,11 +57,17 @@ async function tap() {
   });
 
   const data = await res.json();
-  if (data.error) return alert(data.error);
+
+  if (data.error) {
+    document.getElementById("tapResult").innerText = "⚡ No Energy!";
+    return;
+  }
 
   document.getElementById("balance").innerText = data.balance;
   document.getElementById("energy").innerText = data.energy;
   document.getElementById("level").innerText = data.level;
+
+  document.getElementById("tapResult").innerText = "🔥 +1 Coin!";
 }
 
 // ================= DAILY =================
