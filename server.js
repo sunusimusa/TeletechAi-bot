@@ -3,7 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const axios = require("axios");
 
-const { sendJetton } = require("./ton");
 const User = require("./models/User");
 
 const TOKEN_CONTRACT = process.env.TOKEN_CONTRACT;
