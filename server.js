@@ -415,18 +415,21 @@ app.post("/convert", async (req, res) => {
   const user = await User.findOne({ telegramId: userId });
   if (!user) return res.json({ error: "User not found" });
 
-  if (user.balance < 100) {
+  if (user.balance < TOKEN_RATE) {
     return res.json({ error: "Not enough balance" });
   }
 
-  user.balance -= 100;
-  user.tokens += 1;
+  const tokens = Math.floor(user.balance / TOKEN_RATE);
+
+  user.balance -= tokens * TOKEN_RATE;
+  user.token += tokens;
 
   await user.save();
 
   res.json({
-    balance: user.balance,
-    tokens: user.tokens
+    success: true,
+    tokens,
+    balance: user.balance
   });
 });
 
