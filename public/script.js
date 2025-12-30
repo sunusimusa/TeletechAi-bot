@@ -138,11 +138,6 @@ async function watchAd() {
 }
 
 async function convertToken() {
-  if (balance < 100) {
-    alert("❌ You need at least 100 coins to convert.");
-    return;
-  }
-
   const res = await fetch("/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -150,16 +145,10 @@ async function convertToken() {
   });
 
   const data = await res.json();
-
-  if (data.error) {
-    alert(data.error);
-    return;
-  }
-
-  balance = data.balance;
-  document.getElementById("balance").innerText = balance;
+  if (data.error) return alert(data.error);
 
   document.getElementById("token").innerText = data.tokens;
+  document.getElementById("balance").innerText = data.balance;
 
   alert("✅ Converted successfully!");
 }
