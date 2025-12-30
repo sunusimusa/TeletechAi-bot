@@ -1,17 +1,18 @@
-const tg = window.Telegram.WebApp;
-tg.expand();
+// ================= INIT =================
+const tg = window.Telegram?.WebApp;
+tg?.expand();
 
-let maxEnergy = 100;
-let regenInterval = null;
 let USER_ID = null;
 let balance = 0;
 let energy = 0;
 let level = 1;
+let maxEnergy = 100;
+let regenInterval = null;
 
-// ================= INIT =================
+// ================= LOAD USER =================
 async function init() {
-  const tgUser = tg.initDataUnsafe?.user;
-  if (!tgUser) return alert("Please reopen the bot");
+  const tgUser = tg?.initDataUnsafe?.user;
+  if (!tgUser) return alert("Please open via Telegram");
 
   const res = await fetch("/user", {
     method: "POST",
@@ -25,22 +26,22 @@ async function init() {
   const data = await res.json();
   if (data.error) return alert(data.error);
 
-  USER_ID = data.telegramId || data.id;
-  balance = Number(data.balance) || 0;
-  energy = Number(data.energy) || 0;
-  level = Number(data.level) || 1;
+  USER_ID = data.id;
+  balance = data.balance;
+  energy = data.energy;
+  level = data.level;
 
   updateUI();
   startEnergyRegen();
   setReferralLink();
+  loadStats();
   loadLeaderboard();
   loadTopRefs();
-  loadStats();
 }
 
 init();
 
-// ================= UI UPDATE =================
+// ================= UI =================
 function updateUI() {
   document.getElementById("balance").innerText = balance;
   document.getElementById("energy").innerText = energy;
@@ -52,14 +53,6 @@ function updateUI() {
 
 // ================= TAP =================
 async function tap() {
-  if (energy <= 0) {
-    document.getElementById("tapResult").innerText = "⚡ No Energy!";
-    return;
-  }
-
-  const btn = document.querySelector(".tap-btn");
-  btn.classList.add("tap-animate");
-
   const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,77 +60,66 @@ async function tap() {
   });
 
   const data = await res.json();
+  if (data.error) return alert(data.error);
 
-  if (data.error) {
-    document.getElementById("tapResult").innerText = data.error;
-    btn.classList.remove("tap-animate");
-    return;
-  }
-
-  // 🔥 real values from server
   balance = data.balance;
   energy = data.energy;
   level = data.level;
 
   updateUI();
-
-  document.getElementById("tapResult").innerText = "🔥 +1 Coin!";
-  setTimeout(() => btn.classList.remove("tap-animate"), 120);
 }
 
-// USER ID (from telegram webapp)
-const USER_ID = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
-
-// DAILY REWARD
+// ================= DAILY =================
 function daily() {
   fetch("/daily", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) return alert(data.error);
-    alert("🎁 Daily reward claimed!");
-    document.getElementById("balance").innerText = data.balance;
-  });
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) return alert(d.error);
+      balance = d.balance;
+      updateUI();
+      alert("🎁 Daily reward claimed!");
+    });
 }
 
-// OPEN BOX
+// ================= OPEN BOX =================
 function openBox() {
   fetch("/open-box", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) return alert(data.error);
-    alert("🎁 You got " + data.reward + " coins");
-    document.getElementById("balance").innerText = data.balance;
-  });
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) return alert(d.error);
+      balance = d.balance;
+      updateUI();
+      alert("🎁 You got " + d.reward + " coins");
+    });
 }
 
-// LUCKY SPIN
+// ================= SPIN =================
 function spin() {
   fetch("/spin", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) return alert(data.error);
-    alert("🎉 You won: " + data.reward);
-    document.getElementById("balance").innerText = data.balance;
-    document.getElementById("energy").innerText = data.energy;
-  });
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) return alert(d.error);
+      balance = d.balance;
+      energy = d.energy;
+      updateUI();
+      alert("🎉 You won: " + d.reward);
+    });
 }
 
 // ================= ADS =================
-async function watchAd() {
-  alert("📺 Watching Ad...");
-
+function watchAd() {
   setTimeout(async () => {
     const res = await fetch("/ads-spin", {
       method: "POST",
@@ -154,20 +136,60 @@ async function watchAd() {
   }, 3000);
 }
 
-async function convertToken() {
-  const res = await fetch("/convert", {
+// ================= CONVERT =================
+function convertToken() {
+  fetch("/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
-  });
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) return alert(d.error);
+      document.getElementById("token").innerText = d.tokens;
+      balance = d.balance;
+      updateUI();
+      alert("✅ Converted!");
+    });
+}
 
-  const data = await res.json();
-  if (data.error) return alert(data.error);
+// ================= WITHDRAW =================
+function withdraw() {
+  const wallet = document.getElementById("wallet").value;
+  if (!wallet) return alert("Enter wallet");
 
-  document.getElementById("token").innerText = data.tokens;
-  document.getElementById("balance").innerText = data.balance;
+  fetch("/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID, wallet })
+  })
+    .then(r => r.json())
+    .then(d => {
+      if (d.error) return alert(d.error);
+      alert("✅ Withdrawal sent!");
+    });
+}
 
-  alert("✅ Converted successfully!");
+// ================= TASK =================
+function openTask(type) {
+  if (type === "youtube") window.open("https://youtube.com/@Sunusicrypto");
+  if (type === "channel") window.open("https://t.me/TeleAIupdates");
+  if (type === "group") window.open("https://t.me/tele_tap_ai");
+
+  setTimeout(async () => {
+    const res = await fetch("/task", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID, type })
+    });
+
+    const data = await res.json();
+    if (data.error) return alert(data.error);
+
+    balance = data.balance;
+    updateUI();
+    alert("✅ Task completed!");
+  }, 3000);
 }
 
 // ================= REFERRAL =================
@@ -183,7 +205,7 @@ function loadLeaderboard() {
     .then(r => r.json())
     .then(d => {
       document.getElementById("board").innerHTML =
-        d.map((u, i) => `#${i + 1} — ${u.balance}`).join("<br>");
+        d.map((u, i) => `#${i + 1} - ${u.balance}`).join("<br>");
     });
 }
 
@@ -192,53 +214,28 @@ function loadTopRefs() {
     .then(r => r.json())
     .then(d => {
       document.getElementById("topRefs").innerHTML =
-        d.map((u, i) => `#${i + 1} ${u.telegramId} (${u.referrals})`).join("");
+        d.map((u, i) => `#${i + 1} ${u.telegramId}`).join("<br>");
     });
 }
 
-// ================= TASK =================
-function openTask(type) {
-  if (type === "youtube") {
-    window.open("https://youtube.com/@Sunusicrypto", "_blank");
-  }
-
-  if (type === "channel") {
-    window.open("https://t.me/TeleAIupdates", "_blank");
-  }
-
-  if (type === "group") {
-    window.open("https://t.me/tele_tap_ai", "_blank");
-  }
-
-  // wait few seconds before reward
-  setTimeout(async () => {
-    try {
-      const res = await fetch("/task", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          userId: USER_ID,
-          type: type
-        })
-      });
-
-      const data = await res.json();
-
-      if (data.error) {
-        alert(data.error);
-        return;
-      }
-
-      // update balance
-      balance = data.balance;
-      updateUI();
-
-      alert("✅ Task completed! Reward added.");
-    } catch (err) {
-      console.error(err);
-      alert("❌ Network error");
+// ================= ENERGY REGEN =================
+function startEnergyRegen() {
+  if (regenInterval) return;
+  regenInterval = setInterval(() => {
+    if (energy < maxEnergy) {
+      energy++;
+      document.getElementById("energy").innerText = energy;
+      document.getElementById("energyFill").style.width = energy + "%";
     }
-  }, 3000);
+  }, 10000);
+}
+
+// ================= MENU =================
+function openMenu() {
+  document.getElementById("sideMenu").style.left = "0";
+}
+function closeMenu() {
+  document.getElementById("sideMenu").style.left = "-260px";
 }
 
 // ================= STATS =================
@@ -248,51 +245,7 @@ function loadStats() {
     .then(d => {
       document.getElementById("totalUsers").innerText = d.total;
     });
-}
-
-function startEnergyRegen() {
-  if (regenInterval) return;
-
-  regenInterval = setInterval(() => {
-    if (energy < maxEnergy) {
-      energy += 1;
-      document.getElementById("energy").innerText = energy;
-      document.getElementById("energyFill").style.width = energy + "%";
-    }
-  }, 10000); // every 10 seconds
-}
-
-// ================= MENU =================
-function openMenu() {
-  document.getElementById("sideMenu").style.left = "0";
-}
-
-function closeMenu() {
-  document.getElementById("sideMenu").style.left = "-260px";
-}
-
-// ================== WITHDRAW ==================
-function withdraw() {
-  const wallet = document.getElementById("wallet").value;
-
-  if (!wallet) {
-    return alert("❌ Shigar da wallet address");
-  }
-
-  fetch("/withdraw", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: USER_ID,
-      wallet: wallet
-    })
-  })
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) return alert(data.error);
-    alert("✅ Withdrawal sent!");
-  });
-}
+        }
 
 // ================== ROADMAP ==================
 function openRoadmap() {
