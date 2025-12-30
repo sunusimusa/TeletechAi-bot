@@ -46,29 +46,29 @@
   <div class="tap-btn" onclick="tap()">TAP</div>
 
   <!-- ACTION BUTTONS -->
-<button onclick="openBox()">🎁 Open Box</button>
-<button onclick="spin()">🎡 Lucky Spin</button>
-<button onclick="daily()">🎁 Daily Reward</button>
+<button onclick="openBox()">🎁 Open 
+  Box</button>
+<button onclick="spin()">🎡 Lucky 
+  Spin</button>
+<button onclick="daily()">🎁 Daily 
+  Reward</button>
 
-  <!-- DAILY -->
-  <button class="btn" onclick="daily()">🎁 Daily Reward</button>
+<!-- TASKS -->
+<h3>🎯 Tasks</h3>
+<button onclick="openTask('youtube')">▶️ Subscribe YouTube</button>
+<button onclick="openTask('channel')">📢 Join Update Channel</button>
+<button onclick="openTask('group')">💬 Join Public Chat</button>
 
-  <!-- TASKS -->
-  <h3>🎯 Tasks</h3>
-  <button onclick="openTask('youtube')">▶️ Subscribe YouTube</button>
-  <button onclick="openTask('channel')">📢 Join Update Channel</button>
-  <button onclick="openTask('group')">💬 Join Public Chat</button>
+<!-- REFERRAL -->
+<h3>👥 Invite Friends</h3>
+<input id="refLink" readonly />
+<button onclick="copyInvite()">Copy Invite</button>
 
-  <!-- REFERRAL -->
-  <h3>👥 Invite Friends</h3>
-  <input id="refLink" readonly />
-  <button onclick="copyInvite()">Copy Invite</button>
+<!-- TOKEN -->
+<button onclick="convertToken()">💎 Convert to Token</button>
+<p>Token: <span id="token">0</span></p>
 
-  <!-- TOKEN -->
-  <button onclick="convertToken()">💎 Convert to Token</button>
-  <p>Token: <span id="token">0</span></p>
-
-  <input id="wallet" placeholder="Your TON wallet" />
+<input id="wallet" placeholder="Your TON wallet" />
 <button onclick="withdraw()">Withdraw</button>
 
   <!-- ADS -->
