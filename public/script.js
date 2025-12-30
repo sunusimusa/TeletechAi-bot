@@ -182,3 +182,27 @@ function openMenu() {
 function closeMenu() {
   document.getElementById("sideMenu").style.left = "-260px";
 }
+
+function openRoadmap() {
+  alert(`
+🚀 TELE TECH AI ROADMAP
+
+PHASE 1 ✅
+- Tap to Earn
+- Referral System
+- Daily Reward
+
+PHASE 2 🔜
+- Convert to Token
+- Energy Boost
+- Spin Rewards
+
+PHASE 3 🔜
+- Withdraw
+- NFT Rewards
+
+PHASE 4 🔜
+- Airdrop
+- Mobile App
+  `);
+}
