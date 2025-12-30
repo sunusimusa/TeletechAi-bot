@@ -1,147 +1,198 @@
+// ================= TELEGRAM INIT =================
 const tg = window.Telegram.WebApp;
 tg.expand();
 
-const USER_ID = tg?.initDataUnsafe?.user?.id;
-
+let USER_ID = null;
 let balance = 0;
 let energy = 0;
 let level = 1;
+let maxEnergy = 100;
+let regenInterval = null;
 
+// ================= INIT =================
 async function init() {
+  const tgUser = tg.initDataUnsafe?.user;
+  if (!tgUser) return alert("Please open from Telegram");
+
   const res = await fetch("/user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: tgUser.id,
+      initData: tg.initDataUnsafe
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  USER_ID = data.id || data.telegramId;
+  balance = data.balance;
+  energy = data.energy;
+  level = data.level;
+
+  updateUI();
+  setReferralLink();
+  loadLeaderboard();
+  loadTopRefs();
+  loadStats();
+  startEnergyRegen();
+}
+
+init();
+
+// ================= UI =================
+function updateUI() {
+  document.getElementById("balance").innerText = balance;
+  document.getElementById("energy").innerText = energy;
+  document.getElementById("level").innerText = level;
+
+  const bar = document.getElementById("energyFill");
+  if (bar) bar.style.width = Math.min(energy, 100) + "%";
+}
+
+// ================= TAP =================
+async function tap() {
+  const res = await fetch("/tap", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   });
 
   const data = await res.json();
+  if (data.error) return alert(data.error);
+
   balance = data.balance;
   energy = data.energy;
   level = data.level;
 
   updateUI();
 }
-init();
 
-function updateUI() {
-  document.getElementById("balance").innerText = balance;
-  document.getElementById("energy").innerText = energy;
-  document.getElementById("level").innerText = level;
-}
-
-// TAP
-function tap() {
-  fetch("/tap", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: USER_ID })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.error) return alert(d.error);
-    balance = d.balance;
-    energy = d.energy;
-    level = d.level;
-    updateUI();
-  });
-}
-
-// DAILY
+// ================= DAILY =================
 function daily() {
   fetch("/daily", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.error) return alert(d.error);
-    balance = d.balance;
-    updateUI();
-    alert("🎁 Daily claimed!");
-  });
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) return alert(data.error);
+      alert("🎁 Daily reward claimed!");
+      balance = data.balance;
+      updateUI();
+    });
 }
 
-// OPEN BOX
+// ================= OPEN BOX =================
 function openBox() {
   fetch("/open-box", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.error) return alert(d.error);
-    alert("🎁 You got " + d.reward);
-    balance = d.balance;
-    updateUI();
-  });
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) return alert(data.error);
+      alert("🎁 You got " + data.reward + " coins");
+      balance = data.balance;
+      updateUI();
+    });
 }
 
-// SPIN
+// ================= SPIN =================
 function spin() {
   fetch("/spin", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(r => r.json())
-  .then(d => {
-    if (d.error) return alert(d.error);
-    alert("🎉 " + d.reward);
-    balance = d.balance;
-    energy = d.energy;
-    updateUI();
-  });
-        }
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) return alert(data.error);
+      alert("🎉 You won: " + data.reward);
+      balance = data.balance;
+      energy = data.energy;
+      updateUI();
+    });
+}
 
+// ================= ADS =================
+function watchAd() {
+  setTimeout(async () => {
+    const res = await fetch("/ads-spin", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+    if (data.error) return alert(data.error);
+
+    balance = data.balance;
+    energy = data.energy;
+    updateUI();
+  }, 3000);
+}
+
+// ================= CONVERT =================
 function convertToken() {
   fetch("/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
   })
-  .then(res => res.json())
-  .then(data => {
-    if (data.error) {
-      alert(data.error);
-      return;
-    }
-
-    document.getElementById("token").innerText = data.tokens;
-    document.getElementById("balance").innerText = data.balance;
-
-    alert("✅ Converted to token!");
-  })
-  .catch(err => {
-    console.error(err);
-    alert("❌ Error converting token");
-  });
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) return alert(data.error);
+      document.getElementById("token").innerText = data.tokens;
+      balance = data.balance;
+      updateUI();
+    });
 }
 
-// ================= TASK BUTTONS =================
+// ================= WITHDRAW =================
+function withdraw() {
+  const wallet = document.getElementById("wallet").value;
+  if (!wallet) return alert("Enter wallet address");
+
+  fetch("/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID, wallet })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.error) return alert(data.error);
+      alert("✅ Withdrawal sent!");
+    });
+}
+
+// ================= REFERRAL =================
+function setReferralLink() {
+  const input = document.getElementById("refLink");
+  if (!input) return;
+  input.value = `https://t.me/TeletechAi_bot?start=${USER_ID}`;
+}
+
+function copyInvite() {
+  const input = document.getElementById("refLink");
+  navigator.clipboard.writeText(input.value);
+  alert("✅ Invite link copied!");
+}
+
+// ================= TASKS =================
 function openTask(type) {
-  if (type === "youtube") {
-    window.open("https://youtube.com/@Sunusicrypto", "_blank");
-  }
+  if (type === "youtube") window.open("https://youtube.com/@Sunusicrypto");
+  if (type === "channel") window.open("https://t.me/TeleAIupdates");
+  if (type === "group") window.open("https://t.me/tele_tap_ai");
 
-  if (type === "channel") {
-    window.open("https://t.me/TeleAIupdates", "_blank");
-  }
-
-  if (type === "group") {
-    window.open("https://t.me/tele_tap_ai", "_blank");
-  }
-
-  // give reward after delay
   setTimeout(async () => {
     const res = await fetch("/task", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        userId: USER_ID,
-        type: type
-      })
+      body: JSON.stringify({ userId: USER_ID, type })
     });
 
     const data = await res.json();
@@ -149,49 +200,73 @@ function openTask(type) {
 
     balance = data.balance;
     updateUI();
-    alert("✅ Task completed!");
   }, 3000);
 }
 
-// ================= COPY INVITE =================
-function setReferralLink() {
-  const input = document.getElementById("refLink");
-
-  if (!input) return;
-
-  const userId = USER_ID;
-  const link = `https://t.me/TeletechAi_bot?start=${userId}`;
-
-  input.value = link;
+// ================= STATS =================
+function loadLeaderboard() {
+  fetch("/leaderboard")
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById("board").innerHTML =
+        d.map((u, i) => `#${i + 1} - ${u.balance}`).join("<br>");
+    });
 }
 
-USER_ID = data.telegramId;
-setReferralLink();
+function loadTopRefs() {
+  fetch("/top-referrals")
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById("topRefs").innerHTML =
+        d.map((u, i) => `#${i + 1} ${u.telegramId} (${u.referrals})`).join("<br>");
+    });
+}
+
+function loadStats() {
+  fetch("/stats")
+    .then(r => r.json())
+    .then(d => {
+      document.getElementById("totalUsers").innerText = d.total;
+    });
+}
+
+// ================= ENERGY =================
+function startEnergyRegen() {
+  if (regenInterval) return;
+  regenInterval = setInterval(() => {
+    if (energy < maxEnergy) {
+      energy++;
+      updateUI();
+    }
+  }, 10000);
+}
+
+// ================= MENU =================
+function openMenu() {
+  document.getElementById("sideMenu").style.left = "0";
+}
+function closeMenu() {
+  document.getElementById("sideMenu").style.left = "-260px";
+}
 
 // ================= ROADMAP =================
 function openRoadmap() {
   alert(`🚀 TELE TECH AI ROADMAP
 
 PHASE 1 ✅
-• Tap
-• Daily Reward
-• Referral
+Tap • Daily • Referral
 
 PHASE 2 🔜
-• Token
-• Energy Boost
-• Spin
+Token • Spin • Energy Boost
 
 PHASE 3 🔜
-• Withdraw
-• NFT
+Withdraw • NFT
 
 PHASE 4 🔜
-• Airdrop
-• Mobile App`);
+Airdrop • Mobile App`);
 }
 
 // ================= WHITEPAPER =================
 function openWhitepaper() {
   window.open("/whitepaper.html", "_blank");
-}
+                              }
