@@ -3,10 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const axios = require("axios");
 
-const Team = require("./models/Team");
-const { sendJetton } = require("./ton");
-const User = require("./models/User");
-
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
@@ -15,26 +11,42 @@ const PORT = process.env.PORT || 3000;
 
 // ================== CONFIG ==================
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL = process.env.CHANNEL_USERNAME;
-
 const TOKEN_RATE = Number(process.env.TOKEN_RATE || 100);
 const ENERGY_MAX = 100;
 const ENERGY_REGEN_TIME = 5000;
 
-// ================== CONNECT DB ==================
-mongoose
-  .connect(process.env.MONGODB_URI)
+// ================== DATABASE ==================
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
-// ================== SPIN REWARDS ==================
-const SPIN_REWARDS = [
-  { label: "10 Coins", reward: 10 },
-  { label: "20 Coins", reward: 20 },
-  { label: "50 Coins", reward: 50 },
-  { label: "Energy +20", energy: 20 },
-  { label: "Nothing", reward: 0 }
-];
+// ================== MODELS ==================
+const userSchema = new mongoose.Schema({
+  telegramId: String,
+  balance: { type: Number, default: 0 },
+  token: { type: Number, default: 0 },
+  level: { type: Number, default: 1 },
+
+  energy: { type: Number, default: ENERGY_MAX },
+  lastEnergyUpdate: { type: Number, default: Date.now },
+
+  lastDaily: { type: Number, default: 0 },
+  lastBox: { type: Number, default: 0 },
+
+  spinCount: { type: Number, default: 1 },
+  lastSpin: { type: Number, default: 0 },
+
+  referrals: { type: Number, default: 0 },
+  refBy: { type: String, default: null },
+
+  tasks: {
+    youtube: { type: Boolean, default: false },
+    channel: { type: Boolean, default: false },
+    group: { type: Boolean, default: false }
+  }
+});
+
+const User = mongoose.model("User", userSchema);
 
 // ================== HELPERS ==================
 function regenEnergy(user) {
@@ -46,33 +58,15 @@ function regenEnergy(user) {
   }
 }
 
-async function isMember(userId, chat) {
-  try {
-    const res = await axios.get(
-      `https://api.telegram.org/bot${BOT_TOKEN}/getChatMember`,
-      { params: { chat_id: chat, user_id: userId } }
-    );
-    return ["member", "administrator", "creator"].includes(res.data.result.status);
-  } catch {
-    return false;
-  }
-}
-
-// ================== USER INIT ==================
+// ================== INIT USER ==================
 app.post("/user", async (req, res) => {
-  const init = req.body.initData;
-  const userId = init?.user?.id || req.body.userId;
-
-  if (!userId) return res.json({ error: "INVALID_USER" });
+  const { userId } = req.body;
+  if (!userId) return res.json({ error: "NO_USER" });
 
   let user = await User.findOne({ telegramId: userId });
 
   if (!user) {
-    user = new User({
-      telegramId: userId,
-      energy: ENERGY_MAX,
-      lastEnergyUpdate: Date.now()
-    });
+    user = new User({ telegramId: userId });
     await user.save();
   }
 
@@ -109,10 +103,66 @@ app.post("/tap", async (req, res) => {
   });
 });
 
+// ================== DAILY ==================
+app.post("/daily", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  if (Date.now() - user.lastDaily < 86400000)
+    return res.json({ error: "WAIT_24_HOURS" });
+
+  user.lastDaily = Date.now();
+  user.balance += 50;
+  await user.save();
+
+  res.json({ balance: user.balance });
+});
+
+// ================== OPEN BOX ==================
+app.post("/open-box", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  if (Date.now() - user.lastBox < 6 * 60 * 60 * 1000)
+    return res.json({ error: "COME_BACK_LATER" });
+
+  const reward = [10, 20, 30, 50][Math.floor(Math.random() * 4)];
+  user.balance += reward;
+  user.lastBox = Date.now();
+
+  await user.save();
+  res.json({ reward, balance: user.balance });
+});
+
+// ================== SPIN ==================
+app.post("/spin", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.body.userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  if (Date.now() - user.lastSpin < 86400000)
+    return res.json({ error: "COME_BACK_LATER" });
+
+  const rewards = ["10 Coins", "20 Coins", "Energy +20", "Nothing"];
+  const choice = rewards[Math.floor(Math.random() * rewards.length)];
+
+  if (choice === "10 Coins") user.balance += 10;
+  if (choice === "20 Coins") user.balance += 20;
+  if (choice === "Energy +20") user.energy += 20;
+
+  user.lastSpin = Date.now();
+  await user.save();
+
+  res.json({
+    reward: choice,
+    balance: user.balance,
+    energy: user.energy
+  });
+});
+
 // ================== CONVERT ==================
 app.post("/convert", async (req, res) => {
   const user = await User.findOne({ telegramId: req.body.userId });
-  if (!user) return res.json({ error: "User not found" });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   if (user.balance < TOKEN_RATE)
     return res.json({ error: "Not enough balance" });
@@ -122,24 +172,7 @@ app.post("/convert", async (req, res) => {
   user.token += tokens;
 
   await user.save();
-
-  res.json({ success: true, tokens, balance: user.balance });
-});
-
-// ================== WITHDRAW ==================
-app.post("/withdraw", async (req, res) => {
-  const { userId, wallet } = req.body;
-
-  const user = await User.findOne({ telegramId: userId });
-  if (!user) return res.json({ error: "User not found" });
-  if (user.token <= 0) return res.json({ error: "No token" });
-
-  await sendJetton(wallet, user.token);
-
-  user.token = 0;
-  await user.save();
-
-  res.json({ success: true });
+  res.json({ tokens, balance: user.balance });
 });
 
 // ================== START ==================
