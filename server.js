@@ -74,7 +74,7 @@ mongoose.connect(process.env.MONGODB_URI)
 
 }, { timestamps: true });
 
-const teamSchema = new mongoose.Schema({
+({
   name: String,
   leader: String,
   members: [String],
