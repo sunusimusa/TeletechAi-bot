@@ -118,6 +118,18 @@ app.post("/daily", async (req, res) => {
   res.json({ balance: user.balance });
 });
 
+app.post("/game-win", async (req, res) => {
+  const { userId, reward } = req.body;
+
+  const user = await User.findOne({ telegramId: userId });
+  if (!user) return res.json({ error: "User not found" });
+
+  user.balance += reward;
+  await user.save();
+
+  res.json({ success: true });
+});
+
 // ================== OPEN BOX ==================
 app.post("/open-box", async (req, res) => {
   const user = await User.findOne({ telegramId: req.body.userId });
