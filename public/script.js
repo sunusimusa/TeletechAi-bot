@@ -253,6 +253,24 @@ function closeMenu() {
   document.getElementById("sideMenu").style.left = "-260px";
 }
 
+function withdraw() {
+  const wallet = document.getElementById("wallet").value;
+
+  fetch("/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: USER_ID,
+      wallet
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) return alert(data.error);
+    alert("✅ Withdrawal sent!");
+  });
+}
+
 function openRoadmap() {
   alert(`🚀 TELE TECH AI ROADMAP
 
