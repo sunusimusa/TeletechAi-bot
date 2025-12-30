@@ -85,36 +85,53 @@ async function tap() {
   setTimeout(() => btn.classList.remove("tap-animate"), 120);
 }
 
-// ================= DAILY =================
-async function daily() {
-  const res = await fetch("/daily", {
+// USER ID (from telegram webapp)
+const USER_ID = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+
+// DAILY REWARD
+function daily() {
+  fetch("/daily", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) return alert(data.error);
+    alert("🎁 Daily reward claimed!");
+    document.getElementById("balance").innerText = data.balance;
   });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  balance = data.balance;
-  updateUI();
-  alert("🎁 Daily reward claimed!");
 }
 
-// ================= OPEN BOX =================
-async function openBox() {
-  const res = await fetch("/open-box", {
+// OPEN BOX
+function openBox() {
+  fetch("/open-box", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId: USER_ID })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) return alert(data.error);
+    alert("🎁 You got " + data.reward + " coins");
+    document.getElementById("balance").innerText = data.balance;
   });
+}
 
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  balance = data.balance;
-  updateUI();
-  alert(`🎁 You got ${data.reward} coins!`);
+// LUCKY SPIN
+function spin() {
+  fetch("/spin", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.error) return alert(data.error);
+    alert("🎉 You won: " + data.reward);
+    document.getElementById("balance").innerText = data.balance;
+    document.getElementById("energy").innerText = data.energy;
+  });
 }
 
 // ================= ADS =================
