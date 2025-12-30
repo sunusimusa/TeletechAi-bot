@@ -139,3 +139,35 @@ button[onclick="openRoadmap()"] {
   z-index: 10;
   position: relative;
 }
+
+/* TAP BUTTON BASE */
+.tap-btn {
+  width: 220px;
+  height: 220px;
+  margin: 20px auto;
+  border-radius: 50%;
+  background: radial-gradient(circle, #00ffcc, #00b894);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #000;
+  cursor: pointer;
+  box-shadow: 0 0 25px rgba(0, 255, 200, 0.6);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+  animation: glowPulse 1.5s infinite;
+}
+
+/* CLICK ANIMATION */
+.tap-btn.tap-animate {
+  transform: scale(0.9);
+  box-shadow: 0 0 40px #00ffcc;
+}
+
+/* GLOW PULSE */
+@keyframes glowPulse {
+  0% { box-shadow: 0 0 15px #00ffcc; }
+  50% { box-shadow: 0 0 35px #00ffcc; }
+  100% { box-shadow: 0 0 15px #00ffcc; }
+}
