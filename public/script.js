@@ -305,38 +305,4 @@ function openPage(page) {
   alert("Opening: " + page);
 }
 
-let balance = 0;
-let energy = 100;
-let level = 1;
-
-function updateUI() {
-  document.getElementById("balance").innerText = balance;
-  document.getElementById("energy").innerText = energy;
-  document.getElementById("level").innerText = level;
-
-  document.getElementById("energyFill").style.width =
-    Math.max(0, energy) + "%";
-}
-
-function tap() {
-  if (energy <= 0) {
-    document.getElementById("tapResult").innerText = "⚡ No Energy!";
-    return;
-  }
-
-  energy -= 1;
-  balance += 1;
-
-  if (balance % 50 === 0) {
-    level += 1;
-  }
-
-  document.getElementById("tapResult").innerText = "🔥 +1 Coin!";
-  updateUI();
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  updateUI();
-});
-
 loadTeamRanking();
