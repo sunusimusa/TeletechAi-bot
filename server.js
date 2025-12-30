@@ -3,6 +3,7 @@ const express = require("express");
 const mongoose = require("mongoose");
 const axios = require("axios");
 
+const Team = require("./models/Team");
 const { sendJetton } = require("./ton");
 const User = require("./models/User");
 
