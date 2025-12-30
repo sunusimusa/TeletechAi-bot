@@ -153,6 +153,51 @@ function loadTopRefs() {
     });
 }
 
+// ================= TASK =================
+function openTask(type) {
+  if (type === "youtube") {
+    window.open("https://youtube.com/@Sunusicrypto", "_blank");
+  }
+
+  if (type === "channel") {
+    window.open("https://t.me/TeleAIupdates", "_blank");
+  }
+
+  if (type === "group") {
+    window.open("https://t.me/tele_tap_ai", "_blank");
+  }
+
+  // wait few seconds before reward
+  setTimeout(async () => {
+    try {
+      const res = await fetch("/task", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          userId: USER_ID,
+          type: type
+        })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      // update balance
+      balance = data.balance;
+      updateUI();
+
+      alert("✅ Task completed! Reward added.");
+    } catch (err) {
+      console.error(err);
+      alert("❌ Network error");
+    }
+  }, 3000);
+}
+
 // ================= STATS =================
 function loadStats() {
   fetch("/stats")
