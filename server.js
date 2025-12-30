@@ -39,9 +39,6 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // ================= MODEL =================
 
-const ENERGY_MAX = 100;
-
-const userSchema = new mongoose.Schema({
   telegramId: { type: String, required: true },
 
   balance: { type: Number, default: 0 },
