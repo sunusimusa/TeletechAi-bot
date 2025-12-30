@@ -135,7 +135,6 @@ function copyInvite() {
   navigator.clipboard.writeText(link);
   alert("✅ Invite link copied!");
 }
-
 setReferralLink();
 
 // ================= ROADMAP =================
