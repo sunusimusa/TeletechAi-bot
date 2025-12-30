@@ -130,6 +130,33 @@ async function watchAd() {
   }, 3000);
 }
 
+async function convertToken() {
+  if (balance < 100) {
+    alert("❌ You need at least 100 coins to convert.");
+    return;
+  }
+
+  const res = await fetch("/convert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  balance = data.balance;
+  document.getElementById("balance").innerText = balance;
+
+  document.getElementById("token").innerText = data.tokens;
+
+  alert("✅ Converted successfully!");
+}
+
 // ================= REFERRAL =================
 function setReferralLink() {
   const input = document.getElementById("refLink");
