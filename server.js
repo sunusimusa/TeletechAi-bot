@@ -23,20 +23,6 @@ const CHANNEL = process.env.CHANNEL_USERNAME;
 const ENERGY_MAX = 100;
 const ENERGY_REGEN_TIME = 5000;
 
-// ================= SPIN REWARDS =================
-const SPIN_REWARDS = [
-  { label: "10 Coins", reward: 10 },
-  { label: "20 Coins", reward: 20 },
-  { label: "50 Coins", reward: 50 },
-  { label: "Energy +20", energy: 20 },
-  { label: "Nothing", reward: 0 }
-];
-
-// ================= DATABASE =================
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ Mongo Error:", err))
-
 // ================= HELPERS =================
 function regenEnergy(user) {
   const now = Date.now();
