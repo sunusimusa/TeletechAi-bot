@@ -164,6 +164,8 @@ function setReferralLink() {
 
   input.value = link;
 }
+
+USER_ID = data.telegramId;
 setReferralLink();
 
 // ================= ROADMAP =================
