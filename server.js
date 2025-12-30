@@ -3,30 +3,6 @@ const express = require("express");
 const mongoose = require("mongoose");
 const axios = require("axios");
 
-const User = require("./models/User");
-
-const TOKEN_CONTRACT = process.env.TOKEN_CONTRACT;
-const TOKEN_DECIMALS = Number(process.env.TOKEN_DECIMALS);
-const TOKEN_RATE = Number(process.env.TOKEN_RATE);
-
-const app = express();
-app.use(express.json());
-app.use(express.static("public"));
-
-const PORT = process.env.PORT || 3000;
-
-// ================= CONFIG =================
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const CHANNEL = process.env.CHANNEL_USERNAME;
-
-const ENERGY_MAX = 100;
-const ENERGY_REGEN_TIME = 5000;
-
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const axios = require("axios");
-
 const { sendJetton } = require("./ton");
 const User = require("./models/User");
 
@@ -433,3 +409,4 @@ app.post("/withdraw", async (req, res) => {
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
+    
