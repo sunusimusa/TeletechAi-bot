@@ -136,6 +136,8 @@ function copyInvite() {
   alert("✅ Invite link copied!");
 }
 
+setReferralLink();
+
 // ================= ROADMAP =================
 function openRoadmap() {
   alert(`🚀 TELE TECH AI ROADMAP
