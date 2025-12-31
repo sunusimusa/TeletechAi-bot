@@ -121,13 +121,29 @@ app.post("/daily", async (req, res) => {
 app.post("/game-win", async (req, res) => {
   const { userId, reward } = req.body;
 
-  const user = await User.findOne({ telegramId: userId });
-  if (!user) return res.json({ error: "User not found" });
+  if (!userId) {
+    return res.json({ error: "No user id" });
+  }
 
-  user.balance += reward;
+  let user = await User.findOne({ telegramId: userId });
+
+  // 🔥 idan babu user, ƙirƙira shi
+  if (!user) {
+    user = new User({
+      telegramId: userId,
+      balance: 0,
+      energy: 100,
+      level: 1,
+    });
+  }
+
+  user.balance += reward || 1;
   await user.save();
 
-  res.json({ success: true });
+  res.json({
+    success: true,
+    balance: user.balance
+  });
 });
 
 // ================== OPEN BOX ==================
