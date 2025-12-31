@@ -2,67 +2,11 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fight Arena</title>
 
+  <link rel="stylesheet" href="/css/style.css">
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <style>
-    body {
-      background: #0f172a;
-      color: white;
-      text-align: center;
-      font-family: Arial;
-      padding: 20px;
-    }
-
-    .arena {
-      margin-top: 40px;
-    }
-
-    .bar {
-      width: 80%;
-      height: 20px;
-      background: #333;
-      margin: 10px auto;
-      border-radius: 10px;
-      overflow: hidden;
-    }
-
-    .hp {
-      height: 100%;
-      width: 100%;
-      background: #22c55e;
-      transition: width 0.3s;
-    }
-
-    img {
-      width: 120px;
-      margin: 10px;
-    }
-
-    button {
-      margin-top: 25px;
-      padding: 15px 40px;
-      font-size: 18px;
-      background: #22c55e;
-      border: none;
-      border-radius: 10px;
-      color: black;
-    }
-
-    .hit {
-      animation: shake 0.2s;
-    }
-
-    @keyframes shake {
-      0% { transform: translateX(0); }
-      25% { transform: translateX(-5px); }
-      50% { transform: translateX(5px); }
-      75% { transform: translateX(-5px); }
-      100% { transform: translateX(0); }
-    }
-  </style>
 </head>
 
 <body>
@@ -70,66 +14,17 @@
 <h2>⚔️ Fight Arena</h2>
 
 <div class="arena">
-  <img id="enemy" src="https://i.ibb.co/7JZP7Mqt/file-000000009fe471f4807432ae023c6c27-1.png">
+
+  <img id="enemy" src="/images/enemy.png">
   <div class="bar"><div id="enemyHP" class="hp"></div></div>
 
-  <img id="player" src="https://i.ibb.co/219f9kd7/file-00000000c498722f833c76173ee75409.png">
+  <img id="player" src="/images/hero.png">
   <div class="bar"><div id="playerHP" class="hp"></div></div>
+
 </div>
 
 <button onclick="attack()">🔥 ATTACK</button>
 
-<script>
-let enemyHP = 100;
-let playerHP = 100;
-let locked = false;
-
-function attack() {
-  if (locked) return;
-  locked = true;
-
-  enemyHP -= Math.floor(Math.random() * 20) + 5;
-  if (enemyHP < 0) enemyHP = 0;
-
-  document.getElementById("enemy").classList.add("hit");
-  updateBars();
-
-  setTimeout(() => {
-    document.getElementById("enemy").classList.remove("hit");
-
-    if (enemyHP <= 0) {
-      alert("🎉 YOU WIN!");
-      reset();
-      return;
-    }
-
-    playerHP -= Math.floor(Math.random() * 15) + 5;
-    if (playerHP < 0) playerHP = 0;
-
-    document.getElementById("player").classList.add("hit");
-    updateBars();
-
-    setTimeout(() => {
-      document.getElementById("player").classList.remove("hit");
-      if (playerHP <= 0) alert("💀 YOU LOSE!");
-      locked = false;
-    }, 300);
-
-  }, 300);
-}
-
-function updateBars() {
-  document.getElementById("enemyHP").style.width = enemyHP + "%";
-  document.getElementById("playerHP").style.width = playerHP + "%";
-}
-
-function reset() {
-  enemyHP = 100;
-  playerHP = 100;
-  updateBars();
-  locked = false;
-}
-</script>
-
+<script src="/js/fight.js"></script>
 </body>
 </html>
