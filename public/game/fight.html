@@ -1,9 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Fight Arena</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Telegram SDK -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <style>
     body {
       background: #0f172a;
@@ -24,30 +28,49 @@
     }
   </style>
 </head>
+
 <body>
 
   <h1>⚔️ Fight Arena</h1>
   <p>Beat enemy to earn coins</p>
 
-  <button onclick="fight()">🔥 Attack</button>
+  <button onclick="attack()">🔥 Attack</button>
 
   <script>
-    const USER_ID = window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+    const tg = window.Telegram.WebApp;
+    tg.expand();
 
-    function fight() {
-      fetch("/game-win", {
+    const USER_ID = tg.initDataUnsafe?.user?.id;
+
+    if (!USER_ID) {
+      alert("❌ Open this game from Telegram bot");
+    }
+
+    async function attack() {
+      if (!USER_ID) {
+        alert("No user id");
+        return;
+      }
+
+      const res = await fetch("/game-win", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
           userId: USER_ID,
           reward: 20
         })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) return alert(data.error);
-        alert("🏆 You won 20 coins!");
       });
+
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error);
+        return;
+      }
+
+      alert("🔥 You won 20 coins!");
     }
   </script>
 
