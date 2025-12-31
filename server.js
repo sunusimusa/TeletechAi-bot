@@ -1,26 +1,19 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
+const crypto = require("crypto");
 const TelegramBot = require("node-telegram-bot-api");
-
-const User = require("./models/User");
 
 const app = express();
 app.use(express.json());
 app.use(express.static("public"));
 
 const PORT = process.env.PORT || 3000;
-const BOT_TOKEN = process.env.BOT_TOKEN;
 
-// ---------------- CONNECT DB ----------------
-mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ Mongo Error:", err));
-
-// ---------------- TELEGRAM BOT ----------------
-const TelegramBot = require("node-telegram-bot-api");
+// ===== TELEGRAM BOT =====
 const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
 
+// ===== BOT HANDLER =====
 bot.on("message", async (msg) => {
   const chatId = msg.chat.id;
   const text = msg.text || "";
@@ -28,37 +21,31 @@ bot.on("message", async (msg) => {
   if (text.startsWith("/start")) {
     const param = text.split(" ")[1];
 
-    // ================= FIGHT MODE =================
     if (param === "fight") {
       return bot.sendMessage(chatId, "⚔️ Fight Arena", {
         reply_markup: {
-          inline_keyboard: [
-            [
-              {
-                text: "🔥 Open Fight",
-                web_app: {
-                  url: "https://teletechai-bot.onrender.com/game/fight.html"
-                }
+          inline_keyboard: [[
+            {
+              text: "🔥 Open Fight",
+              web_app: {
+                url: "https://teletechai-bot.onrender.com/game/fight.html"
               }
-            ]
-          ]
+            }
+          ]]
         }
       });
     }
 
-    // ================= NORMAL START =================
     return bot.sendMessage(chatId, "🚀 Welcome to TeleTech AI", {
       reply_markup: {
-        inline_keyboard: [
-          [
-            {
-              text: "🚀 Open App",
-              web_app: {
-                url: "https://teletechai-bot.onrender.com"
-              }
+        inline_keyboard: [[
+          {
+            text: "🚀 Open App",
+            web_app: {
+              url: "https://teletechai-bot.onrender.com"
             }
-          ]
-        ]
+          }
+        ]]
       }
     });
   }
