@@ -2,6 +2,7 @@ require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
 const crypto = require("crypto");
+const TelegramBot = require("node-telegram-bot-api");
 
 const app = express();
 app.use(express.json());
@@ -51,7 +52,7 @@ function verifyTelegram(initData) {
 
   const secret = crypto
     .createHmac("sha256", "WebAppData")
-    .update(process.env.BOT_TOKEN)
+    .update(BOT_TOKEN)
     .digest();
 
   const checkHash = crypto
@@ -64,18 +65,34 @@ function verifyTelegram(initData) {
 }
 
 // ================= TELEGRAM BOT =================
+const bot = new TelegramBot(BOT_TOKEN, { polling: true });
+
+bot.on("message", async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text || "";
 
   if (text.startsWith("/start")) {
-    const ref = text.split(" ")[1];
+    const param = text.split(" ")[1];
 
-    return bot.sendMessage(chatId, "🔥 Welcome to TeleTech AI", {
+    if (param === "fight") {
+      return bot.sendMessage(chatId, "⚔️ Fight Arena", {
+        reply_markup: {
+          inline_keyboard: [[
+            {
+              text: "🔥 Open Fight",
+              web_app: { url: "https://teletechai-bot.onrender.com/game/fight.html" }
+            }
+          ]]
+        }
+      });
+    }
+
+    return bot.sendMessage(chatId, "Welcome to TeleTech AI 🚀", {
       reply_markup: {
         inline_keyboard: [[
           {
-            text: "⚔️ Open Fight",
-            web_app: {
-              url: `https://teletechai-bot.onrender.com/game/fight.html?ref=${ref || ""}`
-            }
+            text: "🚀 Open App",
+            web_app: { url: "https://teletechai-bot.onrender.com" }
           }
         ]]
       }
@@ -85,28 +102,19 @@ function verifyTelegram(initData) {
 
 // ================= INIT USER =================
 app.post("/user", async (req, res) => {
-  const { initData, ref } = req.body;
+  const { initData } = req.body;
+  if (!initData) return res.json({ error: "NO_INIT_DATA" });
+
   const data = verifyTelegram(initData);
   if (!data) return res.json({ error: "INVALID_USER" });
 
   const userId = data.user.id;
 
   let user = await User.findOne({ telegramId: userId });
+  if (!user) user = await User.create({ telegramId: userId });
 
-  if (!user) {
-    user = new User({ telegramId: userId, referralBy: ref || null });
-
-    if (ref) {
-      const refUser = await User.findOne({ telegramId: ref });
-      if (refUser) {
-        refUser.balance += 50;
-        refUser.referrals += 1;
-        await refUser.save();
-      }
-    }
-
-    await user.save();
-  }
+  regenEnergy(user);
+  await user.save();
 
   res.json({
     id: user.telegramId,
@@ -116,39 +124,17 @@ app.post("/user", async (req, res) => {
   });
 });
 
-// ================= TAP =================
-app.post("/tap", async (req, res) => {
-  const { initData } = req.body;
-  const data = verifyTelegram(initData);
-  if (!data) return res.json({ error: "INVALID_USER" });
-
-  const user = await User.findOne({ telegramId: data.user.id });
-  if (!user) return res.json({ error: "NO_USER" });
-
-  regenEnergy(user);
-  if (user.energy <= 0) return res.json({ error: "NO_ENERGY" });
-
-  user.energy--;
-  user.balance++;
-  user.level = Math.floor(user.balance / 50) + 1;
-
-  await user.save();
-
-  res.json({
-    balance: user.balance,
-    energy: user.energy,
-    level: user.level
-  });
-});
-
 // ================= GAME WIN =================
 app.post("/game-win", async (req, res) => {
   const { initData } = req.body;
+
   const data = verifyTelegram(initData);
   if (!data) return res.json({ error: "INVALID_USER" });
 
-  const user = await User.findOne({ telegramId: data.user.id });
-  if (!user) return res.json({ error: "NO_USER" });
+  const userId = data.user.id;
+
+  let user = await User.findOne({ telegramId: userId });
+  if (!user) user = await User.create({ telegramId: userId });
 
   user.balance += 10;
   await user.save();
