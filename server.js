@@ -106,6 +106,10 @@ app.post("/game-win", async (req, res) => {
   res.json({ success: true, balance: user.balance });
 });
 
+app.get("/", (req, res) => {
+  res.send("🚀 TeleTech AI Server is running");
+});
+
 // start server
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
