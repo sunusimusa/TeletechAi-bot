@@ -100,6 +100,19 @@ bot.on("message", async (msg) => {
   }
 });
 
+bot.sendMessage(chatId, "⚔️ Fight Arena", {
+  reply_markup: {
+    inline_keyboard: [[
+      {
+        text: "🔥 Open Fight",
+        web_app: {
+          url: "https://teletechai-bot.onrender.com/game/fight.html"
+        }
+      }
+    ]]
+  }
+});
+
 // ================= INIT USER =================
 app.post("/user", async (req, res) => {
   const { initData } = req.body;
