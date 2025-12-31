@@ -18,13 +18,29 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // ================= MODEL =================
 const userSchema = new mongoose.Schema({
-  telegramId: String,
+  telegramId: { type: String, unique: true },
+
   balance: { type: Number, default: 0 },
   energy: { type: Number, default: 100 },
   level: { type: Number, default: 1 },
+
+  lastEnergyUpdate: { type: Number, default: Date.now },
+
+  referralBy: { type: String, default: null },
+  referrals: { type: Number, default: 0 },
+
+  createdAt: { type: Date, default: Date.now }
 });
 
-const User = mongoose.model("User", userSchema);
+function regenEnergy(user) {
+  const now = Date.now();
+  const diff = Math.floor((now - user.lastEnergyUpdate) / 5000);
+
+  if (diff > 0) {
+    user.energy = Math.min(100, user.energy + diff);
+    user.lastEnergyUpdate = now;
+  }
+}
 
 // ================= VERIFY TELEGRAM =================
 function verifyTelegram(initData) {
@@ -39,7 +55,7 @@ function verifyTelegram(initData) {
 
   const secret = crypto
     .createHmac("sha256", "WebAppData")
-    .update(BOT_TOKEN)
+    .update(process.env.BOT_TOKEN)
     .digest();
 
   const checkHash = crypto
@@ -109,6 +125,67 @@ app.post("/game-win", async (req, res) => {
 
   res.json({ success: true, balance: user.balance });
 });
+
+app.post("/user", async (req, res) => {
+  const { initData, ref } = req.body;
+
+  const data = verifyTelegram(initData);
+  if (!data) return res.json({ error: "INVALID_USER" });
+
+  const userId = data.user.id;
+
+  let user = await User.findOne({ telegramId: userId });
+
+  if (!user) {
+    user = new User({
+      telegramId: userId,
+      referralBy: ref || null
+    });
+
+    if (ref) {
+      const refUser = await User.findOne({ telegramId: ref });
+      if (refUser) {
+        refUser.balance += 50;
+        refUser.referrals += 1;
+        await refUser.save();
+      }
+    }
+
+    await user.save();
+  }
+
+  res.json({
+    id: user.telegramId,
+    balance: user.balance,
+    energy: user.energy,
+    level: user.level
+  });
+});
+
+app.post("/tap", async (req, res) => {
+  const { initData } = req.body;
+  const data = verifyTelegram(initData);
+  if (!data) return res.json({ error: "INVALID_USER" });
+
+  const user = await User.findOne({ telegramId: data.user.id });
+  if (!user) return res.json({ error: "NO_USER" });
+
+  regenEnergy(user);
+  if (user.energy <= 0) return res.json({ error: "NO_ENERGY" });
+
+  user.energy -= 1;
+  user.balance += 1;
+  user.level = Math.floor(user.balance / 50) + 1;
+
+  await user.save();
+
+  res.json({
+    balance: user.balance,
+    energy: user.energy,
+    level: user.level
+  });
+});
+
 
 // ================= START SERVER =================
 app.listen(PORT, () => {
