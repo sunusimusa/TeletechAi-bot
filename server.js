@@ -108,19 +108,34 @@ app.post("/daily", async (req, res) => {
 
 // ================== GAME WIN ==================
 app.post("/game-win", async (req, res) => {
-  const { userId, reward } = req.body;
+  const { initData, reward } = req.body;
 
+  if (!initData) return res.json({ error: "NO_INIT_DATA" });
+
+  const data = verifyTelegram(initData);
+  if (!data) return res.json({ error: "INVALID_USER" });
+
+  const userId = data.user?.id;
   if (!userId) return res.json({ error: "NO_USER" });
 
   let user = await User.findOne({ telegramId: userId });
+
   if (!user) {
-    user = new User({ telegramId: userId });
+    user = new User({
+      telegramId: userId,
+      balance: 0,
+      energy: 100,
+      level: 1
+    });
   }
 
   user.balance += reward || 1;
   await user.save();
 
-  res.json({ success: true, balance: user.balance });
+  res.json({
+    success: true,
+    balance: user.balance
+  });
 });
 
 // ================== OPEN BOX ==================
