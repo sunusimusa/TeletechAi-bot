@@ -1,100 +1,36 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>TeleTech AI</title>
-
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
+<h2>Tap & Earn</h2>
 
-<div class="app">
+<button onclick="tap()">TAP</button>
+<button onclick="fight()">FIGHT</button>
 
-  <!-- TITLE -->
-  <h2 class="title">🔥 Tap & Earn</h2>
-  <p>🔥 Over <span id="totalUsers">0</span> users joined!</p>
+<script>
+const tg = window.Telegram.WebApp;
+tg.expand();
 
-  <!-- TOP INVITERS -->
-  <h3>🏆 Top Inviters</h3>
-  <div id="topRefs"></div>
+async function tap() {
+  await fetch("/tap", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ initData: tg.initData })
+  });
+  alert("Tapped!");
+}
 
-  <!-- STATS -->
-  <div class="stats">
-    <div>
-      <small>Balance</small>
-      <h3 id="balance">0</h3>
-    </div>
-    <div>
-      <small>Energy</small>
-      <h3 id="energy">0</h3>
-    </div>
-    <div>
-      <small>Level</small>
-      <h3 id="level">1</h3>
-    </div>
-  </div>
-
-  <!-- ENERGY BAR -->
-  <div class="energy-bar">
-    <div id="energyFill"></div>
-  </div>
-
-  <!-- TAP -->
-  <div class="tap-btn" onclick="tap()">TAP</div>
-
-  <!-- ACTION BUTTONS -->
-<button onclick="openBox()">🎁 Open 
-  Box</button>
-<button onclick="spin()">🎡 Lucky 
-  Spin</button>
-<button onclick="daily()">🎁 Daily 
-  Reward</button>
-
-  <button onclick="openFight()">⚔️
-  Fight</button>
-
-<!-- TASKS -->
-<h3>🎯 Tasks</h3>
-<button onclick="openTask('youtube')">▶️ 
-  Subscribe YouTube</button>
-<button onclick="openTask('channel')">📢 
-  Join Update Channel</button>
-<button onclick="openTask('group')">💬 
-  Join Public Chat</button>
-
-<!-- REFERRAL -->
-<h3>👥 Invite Friends</h3>
-<input id="refLink" readonly />
-<button onclick="copyInvite()">Copy
-Invite</button>
-
-<!-- TOKEN -->
-<button onclick="convertToken()">💎 
-  Convert to Token</button>
-<p>Token: <span id="token">0</span></p>
-
-<input id="wallet" placeholder="Your TON wallet" />
-<button onclick="withdraw()">Withdraw</button>
-
-  <!-- ADS -->
-  <div class="ad-banner" 
-    onclick="openAd()">
-    <img src="https://i.imgur.com/3ZQ3Z6Y.png" />
-  </div>
-
-  <!-- ROADMAP -->
-  <button onclick="openRoadmap()"
-  class="btn">🚀 Roadmap</button>
-
-  <button onclick="openWhitepaper()" class="btn">
-  📘 Whitepaper
-  </button>
-  
-</div>
-
-<script src="script.js"></script>
+async function fight() {
+  await fetch("/fight", {
+    method: "POST",
+    headers: {"Content-Type":"application/json"},
+    body: JSON.stringify({ initData: tg.initData })
+  });
+  alert("Fight win!");
+}
+</script>
 </body>
 </html>
