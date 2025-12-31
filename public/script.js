@@ -131,6 +131,12 @@ function spin() {
     });
 }
 
+// ======= FIGHT GAME =======
+
+function openFight() {
+  window.location.href = "/game/fight.html";
+}
+
 async function attack() {
   if (!USER_ID) {
     alert("No user id");
