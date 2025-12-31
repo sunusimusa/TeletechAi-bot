@@ -1,42 +1,54 @@
-<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Fight Arena</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-<script>
-  const tg = window.Telegram.WebApp;
-
-  tg.ready(); // ⚠️ MUHIMMI
-
-  let USER_ID = null;
-
-  setTimeout(() => {
-    USER_ID = tg.initDataUnsafe?.user?.id;
-
-    if (!USER_ID) {
-      alert("❌ Open this game from Telegram bot");
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 30px;
     }
-  }, 300); // jira Telegram ya gama loading
-
-  async function attack() {
-    if (!USER_ID) {
-      alert("No user id");
-      return;
+    button {
+      padding: 15px 25px;
+      font-size: 18px;
+      background: #22c55e;
+      border: none;
+      border-radius: 10px;
+      color: black;
     }
+  </style>
+</head>
 
-    const res = await fetch("/game-win", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        initData: tg.initData,
-        reward: 20
-      })
-    });
+<body>
+  <h1>⚔️ Fight Arena</h1>
+  <p>Beat enemy to earn coins</p>
 
-    const data = await res.json();
+  <button onclick="attack()">🔥 Attack</button>
 
-    if (data.error) {
-      alert(data.error);
-      return;
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    async function attack() {
+      const res = await fetch("/game-win", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          initData: tg.initData
+        })
+      });
+
+      const data = await res.json();
+      if (data.error) return alert(data.error);
+
+      alert("🔥 You won! Balance: " + data.balance);
     }
-
-    alert("🔥 You won 20 coins!");
-  }
-</script>
+  </script>
+</body>
+</html>
