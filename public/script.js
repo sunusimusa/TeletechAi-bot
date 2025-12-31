@@ -2,6 +2,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 
+const USER_ID = 
+tg.initDataUnsafe?.user?.id;
+
 let USER_ID = null;
 let balance = 0;
 let energy = 0;
