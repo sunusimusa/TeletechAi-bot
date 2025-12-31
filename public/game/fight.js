@@ -1,53 +1,49 @@
-const tg = window.Telegram.WebApp;
-tg.expand();
-
-const initData = tg.initData;
 let enemyHP = 100;
 let playerHP = 100;
-
-const enemyBar = document.getElementById("enemyHP");
-const playerBar = document.getElementById("playerHP");
+let lock = false;
 
 function updateBars() {
-  enemyBar.style.width = enemyHP + "%";
-  playerBar.style.width = playerHP + "%";
+  document.getElementById("enemyHP").style.width = enemyHP + "%";
+  document.getElementById("playerHP").style.width = playerHP + "%";
 }
 
-async function attack() {
-  if (enemyHP <= 0 || playerHP <= 0) return;
+function attack() {
+  if (lock) return;
+  lock = true;
 
-  // player hits enemy
-  enemyHP -= Math.floor(Math.random() * 20) + 5;
+  enemyHP -= Math.floor(Math.random() * 15) + 5;
+  if (enemyHP < 0) enemyHP = 0;
 
-  // enemy hits back
-  playerHP -= Math.floor(Math.random() * 10) + 3;
-
+  document.getElementById("enemy").classList.add("hit");
   updateBars();
 
-  if (enemyHP <= 0) {
-    await winFight();
-  }
+  setTimeout(() => {
+    document.getElementById("enemy").classList.remove("hit");
 
-  if (playerHP <= 0) {
-    alert("❌ You lost!");
-    location.reload();
-  }
+    if (enemyHP <= 0) {
+      alert("🎉 YOU WIN!");
+      reset();
+      return;
+    }
+
+    playerHP -= Math.floor(Math.random() * 10) + 5;
+    if (playerHP < 0) playerHP = 0;
+
+    document.getElementById("player").classList.add("hit");
+    updateBars();
+
+    setTimeout(() => {
+      document.getElementById("player").classList.remove("hit");
+      if (playerHP <= 0) alert("💀 YOU LOSE!");
+      lock = false;
+    }, 300);
+
+  }, 300);
 }
 
-async function winFight() {
-  const res = await fetch("/game-win", {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({
-      initData: initData,
-      reward: 10
-    })
-  });
-
-  const data = await res.json();
-
-  alert("🏆 You won! +10 coins");
-  location.reload();
+function reset() {
+  enemyHP = 100;
+  playerHP = 100;
+  updateBars();
+  lock = false;
 }
