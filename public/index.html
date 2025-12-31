@@ -1,1 +1,78 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>TeleTech AI</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <style>
+    body {
+      background: #0f172a;
+      color: white;
+      font-family: sans-serif;
+      text-align: center;
+      padding: 20px;
+    }
+
+    button {
+      padding: 14px 20px;
+      margin: 10px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+      background: #22c55e;
+      color: black;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>🔥 Tap & Earn</h2>
+
+  <p id="info">Loading...</p>
+
+  <button onclick="tap()">TAP</button>
+  <button onclick="fight()">FIGHT</button>
+
+  <script>
+    const tg = window.Telegram.WebApp;
+    tg.expand();
+
+    const initData = tg.initData;
+
+    async function loadUser() {
+      const res = await fetch("/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData })
+      });
+
+      const data = await res.json();
+      document.getElementById("info").innerText =
+        `Balance: ${data.balance} | Energy: ${data.energy}`;
+    }
+
+    async function tap() {
+      const res = await fetch("/tap", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ initData })
+      });
+
+      const data = await res.json();
+      alert("+1 Coin");
+      loadUser();
+    }
+
+    function fight() {
+      window.location.href = "/game/fight.html";
+    }
+
+    loadUser();
+  </script>
+
+</body>
+</html>
