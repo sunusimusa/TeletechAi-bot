@@ -1,23 +1,31 @@
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
 <script>
   const tg = window.Telegram.WebApp;
-  tg.expand();
 
-  const USER_ID = tg.initDataUnsafe?.user?.id;
+  tg.ready(); // ⚠️ MUHIMMI
 
-  if (!USER_ID) {
-    document.body.innerHTML = `
-      <h2 style="color:red">❌ Open this game from Telegram</h2>
-    `;
-    throw new Error("Not opened inside Telegram");
-  }
+  let USER_ID = null;
+
+  setTimeout(() => {
+    USER_ID = tg.initDataUnsafe?.user?.id;
+
+    if (!USER_ID) {
+      alert("❌ Open this game from Telegram bot");
+    }
+  }, 300); // jira Telegram ya gama loading
 
   async function attack() {
+    if (!USER_ID) {
+      alert("No user id");
+      return;
+    }
+
     const res = await fetch("/game-win", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: USER_ID,
+        initData: tg.initData,
         reward: 20
       })
     });
