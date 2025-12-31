@@ -131,8 +131,31 @@ function spin() {
     });
 }
 
-function openFight() {
-  window.location.href = "/game/fight.html";
+async function attack() {
+  if (!USER_ID) {
+    alert("No user id");
+    return;
+  }
+
+  const res = await fetch("/game-win", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify({
+      userId: USER_ID,
+      reward: 5
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  alert("🔥 You won +5 coins!");
 }
 
 // ================= ADS =================
