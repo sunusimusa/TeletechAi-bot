@@ -1,7 +1,6 @@
 require("dotenv").config();
 const express = require("express");
 const mongoose = require("mongoose");
-const axios = require("axios");
 
 const app = express();
 app.use(express.json());
@@ -10,19 +9,19 @@ app.use(express.static("public"));
 const PORT = process.env.PORT || 3000;
 
 // ================== CONFIG ==================
-const BOT_TOKEN = process.env.BOT_TOKEN;
-const TOKEN_RATE = Number(process.env.TOKEN_RATE || 100);
 const ENERGY_MAX = 100;
 const ENERGY_REGEN_TIME = 5000;
+const TOKEN_RATE = Number(process.env.TOKEN_RATE || 100);
 
 // ================== DATABASE ==================
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
-// ================== MODELS ==================
+// ================== MODEL ==================
 const userSchema = new mongoose.Schema({
-  telegramId: String,
+  telegramId: { type: String, unique: true },
+
   balance: { type: Number, default: 0 },
   token: { type: Number, default: 0 },
   level: { type: Number, default: 1 },
@@ -32,18 +31,7 @@ const userSchema = new mongoose.Schema({
 
   lastDaily: { type: Number, default: 0 },
   lastBox: { type: Number, default: 0 },
-
-  spinCount: { type: Number, default: 1 },
-  lastSpin: { type: Number, default: 0 },
-
-  referrals: { type: Number, default: 0 },
-  refBy: { type: String, default: null },
-
-  tasks: {
-    youtube: { type: Boolean, default: false },
-    channel: { type: Boolean, default: false },
-    group: { type: Boolean, default: false }
-  }
+  lastSpin: { type: Number, default: 0 }
 });
 
 const User = mongoose.model("User", userSchema);
@@ -118,32 +106,21 @@ app.post("/daily", async (req, res) => {
   res.json({ balance: user.balance });
 });
 
+// ================== GAME WIN ==================
 app.post("/game-win", async (req, res) => {
   const { userId, reward } = req.body;
 
-  if (!userId) {
-    return res.json({ error: "No user id" });
-  }
+  if (!userId) return res.json({ error: "NO_USER" });
 
   let user = await User.findOne({ telegramId: userId });
-
-  // 🔥 idan babu user, ƙirƙira shi
   if (!user) {
-    user = new User({
-      telegramId: userId,
-      balance: 0,
-      energy: 100,
-      level: 1,
-    });
+    user = new User({ telegramId: userId });
   }
 
   user.balance += reward || 1;
   await user.save();
 
-  res.json({
-    success: true,
-    balance: user.balance
-  });
+  res.json({ success: true, balance: user.balance });
 });
 
 // ================== OPEN BOX ==================
@@ -180,11 +157,7 @@ app.post("/spin", async (req, res) => {
   user.lastSpin = Date.now();
   await user.save();
 
-  res.json({
-    reward: choice,
-    balance: user.balance,
-    energy: user.energy
-  });
+  res.json({ reward: choice, balance: user.balance, energy: user.energy });
 });
 
 // ================== CONVERT ==================
@@ -193,7 +166,7 @@ app.post("/convert", async (req, res) => {
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   if (user.balance < TOKEN_RATE)
-    return res.json({ error: "Not enough balance" });
+    return res.json({ error: "NOT_ENOUGH_BALANCE" });
 
   const tokens = Math.floor(user.balance / TOKEN_RATE);
   user.balance -= tokens * TOKEN_RATE;
@@ -203,7 +176,7 @@ app.post("/convert", async (req, res) => {
   res.json({ tokens, balance: user.balance });
 });
 
-// ================== START ==================
+// ================== START SERVER ==================
 app.listen(PORT, () => {
   console.log("🚀 Server running on port", PORT);
 });
