@@ -72,6 +72,49 @@ function verifyTelegram(initData) {
   return Object.fromEntries(params);
 }
 
+const TelegramBot = require("node-telegram-bot-api");
+const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
+
+bot.on("message", async (msg) => {
+  const chatId = msg.chat.id;
+  const text = msg.text || "";
+
+  // ===== START COMMAND =====
+  if (text.startsWith("/start")) {
+    const param = text.split(" ")[1];
+
+    // ⚔️ FIGHT MODE
+    if (param === "fight") {
+      return bot.sendMessage(chatId, "⚔️ Fight Arena", {
+        reply_markup: {
+          inline_keyboard: [[
+            {
+              text: "🔥 Open Fight",
+              web_app: {
+                url: "https://teletechai-bot.onrender.com/game/fight.html"
+              }
+            }
+          ]]
+        }
+      });
+    }
+
+    // 🚀 NORMAL START
+    return bot.sendMessage(chatId, "Welcome to TeleTech AI 🚀", {
+      reply_markup: {
+        inline_keyboard: [[
+          {
+            text: "🚀 Open App",
+            web_app: {
+              url: "https://teletechai-bot.onrender.com"
+            }
+          }
+        ]]
+      }
+    });
+  }
+});
+
 // ================== INIT USER ==================
 app.post("/user", async (req, res) => {
   const { userId } = req.body;
