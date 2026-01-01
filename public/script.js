@@ -4,17 +4,22 @@ let freeTries = 3;
 let tokens = 0;
 let openedCount = 0;
 
+// ================= LOAD GAME =================
 document.addEventListener("DOMContentLoaded", () => {
-  updateUI();
+  loadGame();
 });
 
+// ================= UPDATE UI =================
 function updateUI() {
   document.getElementById("balance").innerText = "Balance: " + balance;
   document.getElementById("energy").innerText = "Energy: " + energy;
   document.getElementById("freeTries").innerText = "Free tries: " + freeTries;
   document.getElementById("tokens").innerText = "Tokens: " + tokens;
+
+  saveGame();
 }
 
+// ================= OPEN BOX =================
 function openBox(box) {
   if (box.classList.contains("opened")) return;
 
@@ -53,6 +58,7 @@ function openBox(box) {
   }
 }
 
+// ================= RESET BOXES =================
 function resetBoxes() {
   document.querySelectorAll(".box").forEach(box => {
     box.classList.remove("opened");
@@ -63,6 +69,7 @@ function resetBoxes() {
   document.getElementById("msg").innerText = "";
 }
 
+// ================= CONVERT TO TOKEN =================
 function convertToToken() {
   if (balance < 10000) {
     document.getElementById("convertMsg").innerText =
@@ -79,6 +86,7 @@ function convertToToken() {
   updateUI();
 }
 
+// ================= SAVE / LOAD =================
 function saveGame() {
   const data = {
     balance,
@@ -86,7 +94,6 @@ function saveGame() {
     freeTries,
     tokens
   };
-
   localStorage.setItem("luckyBoxGame", JSON.stringify(data));
 }
 
@@ -94,17 +101,11 @@ function loadGame() {
   const data = JSON.parse(localStorage.getItem("luckyBoxGame"));
 
   if (data) {
-    balance = data.balance;
-    energy = data.energy;
-    freeTries = data.freeTries;
-    tokens = data.tokens;
+    balance = data.balance ?? 0;
+    energy = data.energy ?? 100;
+    freeTries = data.freeTries ?? 3;
+    tokens = data.tokens ?? 0;
   }
 
   updateUI();
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-  updateUI();
-});
-
-saveGame();
