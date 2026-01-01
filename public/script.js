@@ -84,6 +84,7 @@ function convertToToken() {
     "✅ Converted to 1 TTECH!";
 
   updateUI();
+  saveGame();
 }
 
 // ================= SAVE / LOAD =================
