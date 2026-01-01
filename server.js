@@ -29,14 +29,28 @@ function regenEnergy(user) {
 
 // ================= CREATE / LOAD USER =================
 app.post("/api/user", async (req, res) => {
-  const { telegramId } = req.body;
-  if (!telegramId) return res.json({ error: "NO_USER" });
+  const { telegramId, ref } = req.body;
 
   let user = await User.findOne({ telegramId });
-  if (!user) user = await User.create({ telegramId });
 
-  regenEnergy(user);
-  await user.save();
+  if (!user) {
+    user = await User.create({
+      telegramId,
+      referralCode: generateCode(),
+      referredBy: ref || null
+    });
+
+    // GIVE BONUS TO REFERRER
+    if (ref) {
+      const refUser = await User.findOne({ referralCode: ref });
+      if (refUser) {
+        refUser.balance += 500;
+        refUser.energy += 20;
+        refUser.referralsCount += 1;
+        await refUser.save();
+      }
+    }
+  }
 
   res.json(user);
 });
