@@ -1,52 +1,41 @@
 body {
-  background: #0b132b;
+  margin: 0;
+  background: #0f172a;
+  font-family: Arial, sans-serif;
   color: white;
+}
+
+.app {
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
   text-align: center;
-  font-family: sans-serif;
 }
 
-.arena {
-  margin-top: 20px;
-}
-
-img {
-  width: 200px;
-  margin: 10px;
-}
-
-.bar {
-  width: 80%;
-  height: 18px;
-  background: #333;
-  margin: 10px auto;
+.card {
+  background: #1e293b;
+  padding: 15px;
   border-radius: 10px;
+  margin: 10px 0;
 }
 
-.hp {
-  height: 100%;
+.tap-btn {
+  background: #22c55e;
+  color: black;
+  padding: 15px;
   width: 100%;
-  background: #00ff88;
-  border-radius: 10px;
-  transition: width 0.3s;
-}
-
-button {
-  margin-top: 20px;
-  padding: 15px 30px;
-  background: #00c853;
+  border-radius: 12px;
   border: none;
-  color: white;
   font-size: 18px;
+  margin: 20px 0;
+}
+
+.menu button {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
   border-radius: 10px;
-}
-
-.hit {
-  animation: shake 0.2s;
-}
-
-@keyframes shake {
-  0% { transform: translateX(0); }
-  25% { transform: translateX(-5px); }
-  50% { transform: translateX(5px); }
-  100% { transform: translateX(0); }
+  border: none;
+  background: #2563eb;
+  color: white;
 }
