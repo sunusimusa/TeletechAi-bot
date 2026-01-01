@@ -1,16 +1,26 @@
-require("dotenv").config();
-const express = require("express");
-const mongoose = require("mongoose");
-const path = require("path");
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import gameRoutes from "./routes/game.js";
+
+dotenv.config();
 
 const app = express();
+app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
 
-/* ================== DATABASE ================== */
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.log(err));
+
+app.use("/api", gameRoutes);
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log("🚀 Server running on port", PORT);
+});
 
 /* ================== USER MODEL ================== */
 const UserSchema = new mongoose.Schema({
