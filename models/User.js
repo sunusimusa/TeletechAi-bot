@@ -1,4 +1,6 @@
-const userSchema = new mongoose.Schema({
+import mongoose from "mongoose";
+
+const UserSchema = new mongoose.Schema({
   telegramId: { type: String, unique: true },
 
   balance: { type: Number, default: 0 },
@@ -7,9 +9,9 @@ const userSchema = new mongoose.Schema({
   energy: { type: Number, default: 100 },
   freeTries: { type: Number, default: 3 },
 
+  lastEnergy: { type: Number, default: Date.now },
   lastDaily: { type: Number, default: 0 },
 
-  // 🧾 withdraw history
   withdrawals: [
     {
       amount: Number,
@@ -19,3 +21,5 @@ const userSchema = new mongoose.Schema({
     }
   ]
 });
+
+export default mongoose.model("User", UserSchema);
