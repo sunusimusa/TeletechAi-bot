@@ -2,6 +2,9 @@
 const tg = window.Telegram.WebApp;
 tg.expand();
 const TELEGRAM_ID = tg.initDataUnsafe?.user?.id;
+const tg = Telegram.WebApp;
+const params = new URLSearchParams(tg.initDataUnsafe.start_param);
+const referral = params.get("ref");
 
 // ===== GAME STATE =====
 let balance = 0;
