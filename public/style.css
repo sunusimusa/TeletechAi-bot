@@ -29,3 +29,25 @@ body {
 .box:hover {
   transform: scale(1.1);
 }
+
+.box {
+  width: 90px;
+  height: 90px;
+  background: gold;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.box:hover {
+  transform: scale(1.05);
+}
+
+.opened {
+  background: #333;
+  color: white;
+}
