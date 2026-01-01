@@ -8,10 +8,8 @@ const userSchema = new mongoose.Schema({
   freeTries: { type: Number, default: 3 },
   tokens: { type: Number, default: 0 },
 
-  lastEnergy: {
-    type: Number,
-    default: () => Date.now()
-  }
+  lastEnergy: { type: Number, default: Date.now },
+  lastDaily: { type: Number, default: 0 } // 👈 DAILY BONUS
 });
 
 export default mongoose.model("User", userSchema);
