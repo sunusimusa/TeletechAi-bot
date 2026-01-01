@@ -146,3 +146,24 @@ function loadGame() {
 
   updateUI();
   }                                          }
+
+document.addEventListener("DOMContentLoaded", () => {
+  loadGame();
+  checkDaily();
+});
+
+function checkDaily() {
+  fetch("/api/daily", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: TELEGRAM_ID })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      balance = data.balance;
+      energy = data.energy;
+      updateUI();
+    }
+  });
+}
