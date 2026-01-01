@@ -14,14 +14,27 @@ mongoose.connect(process.env.MONGODB_URI || "mongodb://127.0.0.1:27017/luckybox"
 
 // ================= USER MODEL =================
 const userSchema = new mongoose.Schema({
-  userId: String,
-  balance: { type: Number, default: 0 },
-  energy: { type: Number, default: 100 },
-  lastEnergyUpdate: { type: Number, default: Date.now }
+  userId: {
+    type: String,
+    required: true,
+    unique: true
+  },
+
+  balance: {
+    type: Number,
+    default: 0
+  },
+
+  energy: {
+    type: Number,
+    default: 100
+  },
+
+  lastEnergyUpdate: {
+    type: Number,
+    default: Date.now
+  }
 });
-
-const User = mongoose.model("User", userSchema);
-
 // ================= ENERGY SYSTEM =================
 function regenEnergy(user) {
   const now = Date.now();
