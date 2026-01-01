@@ -4,6 +4,10 @@ let freeTries = 3;
 let tokens = 0;
 let openedCount = 0;
 
+document.addEventListener("DOMContentLoaded", () => {
+  updateUI();
+});
+
 function updateUI() {
   document.getElementById("balance").innerText = "Balance: " + balance;
   document.getElementById("energy").innerText = "Energy: " + energy;
@@ -43,20 +47,34 @@ function openBox(box) {
 
   updateUI();
 
-  // ✅ IDAN AN BUDE DUKKA BOXES
+  // idan an bude duka
   if (openedCount === 6) {
     setTimeout(resetBoxes, 2000);
   }
 }
 
 function resetBoxes() {
-  const boxes = document.querySelectorAll(".box");
-
-  boxes.forEach(box => {
+  document.querySelectorAll(".box").forEach(box => {
     box.classList.remove("opened");
     box.innerText = "";
   });
 
   openedCount = 0;
   document.getElementById("msg").innerText = "";
+}
+
+function convertToToken() {
+  if (balance < 10000) {
+    document.getElementById("convertMsg").innerText =
+      "❌ Need 10,000 points to convert!";
+    return;
+  }
+
+  balance -= 10000;
+  tokens += 1;
+
+  document.getElementById("convertMsg").innerText =
+    "✅ Converted to 1 TTECH!";
+
+  updateUI();
 }
