@@ -3,29 +3,40 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// OPEN BOX
 router.post("/open", async (req, res) => {
   const { telegramId } = req.body;
 
   let user = await User.findOne({ telegramId });
-  if (!user) user = await User.create({ telegramId });
 
-  // ENERGY REGEN
+  if (!user) {
+    user = await User.create({ telegramId });
+  }
+
   const now = Date.now();
-  const diff = Math.floor((now - user.lastEnergy) / 300000);
+  const diff = Math.floor((now - user.lastEnergy) / 300000); // 5 mins
+
   if (diff > 0) {
     user.energy = Math.min(100, user.energy + diff * 5);
     user.lastEnergy = now;
   }
 
+  // ====== CHECK ENERGY ======
   if (user.freeTries > 0) {
     user.freeTries--;
   } else if (user.energy >= 10) {
     user.energy -= 10;
   } else {
-    return res.json({ error: "No energy" });
+    await user.save();
+    return res.json({
+      error: "No energy",
+      energy: user.energy,
+      balance: user.balance,
+      freeTries: user.freeTries,
+      tokens: user.tokens
+    });
   }
 
+  // ====== REWARD ======
   const rewards = [
     { type: "coin", value: 100 },
     { type: "coin", value: 200 },
@@ -34,33 +45,17 @@ router.post("/open", async (req, res) => {
 
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
-  if (reward.type === "coin") user.balance += reward.value;
+  if (reward.type === "coin") {
+    user.balance += reward.value;
+  }
 
   await user.save();
 
   res.json({
+    reward,
     balance: user.balance,
     energy: user.energy,
     freeTries: user.freeTries,
-    reward
-  });
-});
-
-// CONVERT TOKEN
-router.post("/convert", async (req, res) => {
-  const { telegramId } = req.body;
-  const user = await User.findOne({ telegramId });
-
-  if (!user || user.balance < 10000) {
-    return res.json({ error: "Not enough balance" });
-  }
-
-  user.balance -= 10000;
-  user.tokens += 1;
-  await user.save();
-
-  res.json({
-    balance: user.balance,
     tokens: user.tokens
   });
 });
