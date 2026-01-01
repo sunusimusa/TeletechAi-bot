@@ -6,6 +6,10 @@ const UserSchema = new mongoose.Schema({
   balance: { type: Number, default: 0 },
   tokens: { type: Number, default: 0 },
 
+  referralCode: { type: String, unique: true },
+  referredBy: { type: String, default: null },
+  referralsCount: { type: Number, default: 0 }
+
   energy: { type: Number, default: 100 },
   freeTries: { type: Number, default: 3 },
 
