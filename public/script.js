@@ -86,6 +86,37 @@ function autoEnergy() {
   }
 }
 
+function withdraw() {
+  const wallet = document.getElementById("wallet").value;
+  const amount = Number(document.getElementById("amount").value);
+
+  if (!wallet || amount <= 0) {
+    document.getElementById("withdrawMsg").innerText = "❌ Fill all fields";
+    return;
+  }
+
+  fetch("/api/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      amount,
+      wallet
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        document.getElementById("withdrawMsg").innerText = "❌ " + data.error;
+      } else {
+        document.getElementById("withdrawMsg").innerText =
+          "✅ Withdraw request sent!";
+        tokens = data.tokens;
+        updateUI();
+      }
+    });
+}
+
 // ================== CONVERT TO TOKEN ==================
 async function convertToToken() {
   const res = await fetch("/api/convert", {
