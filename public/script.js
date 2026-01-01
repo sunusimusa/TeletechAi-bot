@@ -58,6 +58,29 @@ function openBox(box) {
   }
 }
 
+const TELEGRAM_ID = Telegram.WebApp?.initDataUnsafe?.user?.id || "test_user";
+
+async function openBox() {
+  const res = await fetch("/api/open", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: TELEGRAM_ID })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("msg").innerText = "❌ " + data.error;
+    return;
+  }
+
+  balance = data.balance;
+  energy = data.energy;
+  freeTries = data.freeTries;
+
+  updateUI();
+}
+
 // ================= RESET BOXES =================
 function resetBoxes() {
   document.querySelectorAll(".box").forEach(box => {
