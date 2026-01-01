@@ -3,28 +3,18 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Fight Arena</title>
 
 <style>
 body {
-  margin: 0;
-  background: #0b1220;
+  background: #0e1628;
   color: white;
-  font-family: Arial, sans-serif;
+  font-family: sans-serif;
   text-align: center;
 }
 
-h1 {
-  margin-top: 20px;
-}
-
-.arena {
-  margin-top: 30px;
-}
-
 .character {
-  width: 120px;
+  width: 180px;
   margin: 10px auto;
 }
 
@@ -33,83 +23,93 @@ h1 {
   height: 18px;
   background: #333;
   border-radius: 10px;
-  margin: 10px auto;
-  overflow: hidden;
+  margin: 8px auto;
 }
 
 .hp {
   height: 100%;
+  background: linear-gradient(to right, #00ff88, #00aa55);
+  border-radius: 10px;
   width: 100%;
-  background: #28d16f;
-  transition: width 0.3s;
 }
 
 button {
-  margin-top: 30px;
-  padding: 15px 40px;
+  margin-top: 20px;
+  padding: 14px 30px;
   font-size: 18px;
+  background: #28c76f;
   border: none;
-  border-radius: 10px;
-  background: #28d16f;
-  color: black;
-  font-weight: bold;
+  border-radius: 12px;
+  color: white;
 }
 </style>
 </head>
 
 <body>
 
-<h1>⚔️ Fight Arena</h1>
+<h2>⚔️ Fight Arena</h2>
 
-<div class="arena">
+<h3>Enemy Level: <span id="level">1</span></h3>
 
-  <img src="/images/enemy.png" class="character" id="enemyImg">
+<img src="/images/enemy.png" class="character" id="enemyImg">
 
-  <div class="bar">
-    <div id="enemyHP" class="hp"></div>
-  </div>
+<div class="bar">
+  <div id="enemyHP" class="hp"></div>
+</div>
 
-  <img src="/images/hero.png" class="character" id="heroImg">
+<img src="/images/hero.png" class="character" id="heroImg">
 
-  <div class="bar">
-    <div id="playerHP" class="hp"></div>
-  </div>
-
+<div class="bar">
+  <div id="playerHP" class="hp"></div>
 </div>
 
 <button onclick="attack()">🔥 ATTACK</button>
 
 <script>
-let enemyHP = 100;
+let level = 1;
 let playerHP = 100;
+let enemyHP = 100;
+
+function updateBars() {
+  document.getElementById("enemyHP").style.width = enemyHP + "%";
+  document.getElementById("playerHP").style.width = playerHP + "%";
+  document.getElementById("level").innerText = level;
+}
 
 function attack() {
-  enemyHP -= Math.floor(Math.random() * 20) + 5;
-  playerHP -= Math.floor(Math.random() * 15) + 5;
+  let playerDamage = Math.floor(Math.random() * 15) + 10;
+  let enemyDamage = Math.floor(Math.random() * (5 + level)) + 5;
+
+  enemyHP -= playerDamage;
+  playerHP -= enemyDamage;
 
   if (enemyHP < 0) enemyHP = 0;
   if (playerHP < 0) playerHP = 0;
 
-  document.getElementById("enemyHP").style.width = enemyHP + "%";
-  document.getElementById("playerHP").style.width = playerHP + "%";
+  updateBars();
 
   if (enemyHP <= 0) {
-    alert("🎉 YOU WIN!");
-    resetGame();
+    setTimeout(() => {
+      alert("🔥 YOU WIN! Next Level!");
+      level++;
+      enemyHP = 100 + level * 20;
+      playerHP = 100;
+      updateBars();
+    }, 300);
   }
 
   if (playerHP <= 0) {
-    alert("💀 YOU LOSE!");
-    resetGame();
+    setTimeout(() => {
+      alert("💀 YOU LOST! Restarting...");
+      level = 1;
+      enemyHP = 100;
+      playerHP = 100;
+      updateBars();
+    }, 300);
   }
 }
 
-function resetGame() {
-  enemyHP = 100;
-  playerHP = 100;
-  document.getElementById("enemyHP").style.width = "100%";
-  document.getElementById("playerHP").style.width = "100%";
-}
+updateBars();
 </script>
 
 </body>
