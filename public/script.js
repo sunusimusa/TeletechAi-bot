@@ -1,25 +1,30 @@
+// ================== GAME STATE ==================
 let balance = 0;
 let energy = 100;
 let freeTries = 3;
 let tokens = 0;
 let openedCount = 0;
 
-// ================= LOAD GAME =================
+const MAX_ENERGY = 100;
+const ENERGY_REGEN = 5;
+const ENERGY_TIME = 300000; // 5 minutes
+
+// ================== LOAD GAME ==================
 document.addEventListener("DOMContentLoaded", () => {
   loadGame();
+  updateUI();
+  setInterval(autoEnergy, ENERGY_TIME);
 });
 
-// ================= UPDATE UI =================
+// ================== UPDATE UI ==================
 function updateUI() {
   document.getElementById("balance").innerText = "Balance: " + balance;
   document.getElementById("energy").innerText = "Energy: " + energy;
   document.getElementById("freeTries").innerText = "Free tries: " + freeTries;
   document.getElementById("tokens").innerText = "Tokens: " + tokens;
-
-  saveGame();
 }
 
-// ================= OPEN BOX =================
+// ================== OPEN BOX ==================
 function openBox(box) {
   if (box.classList.contains("opened")) return;
 
@@ -51,7 +56,8 @@ function openBox(box) {
     }
 
     updateUI();
-  }, 300); // animation delay
+    saveGame();
+  }, 300);
 
   openedCount++;
 
@@ -60,30 +66,7 @@ function openBox(box) {
   }
 }
 
-const TELEGRAM_ID = Telegram.WebApp?.initDataUnsafe?.user?.id || "test_user";
-
-async function openBox() {
-  const res = await fetch("/api/open", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  });
-
-  const data = await res.json();
-
-  if (data.error) {
-    document.getElementById("msg").innerText = "❌ " + data.error;
-    return;
-  }
-
-  balance = data.balance;
-  energy = data.energy;
-  freeTries = data.freeTries;
-
-  updateUI();
-}
-
-// ================= RESET BOXES =================
+// ================== RESET BOXES ==================
 function resetBoxes() {
   document.querySelectorAll(".box").forEach(box => {
     box.classList.remove("opened");
@@ -94,7 +77,17 @@ function resetBoxes() {
   document.getElementById("msg").innerText = "";
 }
 
-// ================= CONVERT TO TOKEN =================
+// ================== AUTO ENERGY ==================
+function autoEnergy() {
+  if (energy < MAX_ENERGY) {
+    energy += ENERGY_REGEN;
+    if (energy > MAX_ENERGY) energy = MAX_ENERGY;
+    updateUI();
+    saveGame();
+  }
+}
+
+// ================== CONVERT TO TOKEN ==================
 function convertToToken() {
   if (balance < 10000) {
     document.getElementById("convertMsg").innerText =
@@ -112,7 +105,7 @@ function convertToToken() {
   saveGame();
 }
 
-// ================= SAVE / LOAD =================
+// ================== SAVE / LOAD ==================
 function saveGame() {
   const data = {
     balance,
@@ -125,13 +118,10 @@ function saveGame() {
 
 function loadGame() {
   const data = JSON.parse(localStorage.getItem("luckyBoxGame"));
-
   if (data) {
     balance = data.balance ?? 0;
     energy = data.energy ?? 100;
     freeTries = data.freeTries ?? 3;
     tokens = data.tokens ?? 0;
   }
-
-  updateUI();
-}
+                                            }
