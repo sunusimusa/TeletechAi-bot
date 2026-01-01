@@ -81,10 +81,3 @@ button {
   border: none;
   border-radius: 10px;
 }
-
-.character {
-  width: 180px;
-  max-width: 90%;
-  display: block;
-  margin: 10px auto;
-}
