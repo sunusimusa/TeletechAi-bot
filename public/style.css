@@ -51,3 +51,12 @@ body {
   background: #333;
   color: white;
 }
+
+.box.opened {
+  background: #333;
+  color: white;
+  font-size: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
