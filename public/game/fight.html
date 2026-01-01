@@ -50,28 +50,25 @@ button {
 
 <body>
 
-<h2>⚔️ Fight Arena</h2>
+<div class="arena">
 
-<h3>Level: <span id="level">1</span></h3>
+  <div class="enemy-box">
+    <img id="enemy" src="images/enemy.png" />
+    <div class="hp-bar">
+      <div id="enemyHP" class="hp"></div>
+    </div>
+  </div>
 
-<img src="images/enemy.png" id="enemy">
+  <div class="player-box">
+    <img id="player" src="images/hero.png" />
+    <div class="hp-bar">
+      <div id="playerHP" class="hp"></div>
+    </div>
+  </div>
 
-<div class="bar">
-  <div id="enemyHP" class="hp enemyHP"></div>
+  <button onclick="attack()" class="attack-btn">🔥 ATTACK</button>
+
 </div>
-
-  <img src="images/hero.png" id="player">
-
-<div class="bar">
-  <div id="playerHP" class="hp playerHP"></div>
-</div>
-
-<h4>XP</h4>
-<div class="bar">
-  <div id="xpBar" class="hp xpBar"></div>
-</div>
-
-<button onclick="attack()">🔥 ATTACK</button>
 
 <script>
 let level = 1;
