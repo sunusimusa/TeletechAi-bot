@@ -2,6 +2,7 @@ let balance = 0;
 let energy = 100;
 let freeTries = 3;
 let tokens = 0;
+let openedCount = 0;
 
 function updateUI() {
   document.getElementById("balance").innerText = "Balance: " + balance;
@@ -18,7 +19,7 @@ function openBox(box) {
   } else if (energy >= 10) {
     energy -= 10;
   } else {
-    document.getElementById("msg").innerText = "❌ No energy or free tries!";
+    document.getElementById("msg").innerText = "❌ No energy!";
     return;
   }
 
@@ -38,22 +39,24 @@ function openBox(box) {
   }
 
   box.classList.add("opened");
-  updateUI();
-}
+  openedCount++;
 
-function convertToToken() {
-  if (balance < 10000) {
-    document.getElementById("msg").innerText =
-      "❌ Need 10,000 points to convert!";
-    return;
+  updateUI();
+
+  // ✅ IDAN AN BUDE DUKKA BOXES
+  if (openedCount === 6) {
+    setTimeout(resetBoxes, 2000);
   }
-
-  balance -= 10000;
-  tokens += 1;
-
-  document.getElementById("msg").innerText =
-    "✅ Converted to 1 TTECH!";
-  updateUI();
 }
 
-updateUI();
+function resetBoxes() {
+  const boxes = document.querySelectorAll(".box");
+
+  boxes.forEach(box => {
+    box.classList.remove("opened");
+    box.innerText = "";
+  });
+
+  openedCount = 0;
+  document.getElementById("msg").innerText = "";
+}
