@@ -1,41 +1,34 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Lucky Box</title>
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <title>Lucky Box Game</title>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-<h2>🎁 Lucky Box Game</h2>
+  <h2>🎁 Lucky Box Game</h2>
 
-<div class="boxes">
-  <div class="box" onclick="openBox(this)"></div>
-  <div class="box" onclick="openBox(this)"></div>
-  <div class="box" onclick="openBox(this)"></div>
-  <div class="box" onclick="openBox(this)"></div>
-  <div class="box" onclick="openBox(this)"></div>
-  <div class="box" onclick="openBox(this)"></div>
-</div>
+  <div class="boxes">
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+  </div>
 
   <p id="energy">Energy: 100</p>
-<p id="balance">Balance: 0</p>
-<p id="free">Free tries: 3</p>
+  <p id="balance">Balance: 0</p>
+  <p id="freeTries">Free tries: 3</p>
+  <p id="tokens">Tokens: 0</p>
 
-  <p id="balance">Balance: 2650</p>
-<p id="tokens">Tokens: 0</p>
+  <button class="convert-btn" onclick="convertToToken()">
+    🔁 Convert 10,000 → 1 TTECH
+  </button>
 
-  <p id="result"></p>
-<p id="energy">Energy: 100</p>
+  <p id="msg"></p>
 
-<button onclick="convertToToken()" class="convert-btn">
-  🔁 Convert 10,000 → 1 TTECH
-</button>
-
-<p id="convertMsg"></p>
-
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
