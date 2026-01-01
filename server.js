@@ -12,7 +12,7 @@ app.use(express.json());
 app.use(express.static("public"));
 
 // ================= DB =================
-mongoose.connect(process.env.MONGO_URI)
+mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
