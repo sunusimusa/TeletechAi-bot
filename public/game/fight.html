@@ -23,15 +23,18 @@ body {
   height: 18px;
   background: #333;
   border-radius: 10px;
-  margin: 8px auto;
+  margin: 6px auto;
 }
 
 .hp {
   height: 100%;
-  background: linear-gradient(to right, #00ff88, #00aa55);
   border-radius: 10px;
   width: 100%;
 }
+
+.enemyHP { background: #ff4d4d; }
+.playerHP { background: #00ff88; }
+.xpBar { background: #4da6ff; }
 
 button {
   margin-top: 20px;
@@ -49,18 +52,23 @@ button {
 
 <h2>⚔️ Fight Arena</h2>
 
-<h3>Enemy Level: <span id="level">1</span></h3>
+<h3>Level: <span id="level">1</span></h3>
 
-<img src="/images/enemy.png" class="character" id="enemyImg">
+<img src="/images/enemy.png" class="character">
 
 <div class="bar">
-  <div id="enemyHP" class="hp"></div>
+  <div id="enemyHP" class="hp enemyHP"></div>
 </div>
 
-<img src="/images/hero.png" class="character" id="heroImg">
+<img src="/images/hero.png" class="character">
 
 <div class="bar">
-  <div id="playerHP" class="hp"></div>
+  <div id="playerHP" class="hp playerHP"></div>
+</div>
+
+<h4>XP</h4>
+<div class="bar">
+  <div id="xpBar" class="hp xpBar"></div>
 </div>
 
 <button onclick="attack()">🔥 ATTACK</button>
@@ -69,16 +77,19 @@ button {
 let level = 1;
 let playerHP = 100;
 let enemyHP = 100;
+let xp = 0;
+let xpNeed = 100;
 
-function updateBars() {
+function updateUI() {
   document.getElementById("enemyHP").style.width = enemyHP + "%";
   document.getElementById("playerHP").style.width = playerHP + "%";
+  document.getElementById("xpBar").style.width = (xp / xpNeed * 100) + "%";
   document.getElementById("level").innerText = level;
 }
 
 function attack() {
-  let playerDamage = Math.floor(Math.random() * 15) + 10;
-  let enemyDamage = Math.floor(Math.random() * (5 + level)) + 5;
+  let playerDamage = Math.floor(Math.random() * 15) + 10 + level;
+  let enemyDamage = Math.floor(Math.random() * 10) + 5;
 
   enemyHP -= playerDamage;
   playerHP -= enemyDamage;
@@ -86,30 +97,33 @@ function attack() {
   if (enemyHP < 0) enemyHP = 0;
   if (playerHP < 0) playerHP = 0;
 
-  updateBars();
+  updateUI();
 
   if (enemyHP <= 0) {
-    setTimeout(() => {
-      alert("🔥 YOU WIN! Next Level!");
+    xp += 30;
+    alert("🎉 You Win! +30 XP");
+
+    if (xp >= xpNeed) {
+      xp -= xpNeed;
       level++;
-      enemyHP = 100 + level * 20;
-      playerHP = 100;
-      updateBars();
-    }, 300);
+      xpNeed += 20;
+      alert("🚀 LEVEL UP!");
+    }
+
+    enemyHP = 100 + level * 20;
+    playerHP = 100;
   }
 
   if (playerHP <= 0) {
-    setTimeout(() => {
-      alert("💀 YOU LOST! Restarting...");
-      level = 1;
-      enemyHP = 100;
-      playerHP = 100;
-      updateBars();
-    }, 300);
+    alert("💀 You Lost! Try Again");
+    playerHP = 100;
+    enemyHP = 100 + level * 20;
   }
+
+  updateUI();
 }
 
-updateBars();
+updateUI();
 </script>
 
 </body>
