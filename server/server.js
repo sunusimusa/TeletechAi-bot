@@ -12,6 +12,16 @@ const User = mongoose.model("User", {
   balance: { type: Number, default: 0 }
 });
 
+function regenEnergy(user) {
+  const now = Date.now();
+  const diff = Math.floor((now - user.lastEnergyUpdate) / 10000); // 10 sec
+
+  if (diff > 0) {
+    user.energy = Math.min(100, user.energy + diff);
+    user.lastEnergyUpdate = now;
+  }
+}
+
 // 🎁 OPEN BOX
 app.post("/api/open-box", async (req, res) => {
   const { userId } = req.body;
