@@ -89,3 +89,22 @@ function saveGame() {
 
   localStorage.setItem("luckyBoxGame", JSON.stringify(data));
 }
+
+function loadGame() {
+  const data = JSON.parse(localStorage.getItem("luckyBoxGame"));
+
+  if (data) {
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+    tokens = data.tokens;
+  }
+
+  updateUI();
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  updateUI();
+});
+
+saveGame();
