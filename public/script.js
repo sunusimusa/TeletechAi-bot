@@ -57,6 +57,8 @@ function copyRef() {
 async function openBox(box) {
   if (box.classList.contains("opened")) return;
 
+  box.classList.add("disabled");
+
   const res = await fetch("/api/open", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -67,27 +69,29 @@ async function openBox(box) {
 
   if (data.error) {
     document.getElementById("msg").innerText = "❌ " + data.error;
+    box.classList.remove("disabled");
     return;
+  }
+
+  box.classList.add("opened");
+
+  if (data.reward === 0) {
+    box.innerHTML = "😢";
+  } else {
+    box.innerHTML = `💰 ${data.reward}`;
   }
 
   balance = data.balance;
   energy = data.energy;
   freeTries = data.freeTries;
 
-  box.classList.add("opened");
-
-  if (data.reward === 0) {
-    box.innerText = "😢";
-  } else {
-    box.innerText = "💰 " + data.reward;
-  }
-
   updateUI();
 
-  // 🔥 AUTO CLOSE AFTER 5 SECONDS
+  // 🔒 kulle box na sakan 5
   setTimeout(() => {
     box.classList.remove("opened");
-    box.innerText = "";
+    box.classList.remove("disabled");
+    box.innerHTML = "";
   }, 5000);
 }
 
