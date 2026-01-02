@@ -43,7 +43,6 @@ app.post("/api/user", async (req, res) => {
       referredBy: ref || null
     });
 
-    // reward referrer
     if (ref) {
       const refUser = await User.findOne({ referralCode: ref });
       if (refUser) {
@@ -56,13 +55,14 @@ app.post("/api/user", async (req, res) => {
   }
 
   res.json({
-  telegramId: user.telegramId,
-  balance: user.balance,
-  energy: user.energy,
-  freeTries: user.freeTries,
-  tokens: user.tokens,
-  referralCode: user.referralCode,
-  referralsCount: user.referralsCount
+    telegramId: user.telegramId,
+    balance: user.balance,
+    energy: user.energy,
+    freeTries: user.freeTries,
+    tokens: user.tokens,
+    referralCode: user.referralCode,
+    referralsCount: user.referralsCount
+  });
 });
 
 // ================= OPEN BOX =================
