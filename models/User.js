@@ -14,7 +14,8 @@ const UserSchema = new mongoose.Schema({
 
   dailyStreak: { type: Number, default: 0 },
   lastDaily: { type: Number, default: 0 },
-
+  
+joinedChannel: { type: Boolean, default: false },
   joinedYoutube: { type: Boolean, default: false },
   joinedGroup: { type: Boolean, default: false }
 });
