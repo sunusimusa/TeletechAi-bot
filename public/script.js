@@ -129,6 +129,28 @@ function joinYouTube() {
     });
   }, 5000);
 }
+
+function joinGroup() {
+  window.open("https://t.me/your_public_group", "_blank");
+
+  setTimeout(async () => {
+    const res = await fetch("/api/group", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: TELEGRAM_ID })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      document.getElementById("groupMsg").innerText = "❌ Already claimed";
+    } else {
+      document.getElementById("groupMsg").innerText = "🎉 Reward added!";
+      balance = data.balance;
+      updateUI();
+    }
+  }, 5000);
+}
+
 // ================== CONVERT TOKEN ==================
 async function convertToToken() {
   const res = await fetch("/api/convert", {
