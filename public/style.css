@@ -113,3 +113,9 @@ body {
   border-radius: 10px;
   font-weight: bold;
 }
+
+.ad-banner img {
+  width: 100%;
+  border-radius: 12px;
+  margin-top: 15px;
+}
