@@ -16,11 +16,14 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
-// ================= ENERGY FUNCTION =================
+// ================= UTILS =================
+function generateCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
+}
+
 function regenEnergy(user) {
   const now = Date.now();
   const diff = Math.floor((now - user.lastEnergy) / 300000); // 5 min
-
   if (diff > 0) {
     user.energy = Math.min(100, user.energy + diff * 5);
     user.lastEnergy = now;
@@ -40,7 +43,7 @@ app.post("/api/user", async (req, res) => {
       referredBy: ref || null
     });
 
-    // GIVE BONUS TO REFERRER
+    // REFERRAL BONUS
     if (ref) {
       const refUser = await User.findOne({ referralCode: ref });
       if (refUser) {
@@ -51,6 +54,9 @@ app.post("/api/user", async (req, res) => {
       }
     }
   }
+
+  regenEnergy(user);
+  await user.save();
 
   res.json(user);
 });
@@ -82,7 +88,7 @@ app.post("/api/open", async (req, res) => {
   });
 });
 
-// ================= CONVERT TOKEN =================
+// ================= CONVERT =================
 app.post("/api/convert", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
@@ -95,11 +101,7 @@ app.post("/api/convert", async (req, res) => {
   user.tokens += 1;
 
   await user.save();
-
-  res.json({
-    tokens: user.tokens,
-    balance: user.balance
-  });
+  res.json({ tokens: user.tokens, balance: user.balance });
 });
 
 // ================= DAILY BONUS =================
@@ -110,9 +112,9 @@ app.post("/api/daily", async (req, res) => {
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   const now = Date.now();
-  const ONE_DAY = 86400000;
+  const DAY = 86400000;
 
-  if (now - user.lastDaily < ONE_DAY)
+  if (now - user.lastDaily < DAY)
     return res.json({ error: "COME_BACK_LATER" });
 
   user.lastDaily = now;
