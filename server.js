@@ -30,10 +30,6 @@ function regenEnergy(user) {
   }
 }
 
-function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 // ================= CREATE / LOAD USER =================
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
