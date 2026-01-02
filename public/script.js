@@ -3,7 +3,6 @@ const TELEGRAM_ID =
   window.Telegram?.WebApp?.initDataUnsafe?.user?.id || "guest";
 
 // ================== GLOBAL STATE ==================
-
 let balance = 0;
 let energy = 0;
 let tokens = 0;
@@ -15,6 +14,7 @@ let soundEnabled = true;
 // ================== INIT ==================
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
+  startEnergyRegen();
 });
 
 // ================== LOAD USER ==================
@@ -48,32 +48,22 @@ function updateUI() {
     `👥 Referrals: ${referralsCount}`;
 }
 
+// ================== SOUND ==================
 function playSound(type) {
   if (!soundEnabled) return;
 
-  let sound;
+  const sounds = {
+    click: document.getElementById("clickSound"),
+    win: document.getElementById("winSound"),
+    lose: document.getElementById("loseSound"),
+    error: document.getElementById("errorSound")
+  };
 
-  if (type === "click") sound =
-    document.getElementById("clickSound");
-  if (type === "win") sound =
-    document.getElementById("winSound");
-  if (type === "lose") sound =
-    document.getElementById("loseSound");
-  if (type === "error") sound =
-    document.getElementById("errorSound");
+  const s = sounds[type];
+  if (!s) return;
 
-  if (sound) {
-    sound.currentTime = 0;
-    sound.play().catch(() => {});
-  }
-}
-
-// ================== COPY REF ==================
-function copyRef() {
-  navigator.clipboard.writeText(
-    document.getElementById("refLink").value
-  );
-  alert("✅ Referral link copied!");
+  s.currentTime = 0;
+  s.play().catch(() => {});
 }
 
 // ================== OPEN BOX ==================
@@ -147,10 +137,7 @@ async function buyEnergy(amount) {
   const res = await fetch("/api/buy-energy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: TELEGRAM_ID,
-      amount
-    })
+    body: JSON.stringify({ telegramId: TELEGRAM_ID, amount })
   });
 
   const data = await res.json();
@@ -160,12 +147,28 @@ async function buyEnergy(amount) {
     return;
   }
 
-setInterval(() => {
-  if (energy < 100) {
-    energy += 1;
-    updateUI();
-  }
-}, 60000); // every 1 minute
+  balance = data.balance;
+  energy = data.energy;
+  updateUI();
+}
+
+// ================== ENERGY AUTO REGEN ==================
+function startEnergyRegen() {
+  setInterval(() => {
+    if (energy < 100) {
+      energy += 1;
+      updateUI();
+    }
+  }, 60000); // 1 minute
+}
+
+// ================== REFERRAL COPY ==================
+function copyRef() {
+  navigator.clipboard.writeText(
+    document.getElementById("refLink").value
+  );
+  alert("✅ Referral link copied!");
+}
 
 // ================== JOIN YOUTUBE ==================
 function joinYouTube() {
@@ -211,23 +214,4 @@ function joinGroup() {
       updateUI();
     }
   }, 4000);
-}
-
-async function convertPoints() {
-  const res = await fetch("/api/convert", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  });
-
-  const data = await res.json();
-
-  if (data.error) {
-    alert("❌ " + data.error);
-    return;
-  }
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
 }
