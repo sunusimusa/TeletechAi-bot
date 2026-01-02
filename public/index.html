@@ -51,6 +51,12 @@
 
   <p id="msg"></p>
 
+  <p>Your referral link:</p>
+<input id="refLink" readonly />
+<button onclick="navigator.clipboard.writeText(refLink.value)">
+Copy Link
+</button>
+
   <!-- GAME SCRIPT -->
   <script src="script.js"></script>
 
