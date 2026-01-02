@@ -150,6 +150,20 @@ app.post("/api/youtube", async (req, res) => {
 
   res.json({ success: true, balance: user.balance });
 });
+
+app.post("/api/group", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (user.joinedGroup) return res.json({ error: "ALREADY" });
+
+  user.joinedGroup = true;
+  user.balance += 300;
+  await user.save();
+
+  res.json({ balance: user.balance });
+});
+
 // ================= START =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
