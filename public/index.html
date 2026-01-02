@@ -3,12 +3,18 @@
 <head>
   <meta charset="UTF-8" />
   <title>Lucky Box Game</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <!-- Telegram WebApp -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <h2>🎁 Lucky Box Game</h2>
 
+  <!-- GAME BOXES -->
   <div class="boxes">
     <div class="box" onclick="openBox(this)"></div>
     <div class="box" onclick="openBox(this)"></div>
@@ -18,37 +24,35 @@
     <div class="box" onclick="openBox(this)"></div>
   </div>
 
+  <!-- STATS -->
   <p id="energy">Energy: 100</p>
   <p id="balance">Balance: 0</p>
   <p id="freeTries">Free tries: 3</p>
   <p id="tokens">Tokens: 0</p>
 
-    <div class="box" onclick="
-      openBox(this)"></div>
+  <!-- DAILY BONUS -->
+  <button class="daily-btn" onclick="claimDaily()">🎁 Daily Bonus</button>
+  <p id="dailyMsg"></p>
 
-<p id="dailyMsg"></p>
-
+  <!-- CONVERT -->
   <button class="convert-btn" onclick="convertToToken()">
     🔁 Convert 10,000 → 1 TTECH
   </button>
-  <p id="convertMsg" style="margin-top:10px; color:#ff4d4d;"></p>
+  <p id="convertMsg"></p>
 
-  
-<button class="daily-btn" 
-    onclick="claimDaily()">
-  🎁 Daily Bonus
-</button>
-
+  <!-- WITHDRAW -->
   <div class="withdraw-box">
-  <h3>Withdraw Tokens</h3>
-  <input id="wallet" placeholder="Your Wallet Address" />
-  <input id="amount" type="number" placeholder="Amount" />
-  <button onclick="withdraw()">Withdraw</button>
-  <p id="withdrawMsg"></p>
+    <h3>Withdraw Tokens</h3>
+    <input id="wallet" placeholder="Wallet Address" />
+    <input id="amount" type="number" placeholder="Amount" />
+    <button onclick="withdraw()">Withdraw</button>
+    <p id="withdrawMsg"></p>
   </div>
-  
+
   <p id="msg"></p>
 
+  <!-- GAME SCRIPT -->
   <script src="script.js"></script>
+
 </body>
 </html>
