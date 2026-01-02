@@ -44,7 +44,7 @@ async function loadUser() {
   referralCode = data.referralCode;
 
   function showReferral() {
-  const link = `https://t.me/YourBotUsername?start=${referralCode}`;
+  const link = `https://t.me/teletechai.bot?start=${referralCode}`;
   document.getElementById("refLink").value = link;
   }
 
