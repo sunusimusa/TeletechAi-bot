@@ -175,3 +175,13 @@ body {
     transform: scale(1);
   }
 }
+
+.box {
+  cursor: pointer;
+  pointer-events: auto;
+  transition: transform 0.2s ease;
+}
+
+.box:active {
+  transform: scale(0.95);
+}
