@@ -113,14 +113,21 @@ async function buyEnergy(amount) {
   const res = await fetch("/api/buy-energy", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID, amount })
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      amount
+    })
   });
 
   const data = await res.json();
-  if (data.error) return alert(data.error);
 
-  balance = data.balance;
+  if (data.error) {
+    alert("❌ " + data.error);
+    return;
+  }
+
   energy = data.energy;
+  balance = data.balance;
   updateUI();
 }
 
