@@ -109,10 +109,11 @@ async function openBox(box) {
 
   updateUI();
 
+  // ⏱️ close box after 3 seconds
   setTimeout(() => {
     box.classList.remove("opened");
     box.innerHTML = "";
-  }, 5000);
+  }, 3000);
 }
 
 // ================== DAILY BONUS ==================
