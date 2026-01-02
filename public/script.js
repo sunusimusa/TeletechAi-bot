@@ -43,6 +43,11 @@ async function loadUser() {
   tokens = data.tokens;
   referralCode = data.referralCode;
 
+  function showReferral() {
+  const link = `https://t.me/YourBotUsername?start=${referralCode}`;
+  document.getElementById("refLink").value = link;
+  }
+
   updateUI();
   showReferral();
 }
