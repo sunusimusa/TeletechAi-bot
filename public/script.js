@@ -14,6 +14,8 @@ fetch("/api/user", {
 });
 
 // ================== GAME STATE ==================
+let referralCode = "";
+let referralsCount = 0;
 let balance = 0;
 let energy = 100;
 let freeTries = 3;
