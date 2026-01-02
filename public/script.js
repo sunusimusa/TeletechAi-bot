@@ -44,6 +44,7 @@ async function loadUser() {
   freeTries = data.freeTries;
   tokens = data.tokens;
   referralCode = data.referralCode;
+  referralsCount = data.referralsCount;
 
   function showReferral() {
   const link = `https://t.me/teletechai.bot?start=${referralCode}`;
