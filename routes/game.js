@@ -3,36 +3,61 @@ import User from "../models/User.js";
 
 const router = express.Router();
 
-// CREATE / LOAD USER
+// ================= CREATE / LOAD USER =================
 router.post("/user", async (req, res) => {
   const { telegramId } = req.body;
 
+  if (!telegramId) return res.json({ error: "NO_USER" });
+
   let user = await User.findOne({ telegramId });
-  if (!user) user = await User.create({ telegramId });
+
+  if (!user) {
+    user = await User.create({
+      telegramId,
+      balance: 0,
+      energy: 100,
+      freeTries: 3,
+      tokens: 0,
+      lastDaily: 0,
+      lastEnergy: Date.now()
+    });
+  }
 
   res.json(user);
 });
 
-// OPEN BOX
+// ================= ENERGY REGEN =================
+function regenEnergy(user) {
+  const now = Date.now();
+  const diff = Math.floor((now - user.lastEnergy) / 300000); // 5 min
+
+  if (diff > 0) {
+    user.energy = Math.min(100, user.energy + diff * 5);
+    user.lastEnergy = now;
+  }
+}
+
+// ================= OPEN BOX =================
 router.post("/open", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
 
-  if (!user) return res.json({ error: "User not found" });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  if (user.freeTries > 0) user.freeTries--;
-  else if (user.energy >= 10) user.energy -= 10;
-  else return res.json({ error: "No energy" });
+  regenEnergy(user);
 
-  const rewards = [
-    { type: "coin", value: 100 },
-    { type: "coin", value: 200 },
-    { type: "nothing", value: 0 }
-  ];
+  if (user.freeTries > 0) {
+    user.freeTries--;
+  } else if (user.energy >= 10) {
+    user.energy -= 10;
+  } else {
+    return res.json({ error: "NO_ENERGY" });
+  }
 
+  const rewards = [0, 100, 200];
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
-  if (reward.type === "coin") user.balance += reward.value;
+  user.balance += reward;
 
   await user.save();
 
@@ -44,16 +69,19 @@ router.post("/open", async (req, res) => {
   });
 });
 
-// CONVERT
+// ================= CONVERT =================
 router.post("/convert", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
 
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
   if (user.balance < 10000)
-    return res.json({ error: "Not enough balance" });
+    return res.json({ error: "NOT_ENOUGH_POINTS" });
 
   user.balance -= 10000;
   user.tokens += 1;
+
   await user.save();
 
   res.json({
@@ -62,14 +90,18 @@ router.post("/convert", async (req, res) => {
   });
 });
 
-// DAILY BONUS
+// ================= DAILY BONUS =================
 router.post("/daily", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
 
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
   const now = Date.now();
-  if (now - user.lastDaily < 86400000)
-    return res.json({ error: "Come back tomorrow" });
+  const ONE_DAY = 24 * 60 * 60 * 1000;
+
+  if (now - user.lastDaily < ONE_DAY)
+    return res.json({ error: "COME_BACK_LATER" });
 
   user.lastDaily = now;
   user.balance += 500;
