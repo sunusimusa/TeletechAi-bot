@@ -71,7 +71,7 @@ function copyRef() {
 async function openBox(box) {
   if (box.classList.contains("opened")) return;
 
-  box.classList.add("disabled");
+  playSound("click");
 
   const res = await fetch("/api/open", {
     method: "POST",
@@ -82,8 +82,8 @@ async function openBox(box) {
   const data = await res.json();
 
   if (data.error) {
+    playSound("error");
     document.getElementById("msg").innerText = "❌ " + data.error;
-    box.classList.remove("disabled");
     return;
   }
 
@@ -91,8 +91,10 @@ async function openBox(box) {
 
   if (data.reward === 0) {
     box.innerHTML = "😢";
+    playSound("lose");
   } else {
-    box.innerHTML = `💰 ${data.reward}`;
+    box.innerHTML = "💰 " + data.reward;
+    playSound("win");
   }
 
   balance = data.balance;
@@ -101,10 +103,8 @@ async function openBox(box) {
 
   updateUI();
 
-  // 🔒 kulle box na sakan 5
   setTimeout(() => {
     box.classList.remove("opened");
-    box.classList.remove("disabled");
     box.innerHTML = "";
   }, 5000);
 }
