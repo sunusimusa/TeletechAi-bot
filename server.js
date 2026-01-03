@@ -22,10 +22,19 @@ function generateCode() {
 
 function regenEnergy(user) {
   const now = Date.now();
-  const diff = Math.floor((now - user.lastEnergy) / 300000); // 5 min
+
+  const ENERGY_TIME = 5 * 60 * 1000; // 5 minutes
+  const ENERGY_GAIN = 5;
+  const MAX_ENERGY = 100;
+
+  const diff = Math.floor((now - user.lastEnergy) / ENERGY_TIME);
 
   if (diff > 0) {
-    user.energy = Math.min(100, user.energy + diff * 5);
+    user.energy = Math.min(
+      MAX_ENERGY,
+      user.energy + diff * ENERGY_GAIN
+    );
+
     user.lastEnergy = now;
   }
 }
@@ -100,13 +109,17 @@ app.post("/api/daily", async (req, res) => {
   user.balance += reward;
   user.energy += 10;
 
+regenEnergy(user);
   await user.save();
 
   res.json({
     reward,
-    streak: user.dailyStreak,
     balance: user.balance,
-    energy: user.energy
+    energy: user.energy,
+    tokens: user.tokens,
+    freeTries: user.freeTries,
+    referralCode: user.referralCode,
+    referralsCount: user.referralsCount
   });
 });
 
@@ -277,6 +290,7 @@ app.post("/api/market/sell", async (req, res) => {
     tokens: user.tokens
   });
 });
+
 // ================= START =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Server running"));
