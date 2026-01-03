@@ -92,12 +92,22 @@ app.post("/api/daily", async (req, res) => {
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
+  // 🔧 FIX: tabbatar lastEnergy yana nan
+  if (!user.lastEnergy) {
+    user.lastEnergy = Date.now();
+  }
+
+  // 🔋 REGEN ENERGY FARKO
+  regenEnergy(user);
+
   const now = Date.now();
   const DAY = 86400000;
 
-  if (now - user.lastDaily < DAY)
+  if (now - user.lastDaily < DAY) {
     return res.json({ error: "COME_BACK_LATER" });
+  }
 
+  // 🔥 DAILY STREAK
   if (now - user.lastDaily < DAY * 2) {
     user.dailyStreak += 1;
   } else {
@@ -105,15 +115,16 @@ app.post("/api/daily", async (req, res) => {
   }
 
   const reward = 100 * user.dailyStreak;
+
   user.lastDaily = now;
   user.balance += reward;
-  user.energy += 10;
+  user.energy = Math.min(100, user.energy + 10); // ⬅️ kada ya wuce 100
 
-regenEnergy(user);
   await user.save();
 
   res.json({
     reward,
+    streak: user.dailyStreak,
     balance: user.balance,
     energy: user.energy,
     tokens: user.tokens,
