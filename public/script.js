@@ -52,6 +52,14 @@ async function loadUser() {
   }
 }
 
+const proBadge = document.getElementById("proBadge");
+const upgradeBtn = document.getElementById("upgradeBtn");
+
+if (data.isPro) {
+  proBadge.classList.remove("hidden");
+  upgradeBtn.style.display = "none";
+}
+
 // ================== UI UPDATE ==================
 function updateUI() {
   document.getElementById("balance").innerText = `Balance: ${balance}`;
@@ -282,3 +290,27 @@ function joinChannel() {
     }
   }, 4000);
     }
+
+async function upgradePro() {
+  if (!confirm("Upgrade to PRO for 5 TOKEN?")) return;
+
+  const res = await fetch("/api/pro/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: TELEGRAM_ID })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
+  tokens = data.tokens;
+  document.getElementById("proBadge").classList.remove("hidden");
+  document.getElementById("upgradeBtn").style.display = "none";
+
+  updateUI();
+  alert("🎉 You are now PRO!");
+}
