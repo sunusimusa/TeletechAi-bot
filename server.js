@@ -568,6 +568,20 @@ app.post("/api/market/sell", async (req, res) => {
   });
 });
 
+app.post("/api/market/liquidity", async (req, res) => {
+  const { points, jetton } = req.body;
+
+  const market = await Market.findOne();
+  if (!market) return res.json({ error: "MARKET_NOT_READY" });
+
+  market.reservePoints += points;
+  market.reserveJetton += jetton;
+
+  await market.save();
+
+  res.json({ success: true, market });
+});
+
 // ================= START =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Server running"));
