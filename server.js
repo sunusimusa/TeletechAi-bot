@@ -4,48 +4,47 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import User from "./models/User.js";
-import Market from "./models/Market.js";
 
-// ROUTES (separate)
+// ROUTES
 import withdrawRoutes from "./routes/withdraw.routes.js";
 import marketRoutes from "./routes/market.routes.js";
 
 dotenv.config();
 
 const app = express();
-app.use("/api/market", marketRoutes);
+
+/* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// ================= DATABASE =================
+/* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
-// ================= UTILS =================
+/* ================= UTILS ================= */
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 function regenEnergy(user) {
   const now = Date.now();
-
-  const ENERGY_TIME = 5 * 60 * 1000; // 5 min
+  const ENERGY_TIME = 5 * 60 * 1000;
   const ENERGY_GAIN = 5;
   const MAX_ENERGY = 100;
 
   if (!user.lastEnergy) user.lastEnergy = now;
 
   const diff = Math.floor((now - user.lastEnergy) / ENERGY_TIME);
-
   if (diff > 0) {
     user.energy = Math.min(MAX_ENERGY, user.energy + diff * ENERGY_GAIN);
     user.lastEnergy = now;
   }
 }
 
-// ================= USER =================
+/* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
   if (!telegramId) return res.json({ error: "NO_TELEGRAM_ID" });
@@ -86,7 +85,7 @@ app.post("/api/user", async (req, res) => {
   });
 });
 
-// ================= DAILY BONUS =================
+/* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
@@ -104,7 +103,6 @@ app.post("/api/daily", async (req, res) => {
     now - user.lastDaily < DAY * 2 ? user.dailyStreak + 1 : 1;
 
   const reward = user.dailyStreak * 100;
-
   user.lastDaily = now;
   user.balance += reward;
   user.energy = Math.min(100, user.energy + 10);
@@ -119,7 +117,7 @@ app.post("/api/daily", async (req, res) => {
   });
 });
 
-// ================= OPEN BOX =================
+/* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
@@ -144,7 +142,7 @@ app.post("/api/open", async (req, res) => {
   });
 });
 
-// ================= CONVERT POINTS =================
+/* ================= CONVERT ================= */
 app.post("/api/convert", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
@@ -155,16 +153,15 @@ app.post("/api/convert", async (req, res) => {
 
   user.balance -= 10000;
   user.tokens += 1;
-
   await user.save();
 
   res.json({
-    tokens: user.tokens,
-    balance: user.balance
+    balance: user.balance,
+    tokens: user.tokens
   });
 });
 
-// ================= BUY ENERGY =================
+/* ================= BUY ENERGY ================= */
 app.post("/api/buy-energy", async (req, res) => {
   const { telegramId, amount } = req.body;
   const user = await User.findOne({ telegramId });
@@ -179,7 +176,6 @@ app.post("/api/buy-energy", async (req, res) => {
 
   user.balance -= cost;
   user.energy = Math.min(100, user.energy + amount);
-
   await user.save();
 
   res.json({
@@ -188,9 +184,11 @@ app.post("/api/buy-energy", async (req, res) => {
   });
 });
 
-// ================= TASK SYSTEM =================
+/* ================= TASK SYSTEM ================= */
 app.post("/api/task/youtube", async (req, res) => {
-  const user = await User.findOne(req.body);
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
   if (!user || user.joinedYoutube)
     return res.json({ error: "ALREADY_DONE" });
 
@@ -202,7 +200,9 @@ app.post("/api/task/youtube", async (req, res) => {
 });
 
 app.post("/api/task/group", async (req, res) => {
-  const user = await User.findOne(req.body);
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
   if (!user || user.joinedGroup)
     return res.json({ error: "ALREADY_DONE" });
 
@@ -214,7 +214,9 @@ app.post("/api/task/group", async (req, res) => {
 });
 
 app.post("/api/task/channel", async (req, res) => {
-  const user = await User.findOne(req.body);
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
   if (!user || user.joinedChannel)
     return res.json({ error: "ALREADY_DONE" });
 
@@ -225,40 +227,11 @@ app.post("/api/task/channel", async (req, res) => {
   res.json({ tokens: user.tokens });
 });
 
-// ================= MARKET =================
-app.post("/api/market/buy", async (req, res) => {
-  const { telegramId, amount } = req.body;
-  const user = await User.findOne({ telegramId });
-
-  const cost = amount * 10000;
-  if (!user || user.balance < cost)
-    return res.json({ error: "NOT_ENOUGH_COINS" });
-
-  user.balance -= cost;
-  user.tokens += amount;
-  await user.save();
-
-  res.json({ balance: user.balance, tokens: user.tokens });
-});
-
-app.post("/api/market/sell", async (req, res) => {
-  const { telegramId, amount } = req.body;
-  const user = await User.findOne({ telegramId });
-
-  if (!user || user.tokens < amount)
-    return res.json({ error: "NOT_ENOUGH_TOKENS" });
-
-  user.tokens -= amount;
-  user.balance += amount * 10000;
-  await user.save();
-
-  res.json({ balance: user.balance, tokens: user.tokens });
-});
-
-// ================= WITHDRAW ROUTES =================
+/* ================= ROUTES ================= */
+app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 
-// ================= START =================
+/* ================= START ================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log(`🚀 Server running on port ${PORT}`)
