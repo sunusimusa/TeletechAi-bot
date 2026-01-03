@@ -8,10 +8,12 @@ import Market from "./models/Market.js";
 
 // ROUTES (separate)
 import withdrawRoutes from "./routes/withdraw.routes.js";
+import marketRoutes from "./routes/market.routes.js";
 
 dotenv.config();
 
 const app = express();
+app.use("/api/market", marketRoutes);
 app.use(cors());
 app.use(express.json());
 app.use(express.static("public"));
