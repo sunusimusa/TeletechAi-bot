@@ -433,6 +433,79 @@ app.post("/api/withdraw", async (req, res) => {
   }
 });
 
+import TonWeb from "tonweb";
+import nacl from "tweetnacl";
+
+const tonweb = new TonWeb(
+  new TonWeb.HttpProvider(process.env.RPC_URL)
+);
+
+const seed = Buffer.from(process.env.PRIVATE_KEY, "hex");
+const keyPair = nacl.sign.keyPair.fromSeed(seed);
+
+const wallet = tonweb.wallet.create({
+  publicKey: keyPair.publicKey,
+  wc: 0
+});
+
+const jettonMinter = new tonweb.token.jetton.JettonMinter(
+  tonweb.provider,
+  { address: process.env.JETTON_MASTER }
+);
+
+app.post("/api/withdraw/jetton", async (req, res) => {
+  try {
+    const { telegramId, address, amount } = req.body;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    if (amount <= 0)
+      return res.json({ error: "INVALID_AMOUNT" });
+
+    if (user.tokens < amount)
+      return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+    const userJettonWallet =
+      await jettonMinter.getJettonWalletAddress(
+        tonweb.utils.Address.parse(address)
+      );
+
+    const walletAddress = await wallet.getAddress();
+    const seqno = await wallet.methods.seqno().call();
+
+    const jettonWallet = new tonweb.token.jetton.JettonWallet(
+      tonweb.provider,
+      { address: userJettonWallet }
+    );
+
+    await wallet.methods.transfer({
+      secretKey: keyPair.secretKey,
+      toAddress: jettonWallet.address,
+      amount: TonWeb.utils.toNano("0.05"), // gas
+      seqno,
+      payload: await jettonWallet.createTransferBody({
+        jettonAmount: TonWeb.utils.toNano(amount),
+        toAddress: tonweb.utils.Address.parse(address),
+        responseAddress: walletAddress
+      }),
+      sendMode: 3
+    }).send();
+
+    user.tokens -= amount;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Jetton withdraw sent"
+    });
+
+  } catch (e) {
+    console.error(e);
+    res.json({ error: "JETTON_WITHDRAW_FAILED" });
+  }
+});
+
 // ================= START =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Server running"));
