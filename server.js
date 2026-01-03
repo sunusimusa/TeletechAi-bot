@@ -376,6 +376,63 @@ app.post("/api/market/sell", async (req, res) => {
   });
 });
 
+import TonWeb from "tonweb";
+
+const tonweb = new TonWeb(
+  new TonWeb.HttpProvider(process.env.RPC_URL)
+);
+
+const keyPair = TonWeb.utils.keyPairFromSeed(
+  Buffer.from(process.env.PRIVATE_KEY, "hex")
+);
+
+const wallet = tonweb.wallet.create({
+  publicKey: keyPair.publicKey,
+  wc: 0
+});
+
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const { telegramId, address, amount } = req.body;
+
+    const user = await User.findOne({ telegramId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    if (amount <= 0)
+      return res.json({ error: "INVALID_AMOUNT" });
+
+    if (user.tokens < amount)
+      return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+    // TOKEN → TON example (1 token = 0.1 TON)
+    const TON_AMOUNT = amount * 0.1;
+
+    const seqno = await wallet.methods.seqno().call();
+
+    await wallet.methods.transfer({
+      secretKey: keyPair.secretKey,
+      toAddress: address,
+      amount: TonWeb.utils.toNano(TON_AMOUNT),
+      seqno,
+      sendMode: 3
+    }).send();
+
+    // update user
+    user.tokens -= amount;
+    user.withdrawn += amount;
+    await user.save();
+
+    res.json({
+      success: true,
+      message: "Withdraw sent to blockchain"
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.json({ error: "BLOCKCHAIN_ERROR" });
+  }
+});
+
 // ================= START =================
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log("🚀 Server running"));
