@@ -434,7 +434,6 @@ app.post("/api/withdraw", async (req, res) => {
   }
 });
 
-import TonWeb from "tonweb";
 import nacl from "tweetnacl";
 
 const tonweb = new TonWeb(
