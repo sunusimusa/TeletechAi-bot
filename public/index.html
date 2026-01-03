@@ -11,15 +11,12 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  
-  <audio id="clickSound" src="/sounds/
-    click.mp3" preload="auto"></audio>
-<audio id="winSound" src="/sounds/
-  win.mp3" preload="auto"></audio>
-<audio id="loseSound" src="/sounds/
-  lose.mp3" preload="auto"></audio>
-<audio id="errorSound" src="/sounds/
-  error.mp3" preload="auto"></audio>
+
+  <!-- 🔊 SOUNDS -->
+  <audio id="clickSound" src="/sounds/click.mp3" preload="auto"></audio>
+  <audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
+  <audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
+  <audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
 
   <h2>🎁 Lucky Box Game</h2>
 
@@ -34,94 +31,61 @@
   </div>
 
   <!-- STATS -->
-  <p id="energy">Energy: 100</p>
+  <p id="energy">Energy: 0</p>
   <p id="balance">Balance: 0</p>
-  <p id="freeTries">Free tries: 3</p>
+  <p id="freeTries">Free tries: 0</p>
   <p id="tokens">Tokens: 0</p>
+  <p id="refCount">👥 Referrals: 0</p>
 
-<p id="refCount">👥 Referrals: 0</p>
-  
-  <!-- DAILY BONUS -->
-  <button class="daily-btn" onclick="claimDaily()">🎁 
-    Daily Bonus</button>
+  <!-- DAILY -->
+  <button class="daily-btn" onclick="claimDaily()">🎁 Daily Bonus</button>
   <p id="dailyMsg"></p>
 
+  <!-- MARKET -->
   <h3>🪙 Token Market</h3>
-
-<button onclick="buyToken(1)">Buy 1
-  Token (10,000)</button>
-<button onclick="sellToken(1)">Sell 1
-  Token</button>
-  
+  <button onclick="buyToken(1)">Buy 1 Token (10,000)</button>
+  <button onclick="sellToken(1)">Sell 1 Token</button>
 
   <!-- CONVERT -->
-  <button class="convert-btn" onclick="convertToToken()">
+  <button class="convert-btn" onclick="convertPoints()">
     🔁 Convert 10,000 → 1 TTECH
   </button>
   <p id="convertMsg"></p>
 
+  <!-- ENERGY SHOP -->
   <div class="energy-shop">
-  <h3>⚡ Buy Energy</h3>
-
-  <button onclick="buyEnergy(100)">⚡ 
-    100 Energy (500 coins)</button>
-  <button onclick="buyEnergy(500)">⚡ 
-    500 Energy (2000 coins)</button>
+    <h3>⚡ Buy Energy</h3>
+    <button onclick="buyEnergy(100)">⚡ 100 Energy (500 coins)</button>
+    <button onclick="buyEnergy(500)">⚡ 500 Energy (2000 coins)</button>
   </div>
-  
 
   <!-- WITHDRAW -->
   <div class="withdraw-box">
     <h3>Withdraw Tokens</h3>
     <input id="wallet" placeholder="Wallet Address" />
     <input id="amount" type="number" placeholder="Amount" />
-    <button onclick="withdraw()">Withdraw</button>
+    <button type="button" onclick="withdraw()">Withdraw</button>
     <p id="withdrawMsg"></p>
   </div>
 
-  <p id="msg"></p>
-
-
-
+  <!-- REFERRAL -->
   <p>Your referral link:</p>
-<input id="refLink" readonly />
-<button onclick="navigator.clipboard.writeText(refLink.value)">
-Copy Link
-</button>
+  <input id="refLink" readonly />
+  <button type="button" onclick="copyRef()">Copy Link</button>
 
+  <!-- TASKS -->
+  <div class="tasks">
+    <button onclick="joinYouTube()">📺 Join YouTube Channel</button>
+    <p id="ytMsg"></p>
 
+    <button onclick="joinGroup()">💬 Join Community</button>
+    <p id="groupMsg"></p>
 
-  <div class="ad-banner">
-  <a href="https://your-ad-link.com" target="_blank">
-    <img src="/ads/banner.png" />
-  </a>
+    <button onclick="joinChannel()">📢 Join Channel</button>
+    <p id="channelMsg"></p>
   </div>
 
-  
-
-  <button onclick="joinYouTube()">📺 
-    Join YouTube Channel</button>
-<p id="ytMsg"></p>
-
-
-  <button onclick="joinGroup()">💬
-    Join Community</button>
-<p id="groupMsg"></p>
-
-
-  <button onclick="joinChannel()">📢
-    Join Channel</button>
-<p id="channelMsg"></p>
-
-
-  <button onclick="buyToken(1)">Buy 1 
-    Token</button>
-<button onclick="sellToken(1)">Sell 1 
-  Token</button>
-
-  
   <!-- GAME SCRIPT -->
   <script src="script.js"></script>
-
 </body>
-</html>
+  </html>
