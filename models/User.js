@@ -14,6 +14,8 @@ const UserSchema = new mongoose.Schema({
   referralCode: { type: String },
   referredBy: { type: String, default: null },
   referralsCount: { type: Number, default: 0 },
+  isPro: { type: Boolean, default: false },
+proSince: { type: Number, default: null }
 
   // ===== DAILY =====
   dailyStreak: { type: Number, default: 0 },
