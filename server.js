@@ -151,17 +151,38 @@ app.post("/api/open", async (req, res) => {
 
 // ================= CONVERT =================
 app.post("/api/convert", async (req, res) => {
-  const { telegramId } = req.body;
-  const user = await User.findOne({ telegramId });
+  try {
+    const { telegramId } = req.body;
 
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-  if (user.balance < 10000) return res.json({ error: "NOT_ENOUGH_POINTS" });
+    if (!telegramId) {
+      return res.status(400).json({ error: "TELEGRAM_ID_REQUIRED" });
+    }
 
-  user.balance -= 10000;
-  user.tokens += 1;
-  await user.save();
+    const user = await User.findOne({ telegramId });
 
-  res.json({ tokens: user.tokens, balance: user.balance });
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    if (user.balance < 10000) {
+      return res.status(400).json({ error: "NOT_ENOUGH_POINTS" });
+    }
+
+    user.balance -= 10000;
+    user.tokens = (user.tokens || 0) + 1;
+
+    await user.save();
+
+    return res.status(200).json({
+      success: true,
+      tokens: user.tokens,
+      balance: user.balance
+    });
+
+  } catch (err) {
+    console.error("Convert error:", err);
+    return res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 // ================= BUY ENERGY =================
