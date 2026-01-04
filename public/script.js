@@ -276,6 +276,18 @@ async function buyEnergy(amount) {
   updateUI();
 }
 
+async function getSystemWallet() {
+  let system = await User.findOne({ telegramId: "SYSTEM" });
+  if (!system) {
+    system = await User.create({
+      telegramId: "SYSTEM",
+      balance: 0,
+      tokens: 0
+    });
+  }
+  return system;
+}
+
 // ================== REFERRAL ==================
 function copyRef() {
   navigator.clipboard.writeText(
