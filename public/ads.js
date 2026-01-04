@@ -1,55 +1,66 @@
-const tg = window.Telegram?.WebApp;
-tg?.expand();
+document.addEventListener("DOMContentLoaded", () => {
+  const tg = window.Telegram?.WebApp;
+  const userId = tg?.initDataUnsafe?.user?.id;
 
-let seconds = 30;
-const btn = document.getElementById("claimBtn");
-const timerText = document.getElementById("timer");
+  const btn = document.getElementById("claimBtn");
+  const timerText = document.getElementById("timerText");
 
-btn.disabled = true;
-btn.innerText = `⏳ Please wait (${seconds}s)`;
+  let seconds = 30;
 
-const timer = setInterval(() => {
-  seconds--;
-  timerText.innerText = `⏳ ${seconds} seconds remaining`;
-  btn.innerText = `⏳ Please wait (${seconds}s)`;
-
-  if (seconds <= 0) {
-    clearInterval(timer);
-    btn.disabled = false;
-    btn.classList.add("ready");
-    btn.innerText = "⚡ Claim Free Energy";
-  }
-}, 1000);
-
-btn.onclick = async () => {
   btn.disabled = true;
-  btn.innerText = "⏳ Claiming...";
+  btn.classList.remove("ready");
 
-  const telegramId =
-    tg?.initDataUnsafe?.user?.id;
-
-  if (!telegramId) {
-    alert("Telegram not detected");
-    return;
+  function updateUI() {
+    btn.innerText = `⏳ Please wait (${seconds}s)`;
+    timerText.innerText = `⏳ Please wait (${seconds}s)`;
   }
 
-  const res = await fetch("/api/ads/claim", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId })
+  updateUI();
+
+  const interval = setInterval(() => {
+    seconds--;
+
+    if (seconds <= 0) {
+      clearInterval(interval);
+      btn.disabled = false;
+      btn.classList.add("ready");
+      btn.innerText = "⚡ Claim Free Energy";
+      timerText.innerText = "✅ Ad completed";
+      return;
+    }
+
+    updateUI();
+  }, 1000);
+
+  btn.addEventListener("click", async () => {
+    if (btn.disabled) return;
+
+    btn.disabled = true;
+    btn.innerText = "⏳ Claiming...";
+
+    try {
+      const res = await fetch("/api/ads/claim", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ telegramId: userId })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        alert(data.error.replaceAll("_", " "));
+        btn.innerText = "❌ Try later";
+        return;
+      }
+
+      alert(`🎉 +${data.rewardEnergy} Energy`);
+      window.location.href = "/index.html";
+    } catch (e) {
+      alert("Network error");
+      btn.innerText = "❌ Error";
+    }
   });
-
-  const data = await res.json();
-
-  if (data.error) {
-    alert(data.error.replaceAll("_", " "));
-    btn.innerText = "❌ Try later";
-    return;
-  }
-
-  alert(`🎉 +${data.rewardEnergy} Energy`);
-  window.location.href = "/index.html";
-};
+});
 
 function goBack() {
   window.location.href = "/index.html";
