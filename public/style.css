@@ -504,9 +504,9 @@ html {
 }
 
 /* ===== ADS PAGE BUTTONS ===== */
-.ads-actions {
+ .ads-actions {
   position: fixed;
-  bottom: 70px; /* ⬅️ daga 20px zuwa 70px */
+  bottom: 70px;
   left: 0;
   width: 100%;
   padding: 0 16px;
@@ -516,31 +516,24 @@ html {
   z-index: 50;
 }
 
-/* CLAIM BUTTON */
-.ads-btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  border: none;
+#claimBtn {
+  padding: 14px;
+  border-radius: 14px;
   font-size: 16px;
-  font-weight: 700;
-  cursor: pointer;
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: #000;
-  box-shadow: 0 10px 25px rgba(34, 197, 94, 0.4);
-  transition: all 0.2s ease;
-}
-
-.ads-btn:active {
-  transform: scale(0.97);
-}
-
-.ads-btn.disabled,
-.ads-btn:disabled {
+  font-weight: bold;
+  border: none;
   background: #334155;
   color: #94a3b8;
-  box-shadow: none;
-  cursor: not-allowed;
+}
+
+#claimBtn.ready {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: white;
+  box-shadow: 0 0 20px rgba(34,197,94,0.6);
+}
+
+#claimBtn:disabled {
+  opacity: 0.8;
 }
 
 /* BACK BUTTON */
