@@ -129,6 +129,10 @@ async function openBox(box) {
 
     if (data.reward === 0) {
       box.innerText = "😢";
+      // ===== RARE REWARD CHECK =====
+if (data.reward >= 200) {
+  box.classList.add("rare");
+}
       playSound("lose");
     } else {
       box.innerText = `💰 ${data.reward}`;
