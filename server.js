@@ -66,6 +66,13 @@ if (user.proLevel === 3) {
   }
 }
 
+const TRANSFER_RULES = {
+  free:  { gas: 0.10, dailyLimit: 20, cooldown: 120000 },
+  pro1:  { gas: 0.05, dailyLimit: Infinity, cooldown: 0 },
+  pro2:  { gas: 0.02, dailyLimit: Infinity, cooldown: 0 },
+  pro3:  { gas: 0.00, dailyLimit: Infinity, cooldown: 0 }
+};
+
 /* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
@@ -394,6 +401,85 @@ app.post("/api/ads/claim", async (req, res) => {
     energy: user.energy,
     adsWatchedToday: user.adsWatchedToday,
     tier
+  });
+});
+
+app.post("/api/token/transfer", async (req, res) => {
+  const { fromTelegramId, toTelegramId, amount } = req.body;
+
+  if (!fromTelegramId || !toTelegramId || !amount)
+    return res.json({ error: "MISSING_FIELDS" });
+
+  if (amount <= 0)
+    return res.json({ error: "INVALID_AMOUNT" });
+
+  const sender = await User.findOne({ telegramId: fromTelegramId });
+  const receiver = await User.findOne({ telegramId: toTelegramId });
+
+  if (!sender) return res.json({ error: "SENDER_NOT_FOUND" });
+  if (!receiver) return res.json({ error: "RECEIVER_NOT_FOUND" });
+
+  if (sender.tokens < amount)
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  // 🔐 USER TIER
+  let tier = "free";
+  if (sender.isPro && sender.proLevel === 1) tier = "pro1";
+  if (sender.isPro && sender.proLevel === 2) tier = "pro2";
+  if (sender.isPro && sender.proLevel >= 3) tier = "pro3";
+
+  const rule = TRANSFER_RULES[tier];
+
+  // 📆 DAILY LIMIT RESET
+  const today = new Date().toISOString().slice(0, 10);
+  if (sender.lastTransferDay !== today) {
+    sender.transferredToday = 0;
+    sender.lastTransferDay = today;
+  }
+
+  if (sender.transferredToday + amount > rule.dailyLimit)
+    return res.json({ error: "DAILY_LIMIT_REACHED" });
+
+  // ⏱️ COOLDOWN
+  const now = Date.now();
+  if (rule.cooldown > 0 && now - sender.lastTransferAt < rule.cooldown) {
+    const wait = Math.ceil(
+      (rule.cooldown - (now - sender.lastTransferAt)) / 1000
+    );
+    return res.json({ error: "COOLDOWN_ACTIVE", waitSeconds: wait });
+  }
+
+  // 💸 GAS CALC
+  const gas = Math.ceil(amount * rule.gas);
+  const receiveAmount = amount - gas;
+
+  if (receiveAmount <= 0)
+    return res.json({ error: "AMOUNT_TOO_SMALL" });
+
+  const systemWallet = await getSystemWallet();
+
+  // 🔄 APPLY TRANSFER
+  sender.tokens -= amount;
+  receiver.tokens += receiveAmount;
+  systemWallet.tokens += gas;
+
+  sender.sentTokens += amount;
+  receiver.receivedTokens += receiveAmount;
+
+  sender.lastTransferAt = now;
+  sender.transferredToday += amount;
+
+  await sender.save();
+  await receiver.save();
+  await systemWallet.save();
+
+  res.json({
+    success: true,
+    sent: amount,
+    received: receiveAmount,
+    gas,
+    tier,
+    systemBalance: systemWallet.tokens
   });
 });
 
