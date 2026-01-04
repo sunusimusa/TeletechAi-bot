@@ -40,4 +40,29 @@ router.post("/claim", async (req, res) => {
   });
 });
 
+const MAX_ENERGY = 100;
+
+const ADS_RULES = {
+  free: {
+    reward: 20,
+    cooldown: 30 * 60 * 1000, // 30 min
+    dailyLimit: 5
+  },
+  pro1: {
+    reward: 40,
+    cooldown: 10 * 60 * 1000,
+    dailyLimit: 15
+  },
+  pro2: {
+    reward: 60,
+    cooldown: 5 * 60 * 1000,
+    dailyLimit: Infinity
+  },
+  pro3: {
+    reward: 100,
+    cooldown: 30 * 60 * 1000,
+    dailyLimit: Infinity
+  }
+};
+
 export default router;
