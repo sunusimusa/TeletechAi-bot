@@ -207,18 +207,26 @@ app.post("/api/buy-energy", async (req, res) => {
 
   const priceMap = { 100: 500, 500: 2000 };
   const cost = priceMap[amount];
-
   if (!cost) return res.json({ error: "INVALID_AMOUNT" });
+
   if (user.balance < cost)
     return res.json({ error: "NOT_ENOUGH_COINS" });
 
+  // 🔥 MAX ENERGY BY LEVEL
+  let maxEnergy = 100;
+  if (user.proLevel === 1) maxEnergy = 150;
+  if (user.proLevel === 2) maxEnergy = 200;
+  if (user.proLevel === 3) maxEnergy = 300;
+
   user.balance -= cost;
-  user.energy = Math.min(100, user.energy + amount);
+  user.energy = Math.min(maxEnergy, user.energy + amount);
+
   await user.save();
 
   res.json({
     balance: user.balance,
-    energy: user.energy
+    energy: user.energy,
+    maxEnergy
   });
 });
 
