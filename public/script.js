@@ -178,6 +178,14 @@ function resetAllBoxes() {
   openedCount = 0;
 }
 
+function resetBoxes() {
+  document.querySelectorAll(".box").forEach(box => {
+    box.classList.remove("opened", "rare");
+    box.innerText = "";
+  });
+  openedCount = 0;
+}
+
 // ================== DAILY BONUS ==================
 async function claimDaily() {
   const res = await fetch("/api/daily", {
