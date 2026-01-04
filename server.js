@@ -329,23 +329,6 @@ app.post("/api/ads/reward", async (req, res) => {
 
 app.post("/api/ads/claim", async (req, res) => {
   const { telegramId } = req.body;
-  const user = await User.findOne({ telegramId });
-
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  const ENERGY_REWARD = 30;
-
-  user.energy = Math.min(100, user.energy + ENERGY_REWARD);
-  await user.save();
-
-  res.json({
-    success: true,
-    energy: user.energy
-  });
-});
-
-app.post("/api/ads/claim", async (req, res) => {
-  const { telegramId } = req.body;
   if (!telegramId)
     return res.json({ error: "NO_TELEGRAM_ID" });
 
