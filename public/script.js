@@ -229,6 +229,10 @@ function openRoadmap() {
   window.location.href = "/roadmap.html";
 }
 
+function openWallet() {
+  window.location.href = "/wallet.html";
+}
+
 // ================== MARKET ==================
 async function buyToken(amount = 1) {
   const res = await fetch("/api/market/buy", {
