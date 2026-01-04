@@ -198,6 +198,10 @@ async function convertPoints() {
   updateUI();
 }
 
+function openRoadmap() {
+  window.location.href = "/roadmap.html";
+}
+
 // ================== MARKET ==================
 async function buyToken(amount = 1) {
   const res = await fetch("/api/market/buy", {
