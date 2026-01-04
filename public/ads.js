@@ -48,9 +48,45 @@ document.addEventListener("DOMContentLoaded", () => {
       const data = await res.json();
 
       if (data.error) {
-        alert(data.error.replaceAll("_", " "));
-        btn.innerText = "❌ Try later";
-        return;
+
+  // ⏱️ COOLDOWN
+  if (data.error === "COOLDOWN_ACTIVE") {
+    let wait = data.waitSeconds || 0;
+    btn.disabled = true;
+
+    const cooldownTimer = setInterval(() => {
+      btn.innerText = `⏳ Wait (${wait}s)`;
+      wait--;
+
+      if (wait <= 0) {
+        clearInterval(cooldownTimer);
+        btn.disabled = false;
+        btn.classList.add("ready");
+        btn.innerText = "⚡ Claim Free Energy";
+      }
+    }, 1000);
+
+    return;
+  }
+
+  // 📆 DAILY LIMIT
+  if (data.error === "DAILY_LIMIT_REACHED") {
+    btn.innerText = "🚫 Daily limit reached";
+    btn.disabled = true;
+    return;
+  }
+
+  // 🔋 ENERGY FULL
+  if (data.error === "ENERGY_FULL") {
+    btn.innerText = "🔋 Energy already full";
+    btn.disabled = true;
+    return;
+  }
+
+  // ❌ FALLBACK
+  btn.innerText = "❌ Try later";
+  btn.disabled = true;
+  return;
       }
 
       alert(`🎉 +${data.rewardEnergy} Energy`);
