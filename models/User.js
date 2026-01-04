@@ -32,6 +32,8 @@ dailyTransferAmount: { type: Number, default: 0 },
 lastTransferDay: { type: String },
 
 lastTransferAt: { type: Number, default: 0 },
+  walletAddress: { type: String, unique: true },
+  
   
   // ===== DAILY =====
   dailyStreak: { type: Number, default: 0 },
