@@ -107,56 +107,74 @@ function playSound(type) {
 }
 
 // ================== OPEN BOX ==================
+let openingLocked = false;
+let openedCount = 0;
+
 async function openBox(box) {
-  if (box.classList.contains("opened")) return;
   if (openingLocked) return;
+  if (box.classList.contains("opened")) return;
 
   openingLocked = true;
-
   playSound("click");
 
-  const res = await fetch("/api/open", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  });
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: TELEGRAM_ID })
+    });
 
-  const data = await res.json();
+    const data = await res.json();
+    if (data.error) throw data.error;
 
-  if (data.error) {
+    // 🔓 Buɗe box
+    box.classList.add("opened");
+
+    if (data.reward === 0) {
+      box.innerText = "😢";
+      playSound("lose");
+    } else {
+      box.innerText = `💰 ${data.reward}`;
+      playSound("win");
+    }
+
+    // update state
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+    updateUI();
+
+    openedCount++;
+
+    // ⏱️ rufe wannan box bayan 1.5s
+    setTimeout(() => {
+      box.classList.remove("opened");
+      box.innerText = "";
+    }, 1500);
+
+    // ⏱️ sake bada damar buɗe wani box
+    setTimeout(() => {
+      openingLocked = false;
+    }, 300);
+
+    // 🔄 idan an buɗe 6 → reset duka
+    if (openedCount >= 6) {
+      setTimeout(resetAllBoxes, 1800);
+    }
+
+  } catch (err) {
     playSound("error");
-    document.getElementById("msg").innerText = data.error;
+    document.getElementById("msg").innerText = err;
     openingLocked = false;
-    return;
   }
+}
 
-  box.classList.add("opened");
-
-  if (data.reward === 0) {
-    box.innerText = "😢";
-    playSound("lose");
-  } else {
-    box.innerText = `💰 ${data.reward}`;
-    playSound("win");
-  }
-
-  balance = data.balance;
-  energy = data.energy;
-  freeTries = data.freeTries;
-
-  updateUI();
-
-  openedCount++;
-
-  // bayan 300ms sai a sake bude wani
-  setTimeout(() => {
-    openingLocked = false;
-  }, 300);
-
-  // idan an buɗe duka 6 → reset
-  if (openedCount >= 6) {
-    setTimeout(resetBoxes, 2000);
-  }
+function resetAllBoxes() {
+  document.querySelectorAll(".box").forEach(box => {
+    box.classList.remove("opened");
+    box.innerText = "";
+  });
+  openedCount = 0;
 }
 
 // ================== DAILY BONUS ==================
