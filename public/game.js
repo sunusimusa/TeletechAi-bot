@@ -97,6 +97,20 @@ function resetBoxes() {
   openedCount = 0;
 }
 
+function upgradePro(level) {
+  fetch("/api/pro/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: TELEGRAM_ID, level })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) return alert(d.error);
+    alert("✅ PRO Level " + d.proLevel + " unlocked!");
+    loadUser();
+  });
+}
+
 // ===== CONVERT POINTS → TOKEN (SERVER) =====
 async function convertToToken() {
   const res = await fetch("/api/convert", {
