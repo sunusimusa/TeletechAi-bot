@@ -274,12 +274,9 @@ app.post("/api/task/channel", async (req, res) => {
 });
 
 app.post("/api/pro/upgrade", async (req, res) => {
-  const { telegramId, level } = req.body; // level = 1 | 2 | 3
+  const { telegramId, level } = req.body;
   const user = await User.findOne({ telegramId });
-
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
-  if (level <= user.proLevel)
-    return res.json({ error: "ALREADY_THIS_LEVEL" });
 
   const prices = {
     1: 5,
@@ -287,15 +284,15 @@ app.post("/api/pro/upgrade", async (req, res) => {
     3: 20
   };
 
-  const price = prices[level];
-  if (!price) return res.json({ error: "INVALID_LEVEL" });
+  if (!prices[level]) return res.json({ error: "INVALID_LEVEL" });
+  if (user.proLevel >= level)
+    return res.json({ error: "ALREADY_THIS_LEVEL" });
 
-  if (user.tokens < price)
+  if (user.tokens < prices[level])
     return res.json({ error: "NOT_ENOUGH_TOKENS" });
 
-  user.tokens -= price;
+  user.tokens -= prices[level];
   user.proLevel = level;
-  user.proSince = Date.now();
 
   await user.save();
 
