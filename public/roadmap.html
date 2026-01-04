@@ -30,7 +30,7 @@ async function loadRoadmap() {
   data.forEach((phase, index) => {
     const card = document.createElement("div");
     card.className = `roadmap-card ${phase.status} bounce`;
-    card.style.animationDelay = `${index * 1.45}s`;
+    card.style.animationDelay = `${index * 0.15}s`;
 
     card.innerHTML = `
       <h3>${phase.phase} – ${phase.title}</h3>
