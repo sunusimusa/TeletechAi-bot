@@ -113,6 +113,9 @@ function playSound(type) {
 // ================== OPEN BOX ==================
 async function openBox(box) {
   if (box.classList.contains("opened")) return;
+  if (openingLocked) return;
+
+  openingLocked = true;
 
   playSound("click");
 
@@ -127,6 +130,7 @@ async function openBox(box) {
   if (data.error) {
     playSound("error");
     document.getElementById("msg").innerText = data.error;
+    openingLocked = false;
     return;
   }
 
@@ -146,10 +150,14 @@ async function openBox(box) {
 
   updateUI();
 
-  setTimeout(() => {
-    box.classList.remove("opened");
-    box.innerText = "";
-  }, 3000);
+  openedCount++;
+
+  // ⏱️ idan an buɗe boxes 6 → reset
+  if (openedCount >= 6) {
+    setTimeout(resetBoxes, 2000);
+  }
+
+  openingLocked = false;
 }
 
 // ================== DAILY BONUS ==================
