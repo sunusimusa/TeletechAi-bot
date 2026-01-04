@@ -154,21 +154,15 @@ async function openBox(box) {
 
   openedCount++;
 
-  // ⏱️ idan an buɗe boxes 6 → reset
+  // bayan 300ms sai a sake bude wani
+  setTimeout(() => {
+    openingLocked = false;
+  }, 300);
+
+  // idan an buɗe duka 6 → reset
   if (openedCount >= 6) {
     setTimeout(resetBoxes, 2000);
   }
-
-  openingLocked = false;
-}
-
-function resetBoxes() {
-  document.querySelectorAll(".box").forEach(box => {
-    box.classList.remove("opened");
-    box.innerText = "";
-  });
-
-  openedCount = 0;
 }
 
 // ================== DAILY BONUS ==================
