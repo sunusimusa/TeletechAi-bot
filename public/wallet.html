@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>My Wallet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="wallet-page">
+
+<h2>👛 My Wallet</h2>
+
+<div class="wallet-box">
+  <p>Your wallet address</p>
+  <div class="wallet-address" id="walletAddr">—</div>
+
+  <button onclick="copyWallet()">📋 Copy</button>
+
+  <div class="qr-box">
+    <img id="qrImg" />
+  </div>
+</div>
+
+<button class="back-btn" onclick="goBack()">⬅️ Back</button>
+
+<script src="wallet.js"></script>
+</body>
+</html>
