@@ -66,6 +66,9 @@ h2, h3 {
   100% { transform: scale(1); }
 }
 
+.box.opened {
+  pointer-events: none;
+}
 /* ================= STATS ================= */
 p {
   margin: 6px 0;
