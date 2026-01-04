@@ -107,9 +107,6 @@ function playSound(type) {
 }
 
 // ================== OPEN BOX ==================
-let openingLocked = false;
-let openedCount = 0;
-
 async function openBox(box) {
   if (openingLocked) return;
   if (box.classList.contains("opened")) return;
