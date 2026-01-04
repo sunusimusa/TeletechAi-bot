@@ -42,6 +42,20 @@ async function loadUser() {
     referralCode = data.referralCode ?? "";
     referralsCount = data.referralsCount ?? 0;
 
+    // ✅ PRO STATUS (a nan kawai!)
+    if (data.isPro) {
+      document.getElementById("proBadge")?.classList.remove("hidden");
+      document.getElementById("upgradeBtn")?.style.setProperty("display", "none");
+    }
+
+    if (data.proLevel >= 2) {
+      document.getElementById("proLv2Btn")?.style.setProperty("display", "none");
+    }
+
+    if (data.proLevel >= 3) {
+      document.getElementById("proLv3Btn")?.style.setProperty("display", "none");
+    }
+
     if (referralCode) {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
@@ -54,31 +68,11 @@ async function loadUser() {
   }
 }
 
-const proBadge = document.getElementById("proBadge");
-const upgradeBtn = document.getElementById("upgradeBtn");
-
-if (data.isPro) {
-  proBadge.classList.remove("hidden");
-  upgradeBtn.style.display = "none";
-}
-
-if (data.proLevel >= 2) {
-  document.getElementById("proLv2Btn").style.display = "none";
-}
-if (data.proLevel >= 3) {
-  document.getElementById("proLv3Btn").style.display = "none";
-}
-
-function openRoadmap() {
-  window.location.href = "/roadmap.html";
-}
-
 // ================== UI UPDATE ==================
 function updateUI() {
   document.getElementById("balance").innerText = `Balance: ${balance}`;
-  document.getElementById("energy").innerText = `Energy: ${energy}`;
   document.getElementById("energy").innerText =
-  `Energy: ${energy} / ${maxEnergy}`;
+    `Energy: ${energy} / ${MAX_ENERGY}`;
   document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
   document.getElementById("refCount").innerText =
     `👥 Referrals: ${referralsCount}`;
@@ -316,30 +310,6 @@ function joinChannel() {
     }
   }, 4000);
     }
-
-async function upgradePro() {
-  if (!confirm("Upgrade to PRO for 5 TOKEN?")) return;
-
-  const res = await fetch("/api/pro/upgrade", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  });
-
-  const data = await res.json();
-
-  if (data.error) {
-    alert(data.error);
-    return;
-  }
-
-  tokens = data.tokens;
-  document.getElementById("proBadge").classList.remove("hidden");
-  document.getElementById("upgradeBtn").style.display = "none";
-
-  updateUI();
-  alert("🎉 You are now PRO!");
-}
 
 async function upgradePro(level) {
   const res = await fetch("/api/pro/upgrade", {
