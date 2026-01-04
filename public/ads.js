@@ -1,47 +1,56 @@
-const TELEGRAM_ID =
-  window.Telegram?.WebApp?.initDataUnsafe?.user?.id;
+const tg = window.Telegram?.WebApp;
+tg?.expand();
 
-let timeLeft = 30;
+let seconds = 30;
 const btn = document.getElementById("claimBtn");
+const timerText = document.getElementById("timer");
 
-// ⏳ COUNTDOWN
+btn.disabled = true;
+btn.innerText = `⏳ Please wait (${seconds}s)`;
+
 const timer = setInterval(() => {
-  timeLeft--;
-  btn.innerText = `⏳ Please wait (${timeLeft}s)`;
+  seconds--;
+  timerText.innerText = `⏳ ${seconds} seconds remaining`;
+  btn.innerText = `⏳ Please wait (${seconds}s)`;
 
-  if (timeLeft <= 0) {
+  if (seconds <= 0) {
     clearInterval(timer);
     btn.disabled = false;
-    btn.innerText = "⚡ Claim Free Energy";
     btn.classList.add("ready");
+    btn.innerText = "⚡ Claim Free Energy";
   }
 }, 1000);
 
-// ⚡ CLAIM ENERGY
-btn.addEventListener("click", async () => {
+btn.onclick = async () => {
   btn.disabled = true;
   btn.innerText = "⏳ Claiming...";
+
+  const telegramId =
+    tg?.initDataUnsafe?.user?.id;
+
+  if (!telegramId) {
+    alert("Telegram not detected");
+    return;
+  }
 
   const res = await fetch("/api/ads/claim", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
+    body: JSON.stringify({ telegramId })
   });
 
   const data = await res.json();
 
   if (data.error) {
-    alert(data.error);
-    btn.innerText = "❌ Failed";
+    alert(data.error.replaceAll("_", " "));
+    btn.innerText = "❌ Try later";
     return;
   }
 
-  btn.innerText = "✅ Energy Added!";
-  setTimeout(() => {
-    window.location.href = "/";
-  }, 1200);
-});
+  alert(`🎉 +${data.rewardEnergy} Energy`);
+  window.location.href = "/index.html";
+};
 
 function goBack() {
-  window.location.href = "/";
+  window.location.href = "/index.html";
 }
