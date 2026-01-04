@@ -1,1 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Watch Ad</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
 
+<body class="ads-page">
+
+  <h2>⚡ Free Energy</h2>
+  <p class="ads-sub">Watch this ad to get free energy</p>
+
+  <!-- FAKE AD (MVP) -->
+  <div class="ad-box">
+    <p>📢 Sponsored Ad</p>
+    <div class="fake-ad">
+      <span>YOUR AD HERE</span>
+    </div>
+  </div>
+
+  <p id="timer">⏳ 30 seconds remaining</p>
+
+  <button id="claimBtn" disabled onclick="claimEnergy()">
+    ⛔ Please wait...
+  </button>
+
+  <button class="back-btn" onclick="goBack()">
+    ⬅️ Back to Game
+  </button>
+
+  <script src="ads.js"></script>
+</body>
+</html>
