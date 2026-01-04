@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Send Tokens</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="transfer-page">
+
+  <h2>🔁 Send Tokens</h2>
+  <p class="transfer-sub">Send tokens to another user</p>
+
+  <div class="transfer-box">
+    <input id="toId" placeholder="Receiver Telegram ID" />
+    <input id="amount" type="number" placeholder="Amount" min="1" />
+
+    <div class="gas-preview" id="gasPreview">
+      ⛽ Gas: —
+    </div>
+
+    <button onclick="sendToken()" class="send-btn">
+      🚀 Send
+    </button>
+
+    <p id="transferMsg"></p>
+  </div>
+
+  <button class="back-btn" onclick="goBack()">⬅️ Back</button>
+
+<script src="transfer.js"></script>
+</body>
+</html>
