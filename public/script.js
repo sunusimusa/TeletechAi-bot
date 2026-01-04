@@ -162,6 +162,15 @@ async function openBox(box) {
   openingLocked = false;
 }
 
+function resetBoxes() {
+  document.querySelectorAll(".box").forEach(box => {
+    box.classList.remove("opened");
+    box.innerText = "";
+  });
+
+  openedCount = 0;
+}
+
 // ================== DAILY BONUS ==================
 async function claimDaily() {
   const res = await fetch("/api/daily", {
