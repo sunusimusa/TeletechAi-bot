@@ -573,3 +573,31 @@ html {
   margin-top: 12px;
   font-weight: bold;
 }
+
+.wallet-page {
+  background: #020617;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.wallet-box {
+  background: #0f172a;
+  padding: 20px;
+  border-radius: 16px;
+  margin-top: 20px;
+}
+
+.wallet-address {
+  background: #020617;
+  padding: 12px;
+  border-radius: 10px;
+  margin: 10px 0;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.qr-box img {
+  margin-top: 15px;
+  border-radius: 12px;
+}
