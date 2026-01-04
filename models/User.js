@@ -17,6 +17,7 @@ const UserSchema = new mongoose.Schema({
   isPro: { type: Boolean, default: false },
 proSince: { type: Number, default: null },
   proLevel: { type: Number, default: 0 }, // 0=FREE, 1=PRO, 2=PRO+, 3=PRO MAX
+  proLevel: { type: Number, default: 0 }, // 0 = free
 proSince: { type: Number, default: 0 },
 
   // ===== DAILY =====
