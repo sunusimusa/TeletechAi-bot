@@ -518,3 +518,58 @@ html {
       0 0 50px rgba(250,204,21,0.8);
   }
 }
+
+/* ===== TRANSFER PAGE ===== */
+.transfer-page {
+  background: #020617;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.transfer-sub {
+  color: #94a3b8;
+  margin-bottom: 15px;
+}
+
+.transfer-box {
+  background: #0f172a;
+  border-radius: 16px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.transfer-box input {
+  width: 100%;
+  padding: 12px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: none;
+  background: #020617;
+  color: white;
+}
+
+.gas-preview {
+  margin: 10px 0;
+  padding: 10px;
+  background: #020617;
+  border-radius: 10px;
+  font-size: 14px;
+  color: #facc15;
+}
+
+.send-btn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  border: none;
+  font-weight: bold;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #000;
+  margin-top: 10px;
+}
+
+#transferMsg {
+  margin-top: 12px;
+  font-weight: bold;
+}
