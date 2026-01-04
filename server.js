@@ -342,38 +342,6 @@ app.post("/api/ads/claim", async (req, res) => {
   });
 });
 
-app.post("/api/market/buy", async (req, res) => {
-  const { telegramId, amount } = req.body;
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  const cost = amount * 10000;
-  if (user.balance < cost)
-    return res.json({ error: "NOT_ENOUGH_COINS" });
-
-  user.balance -= cost;
-  user.tokens += amount;
-  await user.save();
-
-  res.json({ balance: user.balance, tokens: user.tokens });
-});
-
-app.post("/api/market/sell", async (req, res) => {
-  const { telegramId, amount } = req.body;
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  if (user.tokens < amount)
-    return res.json({ error: "NOT_ENOUGH_TOKENS" });
-
-  const coins = amount * 10000;
-  user.tokens -= amount;
-  user.balance += coins;
-  await user.save();
-
-  res.json({ balance: user.balance, tokens: user.tokens });
-});
-
 /* ================= ROUTES ================= */
 app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
