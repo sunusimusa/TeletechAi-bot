@@ -298,6 +298,28 @@ app.post("/api/pro/upgrade", async (req, res) => {
   });
 });
 
+app.post("/api/ads/reward", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  // 🔒 BASIC LIMIT (MVP)
+  const now = Date.now();
+  const COOLDOWN = 30 * 60 * 1000; // 30 minutes
+
+  if (user.lastAd && now - user.lastAd < COOLDOWN) {
+    return res.json({ error: "Come back later" });
+  }
+
+  user.energy = Math.min(100, user.energy + 20);
+  user.lastAd = now;
+
+  await user.save();
+
+  res.json({ success: true, energy: user.energy });
+});
+
 /* ================= ROUTES ================= */
 app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
