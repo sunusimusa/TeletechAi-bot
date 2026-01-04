@@ -344,6 +344,76 @@ app.post("/api/ads/claim", async (req, res) => {
   });
 });
 
+app.post("/api/ads/claim", async (req, res) => {
+  const { telegramId } = req.body;
+  if (!telegramId)
+    return res.json({ error: "NO_TELEGRAM_ID" });
+
+  const user = await User.findOne({ telegramId });
+  if (!user)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  const now = Date.now();
+
+  // 🧠 Determine user tier
+  let tier = "free";
+  if (user.isPro && user.proLevel === 1) tier = "pro1";
+  if (user.isPro && user.proLevel === 2) tier = "pro2";
+  if (user.isPro && user.proLevel >= 3) tier = "pro3";
+
+  const rule = ADS_RULES[tier];
+
+  // ⛔ Energy full
+  if (user.energy >= MAX_ENERGY) {
+    return res.json({ error: "ENERGY_FULL" });
+  }
+
+  // ⏱️ Cooldown check
+  if (now - user.lastAdClaim < rule.cooldown) {
+    const wait = Math.ceil(
+      (rule.cooldown - (now - user.lastAdClaim)) / 1000
+    );
+    return res.json({
+      error: "COOLDOWN_ACTIVE",
+      waitSeconds: wait
+    });
+  }
+
+  // 📆 Daily limit reset (UTC day)
+  const today = new Date().toISOString().slice(0, 10);
+  if (user.lastAdDay !== today) {
+    user.adsWatchedToday = 0;
+    user.lastAdDay = today;
+  }
+
+  if (user.adsWatchedToday >= rule.dailyLimit) {
+    return res.json({ error: "DAILY_LIMIT_REACHED" });
+  }
+
+  // ✅ APPLY REWARD
+  const rewardEnergy =
+    tier === "pro3"
+      ? MAX_ENERGY
+      : Math.min(
+          rule.reward,
+          MAX_ENERGY - user.energy
+        );
+
+  user.energy += rewardEnergy;
+  user.lastAdClaim = now;
+  user.adsWatchedToday += 1;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    rewardEnergy,
+    energy: user.energy,
+    adsWatchedToday: user.adsWatchedToday,
+    tier
+  });
+});
+
 /* ================= ROUTES ================= */
 app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
