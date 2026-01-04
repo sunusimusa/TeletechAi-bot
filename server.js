@@ -87,6 +87,15 @@ app.post("/api/user", async (req, res) => {
       referredBy: ref || null
     });
 
+    if (!user) {
+  user = await User.create({
+    telegramId,
+    referralCode: generateCode(),
+    walletAddress: generateWallet(),
+    referredBy: ref || null
+  });
+    }
+
     if (ref) {
       const refUser = await User.findOne({ referralCode: ref });
       if (refUser) {
@@ -96,6 +105,11 @@ app.post("/api/user", async (req, res) => {
         await refUser.save();
       }
     }
+  }
+
+  function generateWallet() {
+  return "TTECH-" + Math.random().toString(36)
+    .substring(2, 8).toUpperCase();
   }
 
   if (!user.referralCode) {
