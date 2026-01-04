@@ -1,160 +1,50 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>TeleTech AI – Roadmap</title>
-  <meta name="viewport" emphasizes="width=device-width, initial-scale=1.0">
-
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <style>
-    body {
-      background: linear-gradient(180deg, #020617, #0f172a);
-      color: #ffffff;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-      margin: 0;
-      padding: 20px;
-    }
-
-    .container {
-      max-width: 600px;
-      margin: auto;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 10px;
-    }
-
-    .subtitle {
-      text-align: center;
-      color: #94a3b8;
-      margin-bottom: 30px;
-    }
-
-    .phase {
-      background: #020617;
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 16px;
-      border: 1px solid #1e293b;
-    }
-
-    .phase.completed {
-      border-color: #22c55e;
-      box-shadow: 0 0 10px rgba(34,197,94,0.3);
-    }
-
-    .phase.active {
-      border-color: #facc15;
-      box-shadow: 0 0 12px rgba(250,204,21,0.4);
-    }
-
-    .phase h3 {
-      margin: 0 0 8px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .phase p {
-      margin: 0;
-      color: #cbd5f5;
-      font-size: 14px;
-      line-height: 1.5;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 4px 10px;
-      font-size: 12px;
-      border-radius: 999px;
-      background: #1e293b;
-      color: #fff;
-      margin-top: 10px;
-    }
-
-    .completed .badge {
-      background: #22c55e;
-      color: #022c22;
-    }
-
-    .active .badge {
-      background: #facc15;
-      color: #422006;
-    }
-
-    .footer {
-      margin-top: 30px;
-      text-align: center;
-      font-size: 13px;
-      color: #94a3b8;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <title>Roadmap</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
-<body>
+<body class="roadmap-page">
 
-  <div class="container">
-    <h1>🚀 TeleTech AI Roadmap</h1>
-    <p class="subtitle">
-      Building step by step. Growing with the community.
-    </p>
+<h2 class="roadmap-title">🗺️ Project Roadmap</h2>
+<p class="roadmap-sub">Building step by step 🚀</p>
 
-    <!-- PHASE 1 -->
-    <div class="phase completed">
-      <h3>✅ Phase 1 – Core Game</h3>
-      <p>
-        Lucky Box system, Energy mechanics, Daily bonus, Referral system,
-        Token conversion and PRO Level 1.
-      </p>
-      <span class="badge">Completed</span>
-    </div>
+<div id="roadmapContainer"></div>
 
-    <!-- PHASE 2 -->
-    <div class="phase active">
-      <h3>⚡ Phase 2 – Growth & PRO</h3>
-      <p>
-        PRO Level 2 & 3, faster energy regeneration, higher rewards,
-        improved UI/animations and community tasks.
-      </p>
-      <span class="badge">In Progress</span>
-    </div>
+<button class="back-btn" onclick="goBack()">⬅️ Back</button>
 
-    <!-- PHASE 3 -->
-    <div class="phase">
-      <h3>📊 Phase 3 – Analytics & Leaderboard</h3>
-      <p>
-        Top players leaderboard, statistics dashboard,
-        and transparent token metrics.
-      </p>
-      <span class="badge">Planned</span>
-    </div>
+<script>
+function goBack() {
+  window.history.back();
+}
 
-    <!-- PHASE 4 -->
-    <div class="phase">
-      <h3>🪙 Phase 4 – Blockchain Integration</h3>
-      <p>
-        TON / Jetton withdrawals, on-chain verification,
-        and real token utility.
-      </p>
-      <span class="badge">Planned</span>
-    </div>
+async function loadRoadmap() {
+  const res = await fetch("/api/roadmap");
+  const data = await res.json();
 
-    <!-- PHASE 5 -->
-    <div class="phase">
-      <h3>📱 Phase 5 – Mobile Expansion</h3>
-      <p>
-        Android (Play Store) release, performance optimization,
-        and long-term ecosystem growth.
-      </p>
-      <span class="badge">Future</span>
-    </div>
+  const container = document.getElementById("roadmapContainer");
+  container.innerHTML = "";
 
-    <div class="footer">
-      © 2026 TeleTech AI • Powered by Community 🚀
-    </div>
-  </div>
+  data.forEach((phase, index) => {
+    const card = document.createElement("div");
+    card.className = `roadmap-card ${phase.status} bounce`;
+    card.style.animationDelay = `${index * 0.15}s`;
+
+    card.innerHTML = `
+      <h3>${phase.phase} – ${phase.title}</h3>
+      <ul>
+        ${phase.items.map(i => `<li>${i}</li>`).join("")}
+      </ul>
+    `;
+
+    container.appendChild(card);
+  });
+}
+
+loadRoadmap();
+</script>
 
 </body>
-  </html>
+</html>
