@@ -25,6 +25,14 @@ lastAdClaim: { type: Number, default: 0 },
 isPro: { type: Boolean, default: false },
 proLevel: { type: Number, default: 0 }, // 0,1,2,3
 
+sentTokens: { type: Number, default: 0 },
+receivedTokens: { type: Number, default: 0 },
+
+dailyTransferAmount: { type: Number, default: 0 },
+lastTransferDay: { type: String },
+
+lastTransferAt: { type: Number, default: 0 },
+  
   // ===== DAILY =====
   dailyStreak: { type: Number, default: 0 },
   lastDaily: { type: Number, default: 0 },
