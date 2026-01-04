@@ -493,3 +493,28 @@ html {
   font-weight: bold;
   color: #000;
 }
+
+/* ===== RARE REWARD GLOW ===== */
+.box.rare {
+  background: linear-gradient(135deg, #facc15, #f59e0b);
+  box-shadow:
+    0 0 15px rgba(250, 204, 21, 0.9),
+    0 0 30px rgba(250, 204, 21, 0.6),
+    0 0 50px rgba(250, 204, 21, 0.4);
+  animation: rareGlow 1.2s infinite alternate;
+}
+
+@keyframes rareGlow {
+  from {
+    transform: scale(1);
+    box-shadow:
+      0 0 10px rgba(250,204,21,0.6),
+      0 0 25px rgba(250,204,21,0.4);
+  }
+  to {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 25px rgba(250,204,21,1),
+      0 0 50px rgba(250,204,21,0.8);
+  }
+}
