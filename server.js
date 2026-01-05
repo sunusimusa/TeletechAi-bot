@@ -114,6 +114,10 @@ app.post("/api/user", async (req, res) => {
       telegramId,
       referralCode: generateCode(),
       walletAddress: generateWallet(),
+      if (!user.walletAddress) {
+  user.walletAddress = generateWallet();
+  await user.save();
+    }
       referredBy: ref || null
     });
 
