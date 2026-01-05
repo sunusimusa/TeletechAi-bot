@@ -40,4 +40,15 @@ function goBack() {
   window.history.back();
 }
 
+function calcDaysLeft(endDate) {
+  const now = new Date();
+  const end = new Date(endDate);
+  const diff = end - now;
+
+  if (diff <= 0) return "Season ended";
+
+  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  return `${days} day${days > 1 ? "s" : ""} left ⏳`;
+}
+
 loadLeaderboard();
