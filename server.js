@@ -30,8 +30,14 @@ app.use("/api/ads", adsRoutes);
 
 /* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
+  .then(async () => {
+    console.log("✅ MongoDB Connected");
 
+    await ensureSystemWallet(); // 👈 kira a nan
+  })
+  .catch(err => console.error("❌ Mongo Error:", err));
+
+/* ================= SYSTEM WALLET ================= */
 async function ensureSystemWallet() {
   const system = await User.findOne({ telegramId: "SYSTEM" });
 
@@ -51,10 +57,6 @@ async function ensureSystemWallet() {
     console.log("ℹ️ SYSTEM wallet already exists");
   }
 }
-
-ensureSystemWallet();
-  
-  .catch(err => console.error("❌ Mongo Error:", err));
 
 /* ================= UTILS ================= */
 function generateCode() {
