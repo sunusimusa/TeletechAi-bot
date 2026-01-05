@@ -31,7 +31,6 @@ app.use("/api/ads", adsRoutes);
 /* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ Mongo Error:", err));
 
 async function ensureSystemWallet() {
   const system = await User.findOne({ telegramId: "SYSTEM" });
@@ -54,6 +53,8 @@ async function ensureSystemWallet() {
 }
 
 ensureSystemWallet();
+  
+  .catch(err => console.error("❌ Mongo Error:", err));
 
 /* ================= UTILS ================= */
 function generateCode() {
