@@ -6,11 +6,13 @@ const router = express.Router();
 
 router.get("/leaderboard", async (req, res) => {
   try {
-    const top = await User.find()
-      .sort({ seasonReferrals: -1 })
-      .limit(10)
-      .select("telegramId seasonReferrals");
-
+    const top = await User.find({
+  telegramId: { $ne: "SYSTEM" },
+  seasonReferrals: { $gt: 0 }
+})
+.sort({ seasonReferrals: -1 })
+.limit(10)
+.select("telegramId seasonReferrals");
     res.json({
       season: REF_SEASON.name,
       start: REF_SEASON.start,
