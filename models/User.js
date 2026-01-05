@@ -35,6 +35,7 @@ lastTransferDay: { type: String },
 lastTransferAt: { type: Number, default: 0 },
   walletAddress: { type: String, unique: true },
   sentToday: { type: Number, default: 0 },
+  seasonReferrals: { type: Number, default: 0},
 
   walletAddress: { type: String, unique: true },
 
