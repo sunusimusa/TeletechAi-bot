@@ -371,17 +371,15 @@ async function upgradePro(level) {
   const data = await res.json();
 
   if (data.error) {
-    document.getElementById("proMsg").innerText =
-      "❌ " + data.error;
+    alert(data.error.replaceAll("_", " "));
     return;
   }
 
-  tokens = data.tokens;
+  alert(
+    `🚀 PRO Level ${level} Activated!\n🔥 Burned: ${data.burned}\n🏦 System: ${data.systemReceived}`
+  );
 
-  document.getElementById("proMsg").innerText =
-    `✅ PRO Level ${data.proLevel} activated!`;
-
-  updateUI();
+  loadUser();
 }
 
 function showWallet() {
