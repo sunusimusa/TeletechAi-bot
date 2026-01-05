@@ -9,4 +9,16 @@ const transactionSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
+const TransactionSchema = new mongoose.Schema({
+  fromWallet: String,
+  toWallet: String,
+  amount: Number,
+  gasFee: { type: Number, default: 0 },
+  type: {
+    type: String,
+    enum: ["SEND", "RECEIVE", "BURN", "PRO_UPGRADE"],
+  },
+  createdAt: { type: Date, default: Date.now }
+});
+
 export default mongoose.model("Transaction", transactionSchema);
