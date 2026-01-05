@@ -1,42 +1,22 @@
-import User from "../models/User.js";
-import Transaction from "../models/Transaction.js";
 import { REF_SEASON } from "../config/season.js";
+import { runReferralPayout } from "./refPayout.service.js";
 
 export async function checkReferralSeason() {
   const now = new Date();
 
-  if (now < REF_SEASON.end) return; // still active
+  // ❌ season bai kare ba
+  if (now < REF_SEASON.end) return;
 
-  console.log("⏳ Referral season ended. Processing rewards...");
+  // ❌ already paid
+  if (REF_SEASON.paid) return;
 
-  // 🏆 TOP 3
-  const top = await User.find()
-    .sort({ seasonReferrals: -1 })
-    .limit(3);
+  console.log("🏁 Referral season ended → paying rewards");
 
-  for (let i = 0; i < top.length; i++) {
-    const reward = REF_SEASON.rewards[i + 1];
-    if (!reward) continue;
+  // ✅ PAYOUT
+  await runReferralPayout();
 
-    top[i].tokens += reward;
-    await top[i].save();
+  // 🔒 lock season
+  REF_SEASON.paid = true;
 
-    await Transaction.create({
-      fromWallet: "SYSTEM",
-      toWallet: top[i].walletAddress,
-      amount: reward,
-      type: "REF_REWARD"
-    });
-  }
-
-  // 🔄 RESET SEASON REFERRALS
-  await User.updateMany(
-    {},
-    { $set: { seasonReferrals: 0 } }
-  );
-
-  console.log("✅ Season rewards paid & referrals reset");
-
-  // ⚠️ (OPTIONAL)
-  // update season dates here or via admin
+  console.log("✅ Referral payout completed");
 }
