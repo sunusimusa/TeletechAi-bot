@@ -383,3 +383,39 @@ async function upgradePro(level) {
 
   updateUI();
 }
+
+function showWallet() {
+  document.getElementById("myWallet").innerText =
+    `Wallet: ${userWallet}`;
+}
+
+async function sendToken() {
+  const toWallet = document.getElementById("toWallet").value.trim();
+  const amount = Number(
+    document.getElementById("sendAmount").value
+  );
+
+  const res = await fetch("/api/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      toWallet,
+      amount
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("sendMsg").innerText =
+      "❌ " + data.error.replaceAll("_", " ");
+    return;
+  }
+
+  tokens = data.balance;
+  updateUI();
+
+  document.getElementById("sendMsg").innerText =
+    `✅ Sent ${amount} TOKEN (Gas ${data.gas})`;
+}
