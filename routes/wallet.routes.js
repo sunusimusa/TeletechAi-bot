@@ -64,4 +64,31 @@ router.post("/send", async (req, res) => {
   });
 });
 
+import Transaction from "../models/Transaction.js";
+
+router.post("/history", async (req, res) => {
+  const { telegramId } = req.body;
+
+  if (!telegramId)
+    return res.json({ error: "NO_TELEGRAM_ID" });
+
+  const user = await User.findOne({ telegramId });
+  if (!user)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  const wallet = user.walletAddress;
+
+  const history = await Transaction.find({
+    $or: [
+      { from: wallet },
+      { to: wallet }
+    ]
+  }).sort({ createdAt: -1 }).limit(50);
+
+  res.json({
+    wallet,
+    history
+  });
+});
+
 export default router;
