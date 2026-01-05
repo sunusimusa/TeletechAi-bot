@@ -89,3 +89,52 @@ async function sendToken() {
 
   loadUser(); // refresh balance
 }
+
+async function loadHistory() {
+  const res = await fetch("/api/wallet/history", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    document.getElementById("txList").innerText =
+      data.error.replaceAll("_", " ");
+    return;
+  }
+
+  const list = document.getElementById("txList");
+  list.innerHTML = "";
+
+  if (data.history.length === 0) {
+    list.innerHTML = "<p>No transactions yet</p>";
+    return;
+  }
+
+  data.history.forEach(tx => {
+    const type =
+      tx.from === data.wallet ? "Sent" : "Received";
+
+    const row = document.createElement("div");
+    row.className = `tx-item ${type.toLowerCase()}`;
+
+    row.innerHTML = `
+      <div>
+        <b>${type}</b> ${tx.amount} TOKEN
+        <br/>
+        <small>Gas: ${tx.gasFee}</small>
+      </div>
+      <div class="tx-date">
+        ${new Date(tx.createdAt).toLocaleString()}
+      </div>
+    `;
+
+    list.appendChild(row);
+  });
+}
+
+loadHistory();
