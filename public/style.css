@@ -647,3 +647,73 @@ html {
   font-size: 12px;
   opacity: 0.7;
 }
+
+/* ===== MODAL ===== */
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  background: #020617;
+  padding: 20px;
+  border-radius: 16px;
+  width: 90%;
+  max-width: 360px;
+  text-align: left;
+  animation: fadeUp 0.3s ease;
+}
+
+.modal-card h3 {
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.modal-card p {
+  margin: 6px 0;
+  font-size: 14px;
+}
+
+.modal-card .total {
+  text-align: center;
+  font-size: 16px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.cancel-btn {
+  flex: 1;
+  background: #334155;
+  color: #fff;
+}
+
+.confirm-btn {
+  flex: 1;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #000;
+  font-weight: bold;
+}
+
+@keyframes fadeUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
