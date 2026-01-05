@@ -11,6 +11,7 @@
 
 <h2>👛 My Wallet</h2>
 
+<!-- WALLET INFO -->
 <div class="wallet-box">
   <p class="label">Wallet Address</p>
   <div class="wallet-address" id="walletAddr">—</div>
@@ -28,26 +29,28 @@
 
 <!-- ACTION BUTTONS -->
 <div class="wallet-actions">
-  <button class="send-btn" onclick="openSend()">
-    📤 Send
-  </button>
-
-  <button class="receive-btn" onclick="openReceive()">
-    📥 Receive
-  </button>
+  <button class="send-btn" onclick="openSend()">📤 Send</button>
+  <button class="receive-btn" onclick="openReceive()">📥 Receive</button>
 </div>
 
+<!-- SEND FORM (HIDDEN) -->
+<div id="sendBox" class="send-box hidden">
   <input id="toWallet" placeholder="Receiver Wallet" />
-<input id="amount" type="number" placeholder="Amount" />
-<button onclick="sendToken()">Send Token</button>
+  <input id="amount" type="number" placeholder="Amount" />
+  <button onclick="sendToken()">🚀 Send Token</button>
+</div>
 
-  <h2>📜 Transaction History</h2>
+<!-- RECEIVE INFO -->
+<div id="receiveBox" class="receive-box hidden">
+  <p>📥 Share this wallet address to receive tokens</p>
+</div>
+
+<!-- TRANSACTION HISTORY -->
+<h2>📜 Transaction History</h2>
 
 <div id="txList" class="tx-list">
   Loading...
 </div>
-
-<button class="back-btn" onclick="goBack()">⬅️ Back</button>
 
 <button class="back-btn" onclick="goBack()">⬅️ Back</button>
 
