@@ -327,26 +327,56 @@ app.post("/api/task/channel", async (req, res) => {
 
 app.post("/api/pro/upgrade", async (req, res) => {
   const { telegramId, level } = req.body;
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  const prices = {
+  if (!telegramId)
+    return res.json({ error: "NO_TELEGRAM_ID" });
+
+  const user = await User.findOne({ telegramId });
+  if (!user)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+  if (!system)
+    return res.json({ error: "SYSTEM_WALLET_MISSING" });
+
+  // ===== PRO PRICES =====
+  const PRICES = {
     1: 5,
     2: 10,
     3: 20
   };
 
-  if (!prices[level]) return res.json({ error: "INVALID_LEVEL" });
-  if (user.proLevel >= level)
-    return res.json({ error: "ALREADY_THIS_LEVEL" });
+  if (!PRICES[level])
+    return res.json({ error: "INVALID_LEVEL" });
 
-  if (user.tokens < prices[level])
+  if (user.proLevel >= level)
+    return res.json({ error: "ALREADY_UPGRADED" });
+
+  const price = PRICES[level];
+
+  if (user.tokens < price)
     return res.json({ error: "NOT_ENOUGH_TOKENS" });
 
-  user.tokens -= prices[level];
+  // ===== TRANSFER TOKENS =====
+  user.tokens -= price;
+  system.tokens += price;
+
+  user.isPro = true;
   user.proLevel = level;
+  user.proSince = Date.now();
 
   await user.save();
+  await system.save();
+
+  // ===== SAVE TRANSACTION =====
+  await Transaction.create({
+    fromWallet: user.walletAddress,
+    toWallet: system.walletAddress,
+    amount: price,
+    gasFee: 0,
+    type: "PRO_UPGRADE",
+    meta: `PRO_LEVEL_${level}`
+  });
 
   res.json({
     success: true,
