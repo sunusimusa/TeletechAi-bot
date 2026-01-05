@@ -56,3 +56,36 @@ async function sendToken() {
   alert(`✅ Sent ${data.sent} TOKEN\n⛽ Gas: ${data.gasFee}`);
   loadUser();
 }
+
+async function sendToken() {
+  const toWallet = document.getElementById("toWallet").value.trim();
+  const amount = Number(document.getElementById("amount").value);
+
+  if (!toWallet || amount <= 0) {
+    alert("Invalid data");
+    return;
+  }
+
+  const res = await fetch("/api/wallet/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      toWallet,
+      amount
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  alert(
+    `✅ Sent ${data.sent} TOKEN\n⛽ Gas Fee: ${data.gasFee}`
+  );
+
+  loadUser(); // refresh balance
+}
