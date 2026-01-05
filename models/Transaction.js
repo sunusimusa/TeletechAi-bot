@@ -23,7 +23,13 @@ const TransactionSchema = new mongoose.Schema({
 
   type: {
     type: String,
-    enum: ["SEND", "RECEIVE", "BURN", "PRO_UPGRADE"],
+    enum: [
+      "SEND",
+      "RECEIVE",
+      "BURN",
+      "PRO_UPGRADE",
+      "REF_REWARD"
+    ],
     required: true
   },
 
