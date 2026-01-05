@@ -1,7 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
 import Transaction from "../models/Transaction.js";
-import { burnFromSystem } from "../services/burn.service.js";
+import { burnToken } from "../services/burn.service.js";
 
 const router = express.Router();
 
