@@ -727,3 +727,57 @@ html {
   display: flex;
   justify-content: space-between;
 }
+
+/* ===== LEADERBOARD PAGE ===== */
+.leaderboard-page {
+  background: #020617;
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.lb-title {
+  font-size: 24px;
+  margin-bottom: 5px;
+}
+
+.lb-sub {
+  color: #94a3b8;
+  margin-bottom: 20px;
+}
+
+.lb-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.lb-item {
+  background: #0f172a;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  animation: fadeUp 0.4s ease;
+}
+
+.lb-rank {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.lb-user {
+  text-align: right;
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
