@@ -33,6 +33,28 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
   .catch(err => console.error("❌ Mongo Error:", err));
 
+async function ensureSystemWallet() {
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+
+  if (!system) {
+    await User.create({
+      telegramId: "SYSTEM",
+      walletAddress: "TTECH-SYSTEM",
+      tokens: 0,
+      balance: 0,
+      energy: 0,
+      isPro: true,
+      proLevel: 3
+    });
+
+    console.log("✅ SYSTEM wallet created");
+  } else {
+    console.log("ℹ️ SYSTEM wallet already exists");
+  }
+}
+
+ensureSystemWallet();
+
 /* ================= UTILS ================= */
 function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
