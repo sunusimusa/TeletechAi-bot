@@ -497,6 +497,66 @@ app.post("/api/token/transfer", async (req, res) => {
   });
 });
 
+app.post("/api/wallet/send", async (req, res) => {
+  const { telegramId, toWallet, amount } = req.body;
+
+  if (!telegramId || !toWallet || amount <= 0)
+    return res.json({ error: "INVALID_DATA" });
+
+  const sender = await User.findOne({ telegramId });
+  const receiver = await User.findOne({ walletAddress: toWallet });
+
+  if (!sender) return res.json({ error: "SENDER_NOT_FOUND" });
+  if (!receiver) return res.json({ error: "RECEIVER_NOT_FOUND" });
+  if (sender.walletAddress === toWallet)
+    return res.json({ error: "CANNOT_SEND_TO_SELF" });
+
+  if (sender.tokens < amount)
+    return res.json({ error: "INSUFFICIENT_TOKENS" });
+
+  // 📆 daily reset
+  const today = new Date().toISOString().slice(0, 10);
+  if (sender.lastSentDay !== today) {
+    sender.sentToday = 0;
+    sender.lastSentDay = today;
+  }
+
+  // 🧠 determine gas
+  let gasPercent = 0.05; // FREE
+  if (sender.isPro && sender.proLevel === 1) gasPercent = 0.03;
+  if (sender.isPro && sender.proLevel === 2) gasPercent = 0.02;
+  if (sender.isPro && sender.proLevel >= 3) gasPercent = 0.01;
+
+  if (!sender.isPro && sender.sentToday >= 5)
+    return res.json({ error: "DAILY_LIMIT_REACHED" });
+
+  const gasFee = Math.ceil(amount * gasPercent);
+  const totalCost = amount + gasFee;
+
+  if (sender.tokens < totalCost)
+    return res.json({ error: "INSUFFICIENT_FOR_GAS" });
+
+  // 🔄 transfer
+  sender.tokens -= totalCost;
+  receiver.tokens += amount;
+  sender.sentToday += 1;
+
+  // 🏦 system wallet (ADMIN)
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+  if (system) system.tokens += gasFee;
+
+  await sender.save();
+  await receiver.save();
+  if (system) await system.save();
+
+  res.json({
+    success: true,
+    sent: amount,
+    gasFee,
+    balance: sender.tokens
+  });
+});
+
 /* ================= ROUTES ================= */
 app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
