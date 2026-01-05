@@ -12,7 +12,6 @@ import roadmapRoutes from "./routes/roadmap.routes.js";
 import adsRoutes from "./routes/ads.routes.js";
 import sendRoutes from "./routes/send.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
-import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
 
 
@@ -32,7 +31,6 @@ app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/ads", adsRoutes);
 app.use("/api/send", sendRoutes);
-app.use("/api/wallet", walletRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/pro", proRoutes);
 
