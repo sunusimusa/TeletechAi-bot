@@ -15,4 +15,8 @@ async function loadSupply() {
     data.circulating.toLocaleString();
 }
 
+function goBack() {
+  window.history.back();
+}
+
 loadSupply();
