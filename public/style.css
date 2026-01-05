@@ -619,3 +619,31 @@ html {
   background: linear-gradient(135deg, #22c55e, #16a34a);
   color: white;
 }
+
+.tx-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tx-item {
+  padding: 12px;
+  border-radius: 12px;
+  background: #1c2431;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.tx-item.sent {
+  border-left: 4px solid #ff4d4d;
+}
+
+.tx-item.received {
+  border-left: 4px solid #2ecc71;
+}
+
+.tx-date {
+  font-size: 12px;
+  opacity: 0.7;
+}
