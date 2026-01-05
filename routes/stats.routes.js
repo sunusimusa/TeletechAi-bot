@@ -29,4 +29,14 @@ router.get("/supply", async (req, res) => {
   });
 });
 
+router.get("/burns", async (req, res) => {
+  const burns = await Transaction.find({ type: "BURN" })
+    .sort({ createdAt: -1 })
+    .limit(50);
+
+  res.json({
+    burns
+  });
+});
+
 export default router;
