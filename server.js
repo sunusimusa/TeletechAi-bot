@@ -135,6 +135,14 @@ app.post("/api/user", async (req, res) => {
     }
   }
 
+  if (refUser) {
+  refUser.balance += 500;
+  refUser.energy = Math.min(100, refUser.energy + 20);
+  refUser.referralsCount += 1;
+  refUser.seasonReferrals += 1; // ⭐ SEASON COUNT
+  await refUser.save();
+  }
+
   // 🛠️ SAFETY: tsohon user babu wallet
   if (!user.walletAddress) {
     user.walletAddress = generateWallet();
