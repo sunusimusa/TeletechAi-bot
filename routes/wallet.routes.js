@@ -1,5 +1,7 @@
 import express from "express";
 import User from "../models/User.js";
+import Transaction from "../models/Transaction.js";
+import { burnToken } from "../services/burn.service.js";
 
 const router = express.Router();
 
@@ -87,6 +89,53 @@ router.post("/history", async (req, res) => {
   res.json({
     wallet,
     history
+  });
+});
+
+const router = express.Router();
+
+router.post("/send", async (req, res) => {
+  const { telegramId, toWallet, amount } = req.body;
+
+  const sender = await User.findOne({ telegramId });
+  const receiver = await User.findOne({ walletAddress: toWallet });
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+
+  if (!sender || !receiver || !system)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  const gasFee = sender.isPro ? 1 : 2;
+  const total = amount + gasFee;
+
+  if (sender.tokens < total)
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  const burnGas = Math.floor(gasFee / 2);
+  const systemGas = gasFee - burnGas;
+
+  sender.tokens -= total;
+  receiver.tokens += amount;
+  system.tokens += systemGas;
+
+  await sender.save();
+  await receiver.save();
+  await system.save();
+
+  await burnToken(burnGas, "SEND_GAS");
+
+  await Transaction.create({
+    fromWallet: sender.walletAddress,
+    toWallet: receiver.walletAddress,
+    amount,
+    gasFee,
+    type: "SEND"
+  });
+
+  res.json({
+    success: true,
+    sent: amount,
+    gasFee,
+    burned: burnGas
   });
 });
 
