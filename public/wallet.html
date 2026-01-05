@@ -7,6 +7,34 @@
   <link rel="stylesheet" href="style.css">
 </head>
 
+  <!-- ===== CONFIRM SEND MODAL ===== -->
+<div id="confirmModal" class="modal hidden">
+  <div class="modal-card">
+    <h3>🔐 Confirm Transaction</h3>
+
+    <p><b>From:</b> <span id="cmFrom"></span></p>
+    <p><b>To:</b> <span id="cmTo"></span></p>
+    <p><b>Amount:</b> <span id="cmAmount"></span> TOKEN</p>
+    <p><b>Gas Fee:</b> <span id="cmGas"></span> TOKEN</p>
+
+    <hr />
+
+    <p class="total">
+      Total Deduct:
+      <b><span id="cmTotal"></span> TOKEN</b>
+    </p>
+
+    <div class="modal-actions">
+      <button class="cancel-btn" onclick="closeConfirm()">
+        ❌ Cancel
+      </button>
+      <button class="confirm-btn" onclick="confirmSend()">
+        ✅ Confirm
+      </button>
+    </div>
+  </div>
+</div>
+
 <body class="wallet-page">
 
 <h2>👛 My Wallet</h2>
