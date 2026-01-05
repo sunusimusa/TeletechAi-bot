@@ -13,6 +13,7 @@ import adsRoutes from "./routes/ads.routes.js";
 import sendRoutes from "./routes/send.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
+import statsRoutes from "./routes/stats.routes.js";
 
 
 dotenv.config();
@@ -33,6 +34,7 @@ app.use("/api/ads", adsRoutes);
 app.use("/api/send", sendRoutes);
 app.use("/api/wallet", walletRoutes);
 app.use("/api/pro", proRoutes);
+app.use("/api/stats", statsRoutes);
 
 /* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGODB_URI)
