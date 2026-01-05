@@ -113,11 +113,7 @@ app.post("/api/user", async (req, res) => {
     user = await User.create({
       telegramId,
       referralCode: generateCode(),
-      walletAddress: generateWallet(),
-      if (!user.walletAddress) {
-  user.walletAddress = generateWallet();
-  await user.save();
-    }
+      walletAddress: generateWallet(), // ✅ nan
       referredBy: ref || null
     });
 
@@ -133,7 +129,7 @@ app.post("/api/user", async (req, res) => {
     }
   }
 
-  // 🛠️ Safety: idan tsohon user babu wallet
+  // 🛠️ SAFETY: tsohon user babu wallet
   if (!user.walletAddress) {
     user.walletAddress = generateWallet();
     await user.save();
@@ -141,13 +137,13 @@ app.post("/api/user", async (req, res) => {
 
   res.json({
     telegramId: user.telegramId,
+    walletAddress: user.walletAddress, // 👈 muhimmanci
     balance: user.balance,
     energy: user.energy,
     freeTries: user.freeTries,
     tokens: user.tokens,
     referralCode: user.referralCode,
-    referralsCount: user.referralsCount,
-    walletAddress: user.walletAddress
+    referralsCount: user.referralsCount
   });
 });
 
