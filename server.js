@@ -127,21 +127,16 @@ app.post("/api/user", async (req, res) => {
 
     // 🎁 REFERRAL REWARD (ONLY ONCE)
     if (ref) {
-      const refUser = await User.findOne({
-        referralCode: ref
-      });
+  const refUser = await User.findOne({ referralCode: ref });
+  if (refUser) {
+    refUser.balance += 500;
+    refUser.energy = Math.min(100, refUser.energy + 20);
+    refUser.referralsCount += 1;
 
-      if (refUser) {
-        refUser.balance += 500;
-        refUser.energy = Math.min(100, refUser.energy + 20);
-        refUser.referralsCount += 1;
+    refUser.seasonReferrals += 1; // ⭐ WANNAN NE MUHIMMI
 
-        // ⭐ season referrals
-        refUser.seasonReferrals =
-          (refUser.seasonReferrals || 0) + 1;
-
-        await refUser.save();
-      }
+    await refUser.save();
+  }
     }
   }
 
