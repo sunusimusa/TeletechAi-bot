@@ -27,12 +27,14 @@ proLevel: { type: Number, default: 0 }, // 0,1,2,3
 
 sentTokens: { type: Number, default: 0 },
 receivedTokens: { type: Number, default: 0 },
+  tokens: { type: Number, default: 0 },
 
 dailyTransferAmount: { type: Number, default: 0 },
 lastTransferDay: { type: String },
 
 lastTransferAt: { type: Number, default: 0 },
   walletAddress: { type: String, unique: true },
+  sentToday: { type: Number, default: 0 },
   
   
   // ===== DAILY =====
