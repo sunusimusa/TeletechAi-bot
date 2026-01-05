@@ -1,6 +1,9 @@
 const tg = Telegram.WebApp;
+tg.expand();
+
 const TELEGRAM_ID = tg.initDataUnsafe.user.id;
 
+// ================= WALLET =================
 async function loadWallet() {
   const res = await fetch("/api/user", {
     method: "POST",
@@ -10,59 +13,52 @@ async function loadWallet() {
 
   const data = await res.json();
 
+  if (data.error) {
+    alert(data.error);
+    return;
+  }
+
   const addr = data.walletAddress;
   document.getElementById("walletAddr").innerText = addr;
+  document.getElementById("walletTokens").innerText =
+    data.tokens ?? 0;
 
-  // QR code (free API)
   document.getElementById("qrImg").src =
     `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${addr}`;
 }
 
+// ================= COPY =================
 function copyWallet() {
-  const text = document.getElementById("walletAddr").innerText;
+  const text =
+    document.getElementById("walletAddr").innerText;
   navigator.clipboard.writeText(text);
   alert("✅ Wallet copied");
 }
 
-function goBack() {
-  window.history.back();
+// ================= SEND / RECEIVE UI =================
+function openSend() {
+  document.getElementById("sendBox")
+    ?.classList.remove("hidden");
+  document.getElementById("receiveBox")
+    ?.classList.add("hidden");
 }
 
-loadWallet();
-
-async function sendToken() {
-  const toWallet = document.getElementById("toWallet").value;
-  const amount = Number(document.getElementById("amount").value);
-
-  if (!toWallet || amount <= 0)
-    return alert("Invalid data");
-
-  const res = await fetch("/api/wallet/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: TELEGRAM_ID,
-      toWallet,
-      amount
-    })
-  });
-
-  const data = await res.json();
-
-  if (data.error) {
-    return alert(data.error.replaceAll("_", " "));
-  }
-
-  alert(`✅ Sent ${data.sent} TOKEN\n⛽ Gas: ${data.gasFee}`);
-  loadUser();
+function openReceive() {
+  document.getElementById("receiveBox")
+    ?.classList.remove("hidden");
+  document.getElementById("sendBox")
+    ?.classList.add("hidden");
 }
 
+// ================= SEND TOKEN =================
 async function sendToken() {
-  const toWallet = document.getElementById("toWallet").value.trim();
-  const amount = Number(document.getElementById("amount").value);
+  const toWallet =
+    document.getElementById("toWallet").value.trim();
+  const amount =
+    Number(document.getElementById("amount").value);
 
   if (!toWallet || amount <= 0) {
-    alert("Invalid data");
+    alert("❌ Invalid data");
     return;
   }
 
@@ -87,28 +83,28 @@ async function sendToken() {
     `✅ Sent ${data.sent} TOKEN\n⛽ Gas Fee: ${data.gasFee}`
   );
 
-  loadUser(); // refresh balance
+  loadWallet();
+  loadHistory();
 }
 
+// ================= TRANSACTION HISTORY =================
 async function loadHistory() {
   const res = await fetch("/api/wallet/history", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: TELEGRAM_ID
-    })
+    body: JSON.stringify({ telegramId: TELEGRAM_ID })
   });
 
   const data = await res.json();
 
+  const list = document.getElementById("txList");
+  list.innerHTML = "";
+
   if (data.error) {
-    document.getElementById("txList").innerText =
+    list.innerText =
       data.error.replaceAll("_", " ");
     return;
   }
-
-  const list = document.getElementById("txList");
-  list.innerHTML = "";
 
   if (data.history.length === 0) {
     list.innerHTML = "<p>No transactions yet</p>";
@@ -117,7 +113,9 @@ async function loadHistory() {
 
   data.history.forEach(tx => {
     const type =
-      tx.from === data.wallet ? "Sent" : "Received";
+      tx.fromWallet === data.wallet
+        ? "Sent"
+        : "Received";
 
     const row = document.createElement("div");
     row.className = `tx-item ${type.toLowerCase()}`;
@@ -137,4 +135,11 @@ async function loadHistory() {
   });
 }
 
+// ================= NAV =================
+function goBack() {
+  window.history.back();
+}
+
+// ================= INIT =================
+loadWallet();
 loadHistory();
