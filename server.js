@@ -10,6 +10,7 @@ import withdrawRoutes from "./routes/withdraw.routes.js";
 import marketRoutes from "./routes/market.routes.js";
 import roadmapRoutes from "./routes/roadmap.routes.js";
 import adsRoutes from "./routes/ads.routes.js";
+import sendRoutes from "./routes/send.routes.js";
 
 
 dotenv.config();
@@ -27,6 +28,7 @@ app.use("/api/roadmap", roadmapRoutes);
 app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
 app.use("/api/ads", adsRoutes);
+app.use("/api/send", sendRoutes);
 
 /* ================= DATABASE ================= */
 mongoose.connect(process.env.MONGODB_URI)
