@@ -620,6 +620,18 @@ app.post("/api/wallet/send", async (req, res) => {
   });
 });
 
+app.get("/api/ref/leaderboard", async (req, res) => {
+  const top = await User.find({ telegramId: { $ne: "SYSTEM" } })
+    .sort({ referralsCount: -1 })
+    .limit(20)
+    .select("telegramId referralsCount");
+
+  res.json({
+    season: REF_SEASON.name,
+    top
+  });
+});
+
 /* ================= ROUTES ================= */
 app.use("/api/market", marketRoutes);
 app.use("/api/withdraw", withdrawRoutes);
