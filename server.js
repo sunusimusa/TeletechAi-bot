@@ -76,26 +76,21 @@ const TRANSFER_RULES = {
 /* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
-  if (!telegramId) return res.json({ error: "NO_TELEGRAM_ID" });
+  if (!telegramId)
+    return res.json({ error: "NO_TELEGRAM_ID" });
 
   let user = await User.findOne({ telegramId });
 
+  // ===== CREATE USER =====
   if (!user) {
     user = await User.create({
       telegramId,
       referralCode: generateCode(),
+      walletAddress: generateWallet(),
       referredBy: ref || null
     });
 
-    if (!user) {
-  user = await User.create({
-    telegramId,
-    referralCode: generateCode(),
-    walletAddress: generateWallet(),
-    referredBy: ref || null
-  });
-    }
-
+    // 🎁 Referral reward
     if (ref) {
       const refUser = await User.findOne({ referralCode: ref });
       if (refUser) {
@@ -107,13 +102,9 @@ app.post("/api/user", async (req, res) => {
     }
   }
 
-  function generateWallet() {
-  return "TTECH-" + Math.random().toString(36)
-    .substring(2, 8).toUpperCase();
-  }
-
-  if (!user.referralCode) {
-    user.referralCode = generateCode();
+  // 🛠️ Safety: idan tsohon user babu wallet
+  if (!user.walletAddress) {
+    user.walletAddress = generateWallet();
     await user.save();
   }
 
@@ -124,9 +115,18 @@ app.post("/api/user", async (req, res) => {
     freeTries: user.freeTries,
     tokens: user.tokens,
     referralCode: user.referralCode,
-    referralsCount: user.referralsCount
+    referralsCount: user.referralsCount,
+    walletAddress: user.walletAddress
   });
 });
+
+// ===== HELPERS =====
+function generateWallet() {
+  return (
+    "TTECH-" +
+    Math.random().toString(36).substring(2, 8).toUpperCase()
+  );
+      }
 
 /* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
