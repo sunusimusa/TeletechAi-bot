@@ -5,3 +5,7 @@ function openStats() {
 function openBurns() {
   window.location.href = "/burn.html";
 }
+
+function openLeaderboard() {
+  window.location.href = "/leaderboard.html";
+}
