@@ -29,3 +29,30 @@ function goBack() {
 }
 
 loadWallet();
+
+async function sendToken() {
+  const toWallet = document.getElementById("toWallet").value;
+  const amount = Number(document.getElementById("amount").value);
+
+  if (!toWallet || amount <= 0)
+    return alert("Invalid data");
+
+  const res = await fetch("/api/wallet/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      toWallet,
+      amount
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    return alert(data.error.replaceAll("_", " "));
+  }
+
+  alert(`✅ Sent ${data.sent} TOKEN\n⛽ Gas: ${data.gasFee}`);
+  loadUser();
+}
