@@ -109,7 +109,6 @@ pro2:  { gas: 0.02, dailyLimit: Infinity, cooldown: 0 },
 pro3:  { gas: 0.00, dailyLimit: Infinity, cooldown: 0 }
 };
 
-/* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
 
@@ -144,6 +143,12 @@ app.post("/api/user", async (req, res) => {
     }
   }
 
+  // SAFETY (inside route only)
+  if (!user.walletAddress) {
+    user.walletAddress = generateWallet();
+    await user.save();
+  }
+
   res.json({
     telegramId: user.telegramId,
     walletAddress: user.walletAddress,
@@ -153,23 +158,6 @@ app.post("/api/user", async (req, res) => {
     referralCode: user.referralCode,
     referralsCount: user.referralsCount
   });
-});
-
-// ================= SAFETY =================
-if (!user.walletAddress) {
-user.walletAddress = generateWallet();
-await user.save();
-}
-
-res.json({
-telegramId: user.telegramId,
-walletAddress: user.walletAddress,
-balance: user.balance,
-energy: user.energy,
-tokens: user.tokens,
-referralCode: user.referralCode,
-referralsCount: user.referralsCount
-});
 });
 
 // ===== HELPERS =====
