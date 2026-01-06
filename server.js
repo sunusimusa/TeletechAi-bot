@@ -198,6 +198,126 @@ setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
+/* ================= TASK SYSTEM ================= */
+app.post("/api/task/youtube", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  if (user.joinedYoutube) return res.json({ error: "ALREADY_DONE" });
+
+  user.joinedYoutube = true;
+  user.tokens += 10;
+
+  await user.save();
+  res.json({ success: true, tokens: user.tokens });
+});
+
+app.post("/api/task/group", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  if (user.joinedGroup) return res.json({ error: "ALREADY_DONE" });
+
+  user.joinedGroup = true;
+  user.tokens += 5;
+
+  await user.save();
+  res.json({ success: true, tokens: user.tokens });
+});
+
+app.post("/api/task/channel", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  if (user.joinedChannel) return res.json({ error: "ALREADY_DONE" });
+
+  user.joinedChannel = true;
+  user.tokens += 5;
+
+  await user.save();
+  res.json({ success: true, tokens: user.tokens });
+});
+
+/* ================= CONVERT POINTS ================= */
+app.post("/api/convert", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  const COST = 10000; // points → 1 token
+
+  if (user.balance < COST)
+    return res.json({ error: "NOT_ENOUGH_POINTS" });
+
+  user.balance -= COST;
+  user.tokens += 1;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    balance: user.balance,
+    tokens: user.tokens
+  });
+});
+
+/* ================= PRO UPGRADE ================= */
+app.post("/api/pro/upgrade", async (req, res) => {
+  const { telegramId, level } = req.body;
+
+  const PRICES = {
+    1: 5,
+    2: 10,
+    3: 20
+  };
+
+  if (!PRICES[level])
+    return res.json({ error: "INVALID_LEVEL" });
+
+  const user = await User.findOne({ telegramId });
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+
+  if (!user || !system)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  if (user.proLevel >= level)
+    return res.json({ error: "ALREADY_UPGRADED" });
+
+  const price = PRICES[level];
+
+  if (user.tokens < price)
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  // 💸 transfer tokens
+  user.tokens -= price;
+  system.tokens += price;
+
+  user.isPro = true;
+  user.proLevel = level;
+  user.proSince = Date.now();
+
+  await user.save();
+  await system.save();
+
+  // 🧾 transaction log
+  await Transaction.create({
+    fromWallet: user.walletAddress,
+    toWallet: system.walletAddress,
+    amount: price,
+    type: "PRO_UPGRADE"
+  });
+
+  res.json({
+    success: true,
+    proLevel: user.proLevel,
+    tokens: user.tokens
+  });
+});
+
 /* ================= START ================= */
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
