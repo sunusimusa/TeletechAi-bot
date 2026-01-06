@@ -16,7 +16,6 @@ let tokens = 0;
 let freeTries = 0;
 let referralCode = "";
 let referralsCount = 0;
-let soundEnabled = true;
 let openedCount = 0;
 let openingLocked = false;
 
@@ -282,18 +281,6 @@ async function buyEnergy(amount) {
   updateUI();
 }
 
-async function getSystemWallet() {
-  let system = await User.findOne({ telegramId: "SYSTEM" });
-  if (!system) {
-    system = await User.create({
-      telegramId: "SYSTEM",
-      balance: 0,
-      tokens: 0
-    });
-  }
-  return system;
-}
-
 // ================== REFERRAL ==================
 function copyRef() {
   navigator.clipboard.writeText(
@@ -382,11 +369,6 @@ async function upgradePro(level) {
   );
 
   loadUser();
-}
-
-function showWallet() {
-  document.getElementById("myWallet").innerText =
-    `Wallet: ${userWallet}`;
 }
 
 async function sendToken() {
