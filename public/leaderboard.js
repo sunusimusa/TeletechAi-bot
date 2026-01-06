@@ -1,22 +1,22 @@
 document.addEventListener("DOMContentLoaded", loadLeaderboard);
 
+const API_BASE = "https://teletechai.onrender.com";
+
 async function loadLeaderboard() {
   const seasonEl = document.getElementById("season");
   const listEl = document.getElementById("leaderboard");
 
   try {
-    const res = await fetch("/api/ref/leaderboard");
+    const res = await fetch(`${API_BASE}/api/ref/leaderboard`);
 
     if (!res.ok) {
-      throw new Error("Server error");
+      throw new Error("Server not reachable");
     }
 
     const data = await res.json();
 
-    // 🏆 Season
-    seasonEl.innerText = data.season;
+    seasonEl.innerText = data.season || "Season";
 
-    // 🧹 clear loading
     listEl.innerHTML = "";
 
     if (!data.top || data.top.length === 0) {
@@ -25,14 +25,14 @@ async function loadLeaderboard() {
       return;
     }
 
-    data.top.forEach((user, index) => {
+    data.top.forEach((u, i) => {
       const row = document.createElement("div");
       row.className = "rank";
 
       row.innerHTML = `
-        <span>#${index + 1}</span>
-        <span>${user.telegramId}</span>
-        <span>👥 ${user.seasonReferrals}</span>
+        <span>#${i + 1}</span>
+        <span>${u.telegramId}</span>
+        <span>👥 ${u.seasonReferrals}</span>
       `;
 
       listEl.appendChild(row);
@@ -40,7 +40,7 @@ async function loadLeaderboard() {
 
   } catch (err) {
     console.error(err);
-    seasonEl.innerText = "Failed to load season";
+    seasonEl.innerText = "Error";
     listEl.innerHTML =
       "<p style='color:red'>❌ Failed to load leaderboard</p>";
   }
