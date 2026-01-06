@@ -57,11 +57,7 @@ async function loadLeaderboard() {
   }
 }
 
-// ===== BACK BUTTON FIX =====
+// ===== BACK BUTTON (FIXED) =====
 document.getElementById("backBtn").addEventListener("click", () => {
-  if (window.Telegram && Telegram.WebApp) {
-    Telegram.WebApp.close(); // 🔙 komawa Telegram
-  } else {
-    window.history.back(); // 🔙 fallback
-  }
+  window.location.href = "/index.html";
 });
