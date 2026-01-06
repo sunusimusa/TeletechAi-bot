@@ -92,7 +92,6 @@ ENERGY_TIME = 60 * 1000; // 1 minute
 ENERGY_GAIN = 15;
 }
 const MAX_ENERGY = 100;
-const BASE_DAILY_REWARD = 100; // ⭐ zaka iya canzawa daga baya
   
 if (!user.lastEnergy) user.lastEnergy = now;
 
@@ -109,6 +108,8 @@ pro1:  { gas: 0.05, dailyLimit: Infinity, cooldown: 0 },
 pro2:  { gas: 0.02, dailyLimit: Infinity, cooldown: 0 },
 pro3:  { gas: 0.00, dailyLimit: Infinity, cooldown: 0 }
 };
+
+const BASE_DAILY_REWARD = 100; // ⭐ zaka iya canzawa daga baya
 
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
