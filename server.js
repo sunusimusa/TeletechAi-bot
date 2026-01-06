@@ -118,7 +118,6 @@ app.post("/api/user", async (req, res) => {
 
   let user = await User.findOne({ telegramId });
 
-  // CREATE USER (ONCE)
   if (!user) {
     user = await User.create({
       telegramId,
@@ -129,23 +128,17 @@ app.post("/api/user", async (req, res) => {
       seasonReferrals: 0
     });
 
-    // 🎁 REFERRAL (ONCE)
-    if (refUser && refUser.telegramId !== telegramId) {
-  refUser.balance += 500;
-  refUser.energy = Math.min(100, refUser.energy + 20);
-  refUser.referralsCount =
-    (refUser.referralsCount || 0) + 1;
+    if (ref) {
+      const refUser = await User.findOne({ referralCode: ref });
 
-  refUser.seasonReferrals =
-    (refUser.seasonReferrals || 0) + 1;
-
-  await refUser.save();
+      if (refUser && refUser.telegramId !== telegramId) {
+        refUser.balance += 500;
+        refUser.energy = Math.min(100, refUser.energy + 20);
+        refUser.referralsCount += 1;
+        refUser.seasonReferrals += 1;
+        await refUser.save();
+      }
     }
-
-  // SAFETY (inside route only)
-  if (!user.walletAddress) {
-    user.walletAddress = generateWallet();
-    await user.save();
   }
 
   res.json({
