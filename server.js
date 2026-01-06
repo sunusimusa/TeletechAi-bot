@@ -92,7 +92,8 @@ ENERGY_TIME = 60 * 1000; // 1 minute
 ENERGY_GAIN = 15;
 }
 const MAX_ENERGY = 100;
-
+const BASE_DAILY_REWARD = 100; // ⭐ zaka iya canzawa daga baya
+  
 if (!user.lastEnergy) user.lastEnergy = now;
 
 const diff = Math.floor((now - user.lastEnergy) / ENERGY_TIME);
@@ -170,40 +171,57 @@ Math.random().toString(36).substring(2, 8).toUpperCase()
 
 /* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
-const { telegramId } = req.body;
-const user = await User.findOne({ telegramId });
-if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  const { telegramId } = req.body;
 
-regenEnergy(user);
+  if (!telegramId)
+    return res.json({ error: "NO_TELEGRAM_ID" });
 
-const now = Date.now();
-const DAY = 86400000;
+  const user = await User.findOne({ telegramId });
+  if (!user)
+    return res.json({ error: "USER_NOT_FOUND" });
 
-if (now - user.lastDaily < DAY)
-return res.json({ error: "COME_BACK_LATER" });
+  // ⚡ regen energy kafin komai
+  regenEnergy(user);
 
-user.dailyStreak =
-now - user.lastDaily < DAY * 2 ? user.dailyStreak + 1 : 1;
+  const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
 
-let reward = baseReward;
+  // 🛑 cooldown (24h)
+  if (user.lastDaily && now - user.lastDaily < DAY) {
+    return res.json({ error: "COME_BACK_LATER" });
+  }
 
-if (user.proLevel === 1) reward *= 1.3;
-if (user.proLevel === 2) reward *= 1.7;
-if (user.proLevel === 3) reward *= 2;
+  // 🔥 daily streak
+  if (user.lastDaily && now - user.lastDaily < DAY * 2) {
+    user.dailyStreak = (user.dailyStreak || 0) + 1;
+  } else {
+    user.dailyStreak = 1;
+  }
 
-reward = Math.floor(reward);
-user.lastDaily = now;
-user.balance += reward;
-user.energy = Math.min(100, user.energy + 10);
+  // 💰 BASE REWARD
+  let reward = BASE_DAILY_REWARD;
 
-await user.save();
+  // 🚀 PRO MULTIPLIERS
+  if (user.proLevel === 1) reward *= 1.3;
+  if (user.proLevel === 2) reward *= 1.7;
+  if (user.proLevel === 3) reward *= 2;
 
-res.json({
-reward,
-streak: user.dailyStreak,
-balance: user.balance,
-energy: user.energy
-});
+  reward = Math.floor(reward);
+
+  // ✅ APPLY
+  user.lastDaily = now;
+  user.balance += reward;
+  user.energy = Math.min(100, user.energy + 10);
+
+  await user.save();
+
+  res.json({
+    success: true,
+    reward,
+    streak: user.dailyStreak,
+    balance: user.balance,
+    energy: user.energy
+  });
 });
 
 /* ================= OPEN BOX ================= */
