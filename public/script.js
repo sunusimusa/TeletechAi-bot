@@ -2,7 +2,12 @@
 const tg = window.Telegram?.WebApp;
 tg?.expand();
 
-const TELEGRAM_ID = tg?.initDataUnsafe?.user?.id || "guest";
+const TELEGRAM_ID =
+  tg?.initDataUnsafe?.user?.id || "guest";
+
+// ✅ REFERRAL CODE (daga Telegram link)
+const REF =
+  tg?.initDataUnsafe?.start_param || null;
 
 // ================== GLOBAL STATE ==================
 let balance = 0;
@@ -29,7 +34,10 @@ async function loadUser() {
     const res = await fetch("/api/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId: TELEGRAM_ID })
+      body: JSON.stringify({
+        telegramId: TELEGRAM_ID,
+        ref: REF // 🔥 MUHIMMI (nan ne fix)
+      })
     });
 
     const data = await res.json();
@@ -42,20 +50,30 @@ async function loadUser() {
     referralCode = data.referralCode ?? "";
     referralsCount = data.referralsCount ?? 0;
 
-    // ✅ PRO STATUS (a nan kawai!)
+    // ✅ PRO STATUS
     if (data.isPro) {
-      document.getElementById("proBadge")?.classList.remove("hidden");
-      document.getElementById("upgradeBtn")?.style.setProperty("display", "none");
+      document
+        .getElementById("proBadge")
+        ?.classList.remove("hidden");
+
+      document
+        .getElementById("upgradeBtn")
+        ?.style.setProperty("display", "none");
     }
 
     if (data.proLevel >= 2) {
-      document.getElementById("proLv2Btn")?.style.setProperty("display", "none");
+      document
+        .getElementById("proLv2Btn")
+        ?.style.setProperty("display", "none");
     }
 
     if (data.proLevel >= 3) {
-      document.getElementById("proLv3Btn")?.style.setProperty("display", "none");
+      document
+        .getElementById("proLv3Btn")
+        ?.style.setProperty("display", "none");
     }
 
+    // 🔗 REF LINK
     if (referralCode) {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
@@ -66,7 +84,7 @@ async function loadUser() {
     alert("❌ Failed to load user");
     console.error(err);
   }
-}
+      }
 
 // ================== UI UPDATE ==================
 function updateUI() {
