@@ -31,12 +31,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ================== LOAD USER ==================
 async function loadUser() {
   try {
+    // 👉 KARBI referral daga Telegram
+    const ref =
+      window.Telegram?.WebApp?.initDataUnsafe?.start_param || null;
+
     const res = await fetch("/api/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telegramId: TELEGRAM_ID,
-        ref: REF // 🔥 MUHIMMI (nan ne fix)
+        ref // ✅ NAN NE MAFITA
       })
     });
 
@@ -50,30 +54,7 @@ async function loadUser() {
     referralCode = data.referralCode ?? "";
     referralsCount = data.referralsCount ?? 0;
 
-    // ✅ PRO STATUS
-    if (data.isPro) {
-      document
-        .getElementById("proBadge")
-        ?.classList.remove("hidden");
-
-      document
-        .getElementById("upgradeBtn")
-        ?.style.setProperty("display", "none");
-    }
-
-    if (data.proLevel >= 2) {
-      document
-        .getElementById("proLv2Btn")
-        ?.style.setProperty("display", "none");
-    }
-
-    if (data.proLevel >= 3) {
-      document
-        .getElementById("proLv3Btn")
-        ?.style.setProperty("display", "none");
-    }
-
-    // 🔗 REF LINK
+    // 🔗 Referral link (Render ne kawai)
     if (referralCode) {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
@@ -84,7 +65,7 @@ async function loadUser() {
     alert("❌ Failed to load user");
     console.error(err);
   }
-      }
+}
 
 // ================== UI UPDATE ==================
 function updateUI() {
