@@ -643,15 +643,15 @@ balance: sender.tokens
 });
 
 app.get("/api/ref/leaderboard", async (req, res) => {
-const top = await User.find({ telegramId: { $ne: "SYSTEM" } })
-.sort({ referralsCount: -1 })
-.limit(20)
-.select("telegramId referralsCount");
+  const top = await User.find({ telegramId: { $ne: "SYSTEM" } })
+    .sort({ seasonReferrals: -1 })
+    .limit(20)
+    .select("telegramId seasonReferrals");
 
-res.json({
-season: REF_SEASON.name,
-top
-});
+  res.json({
+    season: "Season 1",
+    top
+  });
 });
 
 import { checkReferralSeason } from "./services/season.service.js";
