@@ -156,7 +156,6 @@ app.post("/api/user", async (req, res) => {
     referralCode: user.referralCode,
     referralsCount: user.referralsCount
   });
-});
 
 // ================= SAFETY =================
 if (!user.walletAddress) {
