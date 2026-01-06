@@ -109,7 +109,6 @@ const TRANSFER_RULES = {
 };
 
 /* ================= USER ================= */
-/* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
   if (!telegramId)
