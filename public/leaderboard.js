@@ -16,43 +16,37 @@ function calcDaysLeft(endDate) {
 
 // ================= LOAD LEADERBOARD =================
 async function loadLeaderboard() {
-  try {
-    const res = await fetch("/api/ref/leaderboard");
-    const data = await res.json();
+  const res = await fetch("/api/ref/leaderboard");
+  const data = await res.json();
 
-    // ===== SEASON INFO =====
-    seasonInfo.innerText =
-      `${data.season} • ${calcDaysLeft(data.end)}`;
+  const list = document.getElementById("leaderboard");
+  list.innerHTML = "";
 
-    // ===== CLEAR LIST =====
-    list.innerHTML = "";
+  if (!data.top || data.top.length === 0) {
+    list.innerHTML = "<p>No referrals yet</p>";
+    return;
+  }
 
-    if (!data.top || data.top.length === 0) {
-      list.innerHTML = "<p>No data yet</p>";
-      return;
-    }
+  data.top.forEach((u, i) => {
+    const row = document.createElement("div");
+    row.className = "lb-item";
 
-    // ===== RENDER USERS =====
-    data.top.forEach((user, index) => {
-      const row = document.createElement("div");
-      row.className = "lb-item";
+    let medal = "🎖️";
+    if (i === 0) medal = "🥇";
+    if (i === 1) medal = "🥈";
+    if (i === 2) medal = "🥉";
 
-      let medal = "🎖️";
-      if (index === 0) medal = "🥇";
-      if (index === 1) medal = "🥈";
-      if (index === 2) medal = "🥉";
+    row.innerHTML = `
+      <b>${medal} #${i + 1}</b>
+      <span>User ${u.telegramId}</span>
+      <small>${u.seasonReferrals} referrals</small>
+    `;
 
-      row.innerHTML = `
-        <div class="lb-rank">${medal} #${index + 1}</div>
-        <div class="lb-user">
-          User ${user.telegramId}
-          <br />
-          <small>${user.referralsCount} referrals</small>
-        </div>
-      `;
+    list.appendChild(row);
+  });
+}
 
-      list.appendChild(row);
-    });
+loadLeaderboard();
 
   } catch (err) {
     console.error(err);
