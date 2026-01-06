@@ -1,9 +1,18 @@
-// ===== TELEGRAM INIT =====
-const tg = window.Telegram.WebApp;
+// ===== TELEGRAM INIT (STRICT) =====
+const tg = window.Telegram?.WebApp;
+
+if (!tg || !tg.initDataUnsafe?.user?.id) {
+  alert("❌ Please open this game from Telegram");
+  throw new Error("Not opened inside Telegram");
+}
+
 tg.expand();
 
-const TELEGRAM_ID = tg.initDataUnsafe?.user?.id || "guest";
-const referral = tg.initDataUnsafe?.start_param || null;
+// ✅ REAL TELEGRAM USER ID (NO GUEST)
+const TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
+
+// ✅ REFERRAL CODE FROM start_param
+const REFERRAL_CODE = tg.initDataUnsafe.start_param || null;
 
 // ===== GAME STATE (DISPLAY ONLY) =====
 let balance = 0;
