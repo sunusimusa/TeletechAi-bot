@@ -56,3 +56,12 @@ async function loadLeaderboard() {
       "<p style='color:red'>❌ Failed to load leaderboard</p>";
   }
 }
+
+// ===== BACK BUTTON FIX =====
+document.getElementById("backBtn").addEventListener("click", () => {
+  if (window.Telegram && Telegram.WebApp) {
+    Telegram.WebApp.close(); // 🔙 komawa Telegram
+  } else {
+    window.history.back(); // 🔙 fallback
+  }
+});
