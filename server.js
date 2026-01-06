@@ -385,12 +385,12 @@ await system.save();
 
 // ===== SAVE TRANSACTION =====
 await Transaction.create({
-fromWallet: user.walletAddress,
-toWallet: system.walletAddress,
-amount: price,
-gasFee: 0,
-type: "PRO_UPGRADE",
-meta: PRO_LEVEL_${level}
+  fromWallet: user.walletAddress,
+  toWallet: system.walletAddress,
+  amount: price,
+  gasFee: 0,
+  type: "PRO_UPGRADE",
+  meta: `PRO_LEVEL_${level}` // ✅ GYARA A NAN
 });
 
 res.json({
