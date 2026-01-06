@@ -96,3 +96,16 @@ function copyRef() {
   );
   alert("✅ Referral link copied");
 }
+
+// ================== NAVIGATION ==================
+function goLeaderboard() {
+  window.location.href = "/leaderboard.html";
+}
+
+function goWallet() {
+  window.location.href = "/wallet.html";
+}
+
+function goRoadmap() {
+  window.location.href = "/roadmap.html";
+}
