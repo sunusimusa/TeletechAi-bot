@@ -130,18 +130,17 @@ app.post("/api/user", async (req, res) => {
     });
 
     // 🎁 REFERRAL (ONCE)
-    if (ref) {
-      const refUser = await User.findOne({ referralCode: ref });
+    if (refUser && refUser.telegramId !== telegramId) {
+  refUser.balance += 500;
+  refUser.energy = Math.min(100, refUser.energy + 20);
+  refUser.referralsCount =
+    (refUser.referralsCount || 0) + 1;
 
-      if (refUser && refUser.telegramId !== telegramId) {
-        refUser.balance += 500;
-        refUser.energy = Math.min(100, refUser.energy + 20);
-        refUser.referralsCount += 1;
-        refUser.seasonReferrals += 1;
-        await refUser.save();
-      }
+  refUser.seasonReferrals =
+    (refUser.seasonReferrals || 0) + 1;
+
+  await refUser.save();
     }
-  }
 
   // SAFETY (inside route only)
   if (!user.walletAddress) {
