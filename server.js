@@ -111,41 +111,52 @@ pro3:  { gas: 0.00, dailyLimit: Infinity, cooldown: 0 }
 
 /* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
-const { telegramId, ref } = req.body;
-if (!telegramId)
-return res.json({ error: "NO_TELEGRAM_ID" });
+  const { telegramId, ref } = req.body;
 
-let user = await User.findOne({ telegramId });
+  // ⛔ hana guest
+  if (!telegramId || telegramId === "guest")
+    return res.json({ error: "INVALID_TELEGRAM_ID" });
 
-// ================= CREATE USER =================
-if (!user) {
-user = await User.create({
-telegramId,
-walletAddress: generateWallet(),
-referralCode: generateCode(),
-referredBy: ref || null,
-referralsCount: 0,
-seasonReferrals: 0
+  let user = await User.findOne({ telegramId });
+
+  // ================= CREATE USER =================
+  if (!user) {
+    user = await User.create({
+      telegramId,
+      walletAddress: generateWallet(),
+      referralCode: generateCode(),
+      referredBy: ref || null,
+      referralsCount: 0,
+      seasonReferrals: 0
+    });
+
+    // 🎁 REFERRAL (ONCE ONLY)
+    if (ref) {
+      const refUser = await User.findOne({ referralCode: ref });
+
+      // ⛔ hana self-referral
+      if (refUser && refUser.telegramId !== telegramId) {
+        refUser.balance += 500;
+        refUser.energy = Math.min(100, refUser.energy + 20);
+        refUser.referralsCount += 1;
+        refUser.seasonReferrals =
+          (refUser.seasonReferrals || 0) + 1;
+
+        await refUser.save();
+      }
+    }
+  }
+
+  res.json({
+    telegramId: user.telegramId,
+    walletAddress: user.walletAddress,
+    balance: user.balance,
+    energy: user.energy,
+    tokens: user.tokens,
+    referralCode: user.referralCode,
+    referralsCount: user.referralsCount
+  });
 });
-
-// 🎁 REFERRAL REWARD (ONLY FIRST TIME)  
-if (ref) {  
-  const refUser = await User.findOne({  
-    referralCode: ref  
-  });  
-
-  if (refUser) {  
-    refUser.balance += 500;  
-    refUser.energy = Math.min(100, refUser.energy + 20);  
-    refUser.referralsCount += 1;  
-    refUser.seasonReferrals =  
-      (refUser.seasonReferrals || 0) + 1;  
-
-    await refUser.save();  
-  }  
-}
-
-}
 
 // ================= SAFETY =================
 if (!user.walletAddress) {
