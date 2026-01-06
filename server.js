@@ -172,31 +172,6 @@ Math.random().toString(36).substring(2, 8).toUpperCase()
 );
 }
 
-function generateCode() {
-return Math.random().toString(36)
-.substring(2, 8)
-.toUpperCase();
-}
-
-// ================= SAFETY =================
-if (!user.walletAddress) {
-user.walletAddress = generateWallet();
-await user.save();
-}
-
-// ================= RESPONSE =================
-res.json({
-telegramId: user.telegramId,
-walletAddress: user.walletAddress,
-balance: user.balance,
-energy: user.energy,
-freeTries: user.freeTries,
-tokens: user.tokens,
-referralCode: user.referralCode,
-referralsCount: user.referralsCount
-});
-});
-
 /* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
 const { telegramId } = req.body;
