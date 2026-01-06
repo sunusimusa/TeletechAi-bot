@@ -1,63 +1,47 @@
-// ================= ELEMENTS =================
-const seasonInfo = document.getElementById("seasonInfo");
-const list = document.getElementById("leaderboard");
+document.addEventListener("DOMContentLoaded", loadLeaderboard);
 
-// ================= HELPERS =================
-function calcDaysLeft(endDate) {
-  const now = new Date();
-  const end = new Date(endDate);
-  const diff = end - now;
-
-  if (diff <= 0) return "Season ended";
-
-  const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-  return `${days} day${days > 1 ? "s" : ""} left ⏳`;
-}
-
-// ================= LOAD LEADERBOARD =================
 async function loadLeaderboard() {
-  const res = await fetch("/api/ref/leaderboard");
-  const data = await res.json();
+  const seasonEl = document.getElementById("season");
+  const listEl = document.getElementById("leaderboard");
 
-  const list = document.getElementById("leaderboard");
-  list.innerHTML = "";
+  try {
+    const res = await fetch("/api/ref/leaderboard");
 
-  if (!data.top || data.top.length === 0) {
-    list.innerHTML = "<p>No referrals yet</p>";
-    return;
-  }
+    if (!res.ok) {
+      throw new Error("Server error");
+    }
 
-  data.top.forEach((u, i) => {
-    const row = document.createElement("div");
-    row.className = "lb-item";
+    const data = await res.json();
 
-    let medal = "🎖️";
-    if (i === 0) medal = "🥇";
-    if (i === 1) medal = "🥈";
-    if (i === 2) medal = "🥉";
+    // 🏆 Season
+    seasonEl.innerText = data.season;
 
-    row.innerHTML = `
-      <b>${medal} #${i + 1}</b>
-      <span>User ${u.telegramId}</span>
-      <small>${u.seasonReferrals} referrals</small>
-    `;
+    // 🧹 clear loading
+    listEl.innerHTML = "";
 
-    list.appendChild(row);
-  });
-}
+    if (!data.top || data.top.length === 0) {
+      listEl.innerHTML =
+        "<p style='color:gray'>No referrals yet</p>";
+      return;
+    }
 
-loadLeaderboard();
+    data.top.forEach((user, index) => {
+      const row = document.createElement("div");
+      row.className = "rank";
+
+      row.innerHTML = `
+        <span>#${index + 1}</span>
+        <span>${user.telegramId}</span>
+        <span>👥 ${user.seasonReferrals}</span>
+      `;
+
+      listEl.appendChild(row);
+    });
 
   } catch (err) {
     console.error(err);
-    list.innerHTML = "<p>Failed to load leaderboard</p>";
+    seasonEl.innerText = "Failed to load season";
+    listEl.innerHTML =
+      "<p style='color:red'>❌ Failed to load leaderboard</p>";
   }
 }
-
-// ================= NAV =================
-function goBack() {
-  window.history.back();
-}
-
-// ================= INIT =================
-loadLeaderboard();
