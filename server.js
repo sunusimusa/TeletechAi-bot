@@ -15,6 +15,7 @@ import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
 import refRoutes from "./routes/ref.routes.js";
+import { REF_SEASON } from "./config/season.js";
 
 
 dotenv.config();
@@ -175,25 +176,6 @@ function generateCode() {
     .substring(2, 8)
     .toUpperCase();
       }
-
-  // ================= SAFETY =================
-  if (!user.walletAddress) {
-    user.walletAddress = generateWallet();
-    await user.save();
-  }
-
-  // ================= RESPONSE =================
-  res.json({
-    telegramId: user.telegramId,
-    walletAddress: user.walletAddress,
-    balance: user.balance,
-    energy: user.energy,
-    freeTries: user.freeTries,
-    tokens: user.tokens,
-    referralCode: user.referralCode,
-    referralsCount: user.referralsCount
-  });
-});
 
 /* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
