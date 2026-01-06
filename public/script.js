@@ -25,6 +25,11 @@ const MAX_ENERGY = 100;
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
   startEnergyRegen(); // ⚡ auto energy
+
+  // 🔄 AUTO REFRESH USER DATA (every 5 seconds)
+  setInterval(() => {
+    loadUser();
+  }, 5000);
 });
 
 // ================== LOAD USER (FIXED) ==================
@@ -68,10 +73,6 @@ async function loadUser() {
     console.error(err);
   }
 }
-
-setTimeout(() => {
-  loadUser();
-}, 5000); // refresh every 5s
 
 // ================== UI UPDATE ==================
 function updateUI() {
