@@ -109,6 +109,7 @@ const TRANSFER_RULES = {
 };
 
 /* ================= USER ================= */
+/* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
   if (!telegramId)
@@ -117,23 +118,37 @@ app.post("/api/user", async (req, res) => {
   let user = await User.findOne({ telegramId });
 
   // ================= CREATE USER =================
+  if (!user) {
+    user = await User.create({
+      telegramId,
+      referralCode: generateCode(),
+      walletAddress: generateWallet(),
+      referredBy: ref || null,
+      referralsCount: 0,
+      seasonReferrals: 0
+    });
 
-  // 🎁 Referral reward (ONLY here)
-if (ref && !user) {
-  const refUser = await User.findOne({ referralCode: ref });
+    // 🎁 REFERRAL REWARD (ONLY once, on first join)
+    if (ref) {
+      const refUser = await User.findOne({
+        referralCode: ref
+      });
 
-  if (refUser) {
-    refUser.balance += 500;
-    refUser.energy = Math.min(100, refUser.energy + 20);
-    refUser.referralsCount += 1;
+      if (refUser) {
+        refUser.balance += 500;
+        refUser.energy = Math.min(
+          100,
+          refUser.energy + 20
+        );
 
-    // ⭐ SEASON COUNT
-    refUser.seasonReferrals =
-      (refUser.seasonReferrals || 0) + 1;
+        refUser.referralsCount += 1;
+        refUser.seasonReferrals =
+          (refUser.seasonReferrals || 0) + 1;
 
-    await refUser.save();
+        await refUser.save();
+      }
+    }
   }
-}
 
   // ================= SAFETY =================
   if (!user.walletAddress) {
