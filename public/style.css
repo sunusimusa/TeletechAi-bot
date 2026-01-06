@@ -793,3 +793,13 @@ html {
   50% { opacity: 1; }
   100% { opacity: 0.6; }
 }
+
+.fake-ad{
+  background:#111827;
+  border:1px dashed #facc15;
+  padding:12px;
+  border-radius:10px;
+  text-align:center;
+  color:#fff;
+  margin-bottom:12px;
+}
