@@ -120,14 +120,14 @@ app.post("/api/user", async (req, res) => {
   if (!user) {
     user = await User.create({
       telegramId,
-      referralCode: generateCode(),
       walletAddress: generateWallet(),
+      referralCode: generateCode(),
       referredBy: ref || null,
       referralsCount: 0,
       seasonReferrals: 0
     });
 
-    // 🎁 REFERRAL REWARD (ONLY once, on first join)
+    // 🎁 REFERRAL REWARD (ONLY FIRST TIME)
     if (ref) {
       const refUser = await User.findOne({
         referralCode: ref
@@ -135,11 +135,7 @@ app.post("/api/user", async (req, res) => {
 
       if (refUser) {
         refUser.balance += 500;
-        refUser.energy = Math.min(
-          100,
-          refUser.energy + 20
-        );
-
+        refUser.energy = Math.min(100, refUser.energy + 20);
         refUser.referralsCount += 1;
         refUser.seasonReferrals =
           (refUser.seasonReferrals || 0) + 1;
@@ -148,6 +144,37 @@ app.post("/api/user", async (req, res) => {
       }
     }
   }
+
+  // ================= SAFETY =================
+  if (!user.walletAddress) {
+    user.walletAddress = generateWallet();
+    await user.save();
+  }
+
+  res.json({
+    telegramId: user.telegramId,
+    walletAddress: user.walletAddress,
+    balance: user.balance,
+    energy: user.energy,
+    tokens: user.tokens,
+    referralCode: user.referralCode,
+    referralsCount: user.referralsCount
+  });
+});
+
+// ===== HELPERS =====
+function generateWallet() {
+  return (
+    "TTECH-" +
+    Math.random().toString(36).substring(2, 8).toUpperCase()
+  );
+}
+
+function generateCode() {
+  return Math.random().toString(36)
+    .substring(2, 8)
+    .toUpperCase();
+      }
 
   // ================= SAFETY =================
   if (!user.walletAddress) {
@@ -167,14 +194,6 @@ app.post("/api/user", async (req, res) => {
     referralsCount: user.referralsCount
   });
 });
-
-// ===== HELPERS =====
-function generateWallet() {
-  return (
-    "TTECH-" +
-    Math.random().toString(36).substring(2, 8).toUpperCase()
-  );
-      }
 
 /* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
