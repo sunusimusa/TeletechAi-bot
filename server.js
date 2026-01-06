@@ -70,10 +70,6 @@ async function ensureSystemWallet() {
 }
 
 /* ================= UTILS ================= */
-function generateCode() {
-  return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 function regenEnergy(user) {
   const now = Date.now();
   let ENERGY_TIME = 5 * 60 * 1000;
