@@ -28,19 +28,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   startEnergyRegen(); // ⚡ auto energy
 });
 
-// ================== LOAD USER ==================
+// ================== LOAD USER (FIXED) ==================
 async function loadUser() {
   try {
-    // 👉 KARBI referral daga Telegram
+    const tg = window.Telegram?.WebApp;
+    const telegramId =
+      tg?.initDataUnsafe?.user?.id || "guest";
+
     const ref =
-      window.Telegram?.WebApp?.initDataUnsafe?.start_param || null;
+      tg?.initDataUnsafe?.start_param || null;
 
     const res = await fetch("/api/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        telegramId: TELEGRAM_ID,
-        ref // ✅ NAN NE MAFITA
+        telegramId,
+        ref
       })
     });
 
@@ -54,7 +57,7 @@ async function loadUser() {
     referralCode = data.referralCode ?? "";
     referralsCount = data.referralsCount ?? 0;
 
-    // 🔗 Referral link (Render ne kawai)
+    // 🔗 referral link
     if (referralCode) {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
