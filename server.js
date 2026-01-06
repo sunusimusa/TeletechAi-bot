@@ -110,16 +110,17 @@ pro3:  { gas: 0.00, dailyLimit: Infinity, cooldown: 0 }
 };
 
 /* ================= USER ================= */
+/* ================= USER ================= */
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
 
-  // ⛔ hana guest
-  if (!telegramId || telegramId === "guest")
+  if (!telegramId || telegramId === "guest") {
     return res.json({ error: "INVALID_TELEGRAM_ID" });
+  }
 
   let user = await User.findOne({ telegramId });
 
-  // ================= CREATE USER =================
+  // CREATE USER (ONCE)
   if (!user) {
     user = await User.create({
       telegramId,
@@ -130,18 +131,15 @@ app.post("/api/user", async (req, res) => {
       seasonReferrals: 0
     });
 
-    // 🎁 REFERRAL (ONCE ONLY)
+    // 🎁 REFERRAL (ONCE)
     if (ref) {
       const refUser = await User.findOne({ referralCode: ref });
 
-      // ⛔ hana self-referral
       if (refUser && refUser.telegramId !== telegramId) {
         refUser.balance += 500;
         refUser.energy = Math.min(100, refUser.energy + 20);
         refUser.referralsCount += 1;
-        refUser.seasonReferrals =
-          (refUser.seasonReferrals || 0) + 1;
-
+        refUser.seasonReferrals += 1;
         await refUser.save();
       }
     }
@@ -156,6 +154,7 @@ app.post("/api/user", async (req, res) => {
     referralCode: user.referralCode,
     referralsCount: user.referralsCount
   });
+});
 
 // ================= SAFETY =================
 if (!user.walletAddress) {
