@@ -7,12 +7,13 @@ const router = express.Router();
 router.get("/leaderboard", async (req, res) => {
   try {
     const top = await User.find({
-  telegramId: { $ne: "SYSTEM" },
-  seasonReferrals: { $gt: 0 }
-})
-.sort({ seasonReferrals: -1 })
-.limit(10)
-.select("telegramId seasonReferrals");
+      telegramId: { $nin: ["SYSTEM", "guest"] },
+      seasonReferrals: { $gte: 1 }
+    })
+      .sort({ seasonReferrals: -1 })
+      .limit(10)
+      .select("telegramId seasonReferrals");
+
     res.json({
       season: REF_SEASON.name,
       start: REF_SEASON.start,
@@ -20,9 +21,11 @@ router.get("/leaderboard", async (req, res) => {
       top
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "FAILED_TO_LOAD_LEADERBOARD" });
+    console.error("LEADERBOARD ERROR:", err);
+    res.status(500).json({
+      error: "FAILED_TO_LOAD_LEADERBOARD"
+    });
   }
 });
 
-export default router; // ✅ MUHIMMI
+export default router;
