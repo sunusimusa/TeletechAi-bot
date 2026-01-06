@@ -69,6 +69,10 @@ async function loadUser() {
   }
 }
 
+setTimeout(() => {
+  loadUser();
+}, 5000); // refresh every 5s
+
 // ================== UI UPDATE ==================
 function updateUI() {
   document.getElementById("balance").innerText = `Balance: ${balance}`;
