@@ -33,16 +33,21 @@ async function loadUser() {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
       telegramId: TELEGRAM_ID,
-      ref: referral
+      ref: REFERRAL_CODE
     })
   });
 
   const data = await res.json();
 
-  balance = data.balance;
-  energy = data.energy;
-  freeTries = data.freeTries;
-  tokens = data.tokens;
+  if (data.error) {
+    alert("❌ " + data.error);
+    return;
+  }
+
+  balance = data.balance ?? 0;
+  energy = data.energy ?? 0;
+  freeTries = data.freeTries ?? 0;
+  tokens = data.tokens ?? 0;
 
   updateUI();
 }
