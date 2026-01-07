@@ -87,6 +87,12 @@ if (proLevel === 4) {
   document.getElementById("proBadge").classList.remove("hidden");
 }
 
+if (proLevel >= 4) {
+  document.getElementById("upgradeBtn")?.remove();
+  document.getElementById("proLv2Btn")?.remove();
+  document.getElementById("proLv3Btn")?.remove();
+}
+
 // ================== SOUND ==================
 function playSound(type) {
   if (!soundEnabled) return;
