@@ -226,39 +226,35 @@ app.post("/api/daily", async (req, res) => {
 
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
-const { telegramId } = req.body;
-const user = await User.findOne({ telegramId });
-if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  const { telegramId } = req.body;
 
-regenEnergy(user);
+  const user = await User.findOne({ telegramId });
+  if (!user) {
+    return res.json({ error: "USER_NOT_FOUND" });
+  }
 
-if (user.freeTries > 0) user.freeTries--;
-else if (user.energy >= 10) user.energy -= 10;
-else return res.json({ error: "NO_ENERGY" });
+  regenEnergy(user);
 
-let rewards = [0, 100, 200];
+  if (user.freeTries > 0) {
+    user.freeTries--;
+  } else if (user.energy >= 10) {
+    user.energy -= 10;
+  } else {
+    return res.json({ error: "NO_ENERGY" });
+  }
 
-if (user.proLevel === 2) rewards = [100, 200, 500];
-if (user.proLevel === 3) rewards = [200, 500, 1000];
+  const rewards = [0, 100, 200, 500];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
-const reward = rewards[Math.floor(Math.random() * rewards.length)];
-user.balance += reward;
+  user.balance += reward;
+  await user.save();
 
-if (user.proLevel === 2 && user.freeTries < 5) {
-user.freeTries = 5;
-}
-if (user.proLevel === 3 && user.freeTries < 7) {
-user.freeTries = 7;
-}
-
-await user.save();
-
-res.json({
-reward,
-balance: user.balance,
-energy: user.energy,
-freeTries: user.freeTries
-});
+  res.json({
+    reward,
+    balance: user.balance,
+    energy: user.energy,
+    freeTries: user.freeTries
+  });
 });
 
 /* ================= CONVERT ================= */
