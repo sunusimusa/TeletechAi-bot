@@ -15,7 +15,9 @@ let freeTries = 0;
 let referralCode = "";
 let referralsCount = 0;
 let openedCount = 0;
+let soundEnabled = true;
 let openingLocked = false;
+
 
 const MAX_ENERGY = 100;
 
