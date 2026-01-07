@@ -876,4 +876,17 @@ button:active {
   box-shadow: 0 0 12px rgba(0,255,255,0.4);
   }
 
+.founder-box {
+  background: linear-gradient(135deg, #1a1a1a, #2d1b00);
+  border: 2px solid gold;
+  border-radius: 16px;
+  padding: 16px;
+  margin-top: 20px;
+  color: gold;
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
 
