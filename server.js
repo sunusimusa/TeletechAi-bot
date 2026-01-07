@@ -68,51 +68,50 @@ console.log("ℹ️ SYSTEM wallet already exists");
 }
 
 /* ================= UTILS ================= */
-function generateCode() {
-return Math.random().toString(36).substring(2, 8).toUpperCase();
-}
-
 function regenEnergy(user) {
-const now = Date.now();
-let ENERGY_TIME = 5 * 60 * 1000;
-let ENERGY_GAIN = 5;
+  const now = Date.now();
 
-if (user.proLevel === 1) {
-ENERGY_TIME = 3 * 60 * 1000;
-ENERGY_GAIN = 7;
-}
-if (user.proLevel === 2) {
-ENERGY_TIME = 2 * 60 * 1000;
-ENERGY_GAIN = 10;
-}
-if (user.proLevel === 3) {
-ENERGY_TIME = 60 * 1000; // 1 minute
-ENERGY_GAIN = 15;
-}
-  if (user.proLevel === 4) {
-  ENERGY_TIME = 30 * 1000; // 30 seconds
-  ENERGY_GAIN = 25;
+  let ENERGY_TIME = 5 * 60 * 1000; // default
+  let ENERGY_GAIN = 5;
+  let MAX_ENERGY = 100;
+
+  if (user.proLevel === 1) {
+    ENERGY_TIME = 3 * 60 * 1000;
+    ENERGY_GAIN = 7;
+    MAX_ENERGY = 150;
   }
-  
-const MAX_ENERGY = 100;
-  
-if (!user.lastEnergy) user.lastEnergy = now;
 
-const diff = Math.floor((now - user.lastEnergy) / ENERGY_TIME);
-if (diff > 0) {
-user.energy = Math.min(MAX_ENERGY, user.energy + diff * ENERGY_GAIN);
-user.lastEnergy = now;
+  if (user.proLevel === 2) {
+    ENERGY_TIME = 2 * 60 * 1000;
+    ENERGY_GAIN = 10;
+    MAX_ENERGY = 200;
+  }
+
+  if (user.proLevel === 3) {
+    ENERGY_TIME = 60 * 1000; // 1 minute
+    ENERGY_GAIN = 15;
+    MAX_ENERGY = 300;
+  }
+
+  // 👑 FOUNDER / PRO LEVEL 4
+  if (user.proLevel >= 4) {
+    ENERGY_TIME = 30 * 1000; // 30 seconds
+    ENERGY_GAIN = 25;
+    MAX_ENERGY = 9999; // 🔥 UNLIMITED FEEL
+  }
+
+  if (!user.lastEnergy) user.lastEnergy = now;
+
+  const diff = Math.floor((now - user.lastEnergy) / ENERGY_TIME);
+
+  if (diff > 0) {
+    user.energy = Math.min(
+      MAX_ENERGY,
+      user.energy + diff * ENERGY_GAIN
+    );
+    user.lastEnergy = now;
+  }
 }
-}
-
-const TRANSFER_RULES = {
-free:  { gas: 0.10, dailyLimit: 20, cooldown: 120000 },
-pro1:  { gas: 0.05, dailyLimit: Infinity, cooldown: 0 },
-pro2:  { gas: 0.02, dailyLimit: Infinity, cooldown: 0 },
-pro3:  { gas: 0.00, dailyLimit: Infinity, cooldown: 0 }
-};
-
-const BASE_DAILY_REWARD = 100; // ⭐ zaka iya canzawa daga baya
 
 app.post("/api/user", async (req, res) => {
   const { telegramId, ref } = req.body;
@@ -356,44 +355,57 @@ res.json({ tokens: user.tokens });
 });
 
 app.post("/api/pro/upgrade", async (req, res) => {
-const { telegramId, level } = req.body;
+  const { telegramId, level } = req.body;
 
-if (!telegramId)
-return res.json({ error: "NO_TELEGRAM_ID" });
+  if (!telegramId)
+    return res.json({ error: "NO_TELEGRAM_ID" });
 
-const user = await User.findOne({ telegramId });
-if (!user)
-return res.json({ error: "USER_NOT_FOUND" });
+  const user = await User.findOne({ telegramId });
+  if (!user)
+    return res.json({ error: "USER_NOT_FOUND" });
 
-const system = await User.findOne({ telegramId: "SYSTEM" });
-if (!system)
-return res.json({ error: "SYSTEM_WALLET_MISSING" });
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+  if (!system)
+    return res.json({ error: "SYSTEM_WALLET_MISSING" });
 
-  if (level === 4) {
-  return res.json({ error: "LEVEL_NOT_AVAILABLE" });
+  // 🚫 PRO LEVEL 4+ (FOUNDER / ADMIN ONLY)
+  if (level >= 4) {
+    return res.json({ error: "LEVEL_RESTRICTED" });
   }
 
-// ===== PRO PRICES =====
-const PRICES = {
-1: 5,
-2: 10,
-3: 20
-};
+  // ===== PRO PRICES =====
+  const PRICES = {
+    1: 5,
+    2: 10,
+    3: 20
+  };
 
-if (!PRICES[level])
-return res.json({ error: "INVALID_LEVEL" });
+  if (!PRICES[level])
+    return res.json({ error: "INVALID_LEVEL" });
 
-if (user.proLevel >= level)
-return res.json({ error: "ALREADY_UPGRADED" });
+  if (user.proLevel >= level)
+    return res.json({ error: "ALREADY_UPGRADED" });
 
-const price = PRICES[level];
+  if (user.tokens < PRICES[level])
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
 
-if (user.tokens < price)
-return res.json({ error: "NOT_ENOUGH_TOKENS" });
-  
-if (level === 4) {
-  return res.json({ error: "LEVEL_NOT_AVAILABLE" });
-}
+  // ===== APPLY =====
+  user.tokens -= PRICES[level];
+  system.tokens += PRICES[level];
+
+  user.isPro = true;
+  user.proLevel = level;
+  user.proSince = Date.now();
+
+  await user.save();
+  await system.save();
+
+  return res.json({
+    success: true,
+    proLevel: user.proLevel,
+    tokens: user.tokens
+  });
+});
 
 // ===== TRANSFER TOKENS =====
 user.tokens -= price;
