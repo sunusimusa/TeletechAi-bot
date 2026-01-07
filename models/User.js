@@ -10,48 +10,36 @@ const UserSchema = new mongoose.Schema({
   freeTries: { type: Number, default: 3 },
   tokens: { type: Number, default: 0 },
 
+  // ===== WALLET =====
+  walletAddress: { type: String, unique: true },
+
   // ===== REFERRAL =====
   referralCode: { type: String },
   referredBy: { type: String, default: null },
   referralsCount: { type: Number, default: 0 },
+  seasonReferrals: { type: Number, default: 0 },
+
+  // ===== PRO =====
   isPro: { type: Boolean, default: false },
-proSince: { type: Number, default: null },
-  proLevel: { type: Number, default: 0 }, // 0=FREE, 1=PRO, 2=PRO+, 3=PRO MAX
-  proLevel: { type: Number, default: 0 }, // 0 = free
-proSince: { type: Number, default: 0 },
+  proLevel: { type: Number, default: 0 }, // 0=FREE, 1,2,3
+  proSince: { type: Number, default: null },
+
+  // ===== ENERGY / ADS =====
   adsWatchedToday: { type: Number, default: 0 },
-lastAdClaim: { type: Number, default: 0 },
+  lastAd: { type: Number, default: 0 },
+  lastAdClaim: { type: Number, default: 0 },
 
-isPro: { type: Boolean, default: false },
-proLevel: { type: Number, default: 0 }, // 0,1,2,3
-
-sentTokens: { type: Number, default: 0 },
-receivedTokens: { type: Number, default: 0 },
-  tokens: { type: Number, default: 0 },
-
-dailyTransferAmount: { type: Number, default: 0 },
-lastTransferDay: { type: String },
-
-lastTransferAt: { type: Number, default: 0 },
-  walletAddress: { type: String, unique: true },
+  // ===== TRANSFERS =====
+  sentTokens: { type: Number, default: 0 },
+  receivedTokens: { type: Number, default: 0 },
   sentToday: { type: Number, default: 0 },
+  lastSentDay: { type: String, default: "" },
+  lastTransferAt: { type: Number, default: 0 },
+  lastTransferDay: { type: String, default: "" },
 
-  seasonReferrals: {
-  type: Number,
-  default: 0
-},
-
-  walletAddress: { type: String, unique: true },
-
-sentToday: { type: Number, default: 0 },
-lastSentDay: { type: String, default: "" },
-  
-  
   // ===== DAILY =====
   dailyStreak: { type: Number, default: 0 },
   lastDaily: { type: Number, default: 0 },
-  lastAd: { type: Number, default: 0 },
-  lastAdClaim: { type: Number, default: 0 },
 
   // ===== TASKS =====
   joinedChannel: { type: Boolean, default: false },
@@ -75,7 +63,6 @@ lastSentDay: { type: String, default: "" },
       }
     }
   ]
-
 }, { timestamps: true });
 
 export default mongoose.model("User", UserSchema);
