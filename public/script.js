@@ -82,6 +82,7 @@ function updateUI() {
   const bar = document.getElementById("energyFill");
   if (bar) bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
 
+  renderFounderDashboard();
   // 👑 FOUNDER
   if (proLevel >= 4 || role === "founder") {
     document.getElementById("proBadge")?.classList.remove("hidden");
@@ -268,6 +269,26 @@ function copyRef() {
     document.getElementById("refLink").value
   );
   alert("👑 Referral link copied!");
+}
+
+function renderFounderDashboard() {
+  if (proLevel >= 4) {
+    const box = document.getElementById("founderDashboard");
+    if (box) box.classList.remove("hidden");
+  }
+}
+
+function openFounderStats() {
+  alert(
+    "👑 Founder Privileges\n\n" +
+    "• Unlimited Energy\n" +
+    "• Highest Rewards\n" +
+    "• Admin-level access (future)\n"
+  );
+}
+
+function openReferralLeaderboard() {
+  window.location.href = "/leaderboard.html";
 }
 
 // ================== AGREEMENT ==================
