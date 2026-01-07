@@ -260,6 +260,14 @@ async function claimDailyBonus(btn) {
   alert(`🎉 Daily bonus +${data.reward}`);
 }
 
+function requirePro(level = 1) {
+  if (proLevel < level) {
+    alert("🔒 This feature requires PRO level " + level);
+    return false;
+  }
+  return true;
+}
+
 function joinYouTube() {
   tg.openLink("https://www.youtube.com/@Sunusicrypto");
 
@@ -338,6 +346,11 @@ function openRoadmap() {
 
 function openWallet() {
   window.location.href = "/wallet.html";
+}
+
+function convertPoints() {
+  if (!requirePro(1)) return;
+  // continue convert
 }
 
 // ================== AGREEMENT ==================
