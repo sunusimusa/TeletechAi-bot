@@ -74,39 +74,59 @@ async function loadUser() {
 
 // ================== UI UPDATE ==================
 function updateUI() {
-  document.getElementById("balance").innerText = `Balance: ${balance}`;
-  document.getElementById("energy").innerText = `Energy: ${energy} / ${MAX_ENERGY}`;
-  document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
-  document.getElementById("refCount").innerText = `👥 Referrals: ${referralsCount}`;
+  // 🛡️ Kariya idan page ba shi da stats
+  const balanceEl = document.getElementById("balance");
+  if (!balanceEl) return;
 
-  // ===== FOUNDER LOGIC =====
+  // ===== BASIC STATS =====
+  balanceEl.innerText = `Balance: ${balance}`;
+  document.getElementById("energy").innerText =
+    `Energy: ${energy} / ${MAX_ENERGY}`;
+  document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
+  document.getElementById("refCount").innerText =
+    `👥 Referrals: ${referralsCount}`;
+
+  // ===== ENERGY BAR =====
+  const bar = document.getElementById("energyFill");
+  if (bar) {
+    const percent = Math.min((energy / MAX_ENERGY) * 100, 100);
+    bar.style.width = percent + "%";
+  }
+
+  // ===== ELEMENTS =====
   const founderDashboard = document.getElementById("founderDashboard");
   const founderActions = document.getElementById("founderActions");
   const proUpgradeBox = document.getElementById("proUpgradeBox");
   const proBadge = document.getElementById("proBadge");
 
+  // ===== 👑 FOUNDER MODE (PRO LEVEL 4) =====
   if (proLevel >= 4) {
-    // 👑 FOUNDER MODE
     document.body.classList.add("founder");
 
+    // 👑 Badge
     if (proBadge) {
       proBadge.innerText = "👑 FOUNDER";
       proBadge.classList.remove("hidden");
     }
 
-    if (founderDashboard) founderDashboard.classList.remove("hidden");
-    if (founderActions) founderActions.classList.remove("hidden");
-    if (proUpgradeBox) proUpgradeBox.classList.add("hidden");
+    // 👑 Founder panels
+    founderDashboard?.classList.remove("hidden");
+    founderActions?.classList.remove("hidden");
 
-  } else {
-    // 👤 NORMAL USER MODE
-    document.body.classList.remove("founder");
+    // 🚫 Hide upgrade buttons
+    proUpgradeBox?.classList.add("hidden");
 
-    if (founderDashboard) founderDashboard.classList.add("hidden");
-    if (founderActions) founderActions.classList.add("hidden");
-    if (proUpgradeBox) proUpgradeBox.classList.remove("hidden");
+    return; // 🔴 MUHIMMI – kada ya wuce nan
   }
-}
+
+  // ===== 👤 NORMAL USER MODE =====
+  document.body.classList.remove("founder");
+
+  proBadge?.classList.add("hidden");
+  founderDashboard?.classList.add("hidden");
+  founderActions?.classList.add("hidden");
+  proUpgradeBox?.classList.remove("hidden");
+    }
 
 // ================== TUTORIAL ==================
 function showTutorialOnce() {
