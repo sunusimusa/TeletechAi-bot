@@ -26,7 +26,6 @@ const MAX_ENERGY = 100;
 // ================== INIT ==================
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
-  startEnergyRegen(); // ⚡ auto energy
 
   // 🔄 AUTO REFRESH USER DATA (every 5 seconds)
   setInterval(() => {
@@ -81,16 +80,6 @@ function updateUI() {
   document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
   document.getElementById("refCount").innerText =
     `👥 Referrals: ${referralsCount}`;
-}
-
-// ================== ENERGY AUTO REGEN ==================
-function startEnergyRegen() {
-  setInterval(() => {
-    if (energy < MAX_ENERGY) {
-      energy += 1;
-      updateUI();
-    }
-  }, 60000); // every 1 minute
 }
 
 // ================== SOUND ==================
