@@ -82,6 +82,11 @@ function updateUI() {
     `👥 Referrals: ${referralsCount}`;
 }
 
+if (proLevel === 4) {
+  document.getElementById("proBadge").innerText = "👑 FOUNDER";
+  document.getElementById("proBadge").classList.remove("hidden");
+}
+
 // ================== SOUND ==================
 function playSound(type) {
   if (!soundEnabled) return;
