@@ -89,18 +89,24 @@
     🔁 Convert Points
   </button>
 
-  <!-- 🚀 PRO UPGRADE -->
-  <div class="pro-upgrade">
-    <button id="upgradeBtn" onclick="upgradePro(1)">
-      🚀 Upgrade to PRO (Lv1)
-    </button>
-    <button id="proLv2Btn" onclick="upgradePro(2)">
-      ⭐ PRO Level 2
-    </button>
-    <button id="proLv3Btn" onclick="upgradePro(3)">
-      👑 PRO Level 3
-    </button>
-  </div>
+<!-- 🚀 PRO UPGRADE (USER ONLY) -->
+<div id="proUpgradeBox" class="pro-upgrade">
+  <button id="upgradeBtn" onclick="upgradePro(1)">
+    🚀 Upgrade to PRO (Lv1)
+  </button>
+  <button id="proLv2Btn" onclick="upgradePro(2)">
+    ⭐ Upgrade to PRO Level 2 (10 TOKEN)
+  </button>
+  <button id="proLv3Btn" onclick="upgradePro(3)">
+    👑 Upgrade to PRO Level 3 (20 TOKEN)
+  </button>
+</div>
+
+<!-- 👑 FOUNDER ACTIONS (LEVEL 4 ONLY) -->
+<div id="founderActions" class="hidden founder-actions">
+  <button onclick="openFounderStats()">📊 Founder Global Stats</button>
+  <button onclick="openReferralLeaderboard()">🏆 Referral Leaderboard</button>
+</div>
 
   <!-- 👥 REFERRAL -->
   <div class="referral-box">
