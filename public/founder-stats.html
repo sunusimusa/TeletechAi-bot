@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>👑 Founder Stats</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body class="founder">
+
+  <h2 class="title">👑 Founder Global Stats</h2>
+  <p class="roadmap-sub">Live system overview</p>
+
+  <div class="roadmap-card active">
+    <p>👥 <b>Total Users</b></p>
+    <h3 id="totalUsers">0</h3>
+  </div>
+
+  <div class="roadmap-card completed">
+    <p>🚀 <b>PRO Users</b></p>
+    <h3 id="proUsers">0</h3>
+  </div>
+
+  <div class="roadmap-card completed">
+    <p>👑 <b>Founders</b></p>
+    <h3 id="founders">0</h3>
+  </div>
+
+  <div class="roadmap-card active">
+    <p>🪙 <b>Total Tokens (All Users)</b></p>
+    <h3 id="totalTokens">0</h3>
+  </div>
+
+  <div class="roadmap-card active">
+    <p>🏦 <b>System Wallet Balance</b></p>
+    <h3 id="systemBalance">0</h3>
+  </div>
+
+  <div class="roadmap-card upcoming">
+    <p>👥 <b>Total Referrals</b></p>
+    <h3 id="totalReferrals">0</h3>
+  </div>
+
+  <button class="back-btn" onclick="goBack()">⬅ Back to Dashboard</button>
+
+  <script src="founder-stats.js"></script>
+</body>
+</html>
