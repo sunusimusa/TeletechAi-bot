@@ -1,5 +1,5 @@
 import { REF_SEASON } from "../config/season.js";
-import { runReferralPayout } from "./refPayout.service.js";
+import { payReferralWinners } from "./referralReward.service.js";
 
 export async function checkReferralSeason() {
   const now = new Date();
@@ -13,7 +13,7 @@ export async function checkReferralSeason() {
   console.log("🏁 Referral season ended → paying rewards");
 
   // ✅ PAYOUT
-  await runReferralPayout();
+  await payReferralWinners();
 
   // 🔒 lock season
   REF_SEASON.paid = true;
