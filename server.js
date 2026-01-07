@@ -655,9 +655,8 @@ app.get("/api/ref/leaderboard", async (req, res) => {
 
 import { checkReferralSeason } from "./services/season.service.js";
 
-// ⏱️ check every 1 hour
 setInterval(() => {
-checkReferralSeason().catch(console.error);
+  checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
 /* ================= ROUTES ================= */
