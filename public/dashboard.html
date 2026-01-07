@@ -1,14 +1,136 @@
-<!-- 👑 FOUNDER DASHBOARD -->
-<div id="founderDashboard" class="hidden founder-box">
-  <h2>👑 Founder Dashboard</h2>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>TeleTech AI Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <div class="founder-stats">
-    <p>🔥 Unlimited Energy</p>
-    <p>⚡ Fast Regen (30s)</p>
-    <p>🎁 Max Daily Rewards</p>
-    <p>👥 Referral Multiplier x2</p>
+  <!-- Telegram WebApp -->
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+  <!-- Main CSS -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- 🔔 AGREEMENT MODAL -->
+  <div id="agreementModal" class="agreement-modal hidden">
+    <div class="agreement-box">
+      <h3>📜 Agreement</h3>
+      <p>
+        By using this app, you agree to our
+        <a href="/privacy.html" target="_blank">Privacy Policy</a>
+        and
+        <a href="/terms.html" target="_blank">Terms of Service</a>.
+      </p>
+      <button onclick="acceptAgreement()">✅ I Agree</button>
+    </div>
   </div>
 
-  <button onclick="openFounderStats()">📊 Global Stats</button>
-  <button onclick="openReferralLeaderboard()">🏆 Referral Leaderboard</button>
-</div>
+  <!-- 👑 PRO BADGE -->
+  <div id="proBadge" class="pro-badge hidden">⭐ PRO</div>
+
+  <!-- 👑 FOUNDER DASHBOARD -->
+  <div id="founderDashboard" class="hidden founder-box">
+    <h2>👑 Founder Dashboard</h2>
+
+    <div class="founder-stats">
+      <p>🔥 Unlimited Energy</p>
+      <p>⚡ Fast Regen (30s)</p>
+      <p>🎁 Max Daily Rewards</p>
+      <p>👥 Referral Multiplier x2</p>
+    </div>
+
+    <div class="founder-actions">
+      <button onclick="openFounderStats()">📊 Global Stats</button>
+      <button onclick="openReferralLeaderboard()">🏆 Referral Leaderboard</button>
+    </div>
+  </div>
+
+  <!-- 🎁 GAME TITLE -->
+  <h2 class="title">🎁 Lucky Box Game</h2>
+
+  <!-- 📦 BOXES -->
+  <div class="boxes">
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+  </div>
+
+  <!-- 📊 USER STATS -->
+  <div class="stats">
+    <p id="balance">Balance: 0</p>
+    <p id="energy">Energy: 0 / 100</p>
+    <p id="tokens">Tokens: 0</p>
+    <p id="refCount">👥 Referrals: 0</p>
+  </div>
+
+  <!-- ⚡ ENERGY BAR -->
+  <div class="energy-bar">
+    <div id="energyFill" class="energy-fill"></div>
+  </div>
+
+  <!-- ⚡ ENERGY ACTIONS -->
+  <div class="actions">
+    <button onclick="buy100Energy()">⚡ Buy 100 Energy</button>
+    <button onclick="buy500Energy()">⚡ Buy 500 Energy</button>
+  </div>
+
+  <!-- 🎁 DAILY -->
+  <button id="dailyBtn" onclick="claimDailyBonus(this)">
+    🎁 Daily Bonus
+  </button>
+
+  <!-- 🔁 CONVERT -->
+  <button onclick="convertPoints()">
+    🔁 Convert Points
+  </button>
+
+  <!-- 🚀 PRO UPGRADE -->
+  <div class="pro-upgrade">
+    <button id="upgradeBtn" onclick="upgradePro(1)">
+      🚀 Upgrade to PRO (Lv1)
+    </button>
+    <button id="proLv2Btn" onclick="upgradePro(2)">
+      ⭐ PRO Level 2
+    </button>
+    <button id="proLv3Btn" onclick="upgradePro(3)">
+      👑 PRO Level 3
+    </button>
+  </div>
+
+  <!-- 👥 REFERRAL -->
+  <div class="referral-box">
+    <p>Your Referral Link:</p>
+    <input id="refLink" readonly />
+    <button onclick="copyRef()">📋 Copy</button>
+  </div>
+
+  <!-- 📌 TASKS -->
+  <div class="tasks">
+    <button onclick="joinYouTube()">📺 Join YouTube</button>
+    <button onclick="joinGroup()">💬 Join Community</button>
+    <button onclick="joinChannel()">📢 Join Channel</button>
+  </div>
+
+  <!-- 🧭 NAVIGATION -->
+  <div class="nav">
+    <button onclick="openWallet()">👜 Wallet</button>
+    <button onclick="openRoadmap()">🗺️ Roadmap</button>
+    <button onclick="goLeaderboard()">🏆 Leaderboard</button>
+  </div>
+
+  <!-- 🔊 SOUNDS -->
+  <audio id="clickSound" src="/sounds/click.mp3"></audio>
+  <audio id="winSound" src="/sounds/win.mp3"></audio>
+  <audio id="loseSound" src="/sounds/lose.mp3"></audio>
+  <audio id="errorSound" src="/sounds/error.mp3"></audio>
+
+  <!-- 🧠 MAIN SCRIPT -->
+  <script src="script.js"></script>
+
+</body>
+  </html>
