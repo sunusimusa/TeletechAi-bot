@@ -166,8 +166,18 @@ function convertPoints() {
 }
 
 async function openBox(box) {
-  // 🛑 block idan yana buɗe
   if (openingLocked) return;
+
+  if (box.classList.contains("opened")) {
+    openingLocked = false;
+    return;
+  }
+
+  if (energy < 10 && freeTries <= 0) {
+    alert("⚡ Not enough energy");
+    openingLocked = false;
+    return;
+  }
 
   openingLocked = true;
   playSound("click");
@@ -176,45 +186,37 @@ async function openBox(box) {
     const res = await fetch("/api/open", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        telegramId: TELEGRAM_ID
-      })
+      body: JSON.stringify({ telegramId: TELEGRAM_ID })
     });
 
     const data = await res.json();
 
     if (data.error) {
       alert("❌ " + data.error.replaceAll("_", " "));
-      openingLocked = false; // 🔥 MUHIMMI
+      openingLocked = false;
       return;
     }
 
-    // ✅ OPEN BOX UI
     box.classList.add("opened");
 
     if (data.reward > 0) {
       box.innerText = `💰 ${data.reward}`;
       playSound("win");
-
-      if (data.reward >= 200) {
-        box.classList.add("rare");
-      }
+      if (data.reward >= 200) box.classList.add("rare");
     } else {
       box.innerText = "😢";
       playSound("lose");
     }
 
-    // 🔄 UPDATE STATE
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
     updateUI();
 
-    // ⏱️ CLOSE BOX
     setTimeout(() => {
       box.classList.remove("opened", "rare");
       box.innerText = "";
-      openingLocked = false; // 🔥 SAKI LOCK
+      openingLocked = false;
     }, 1500);
 
   } catch (err) {
