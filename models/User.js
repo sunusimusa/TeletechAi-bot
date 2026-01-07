@@ -23,6 +23,13 @@ const UserSchema = new mongoose.Schema({
   isPro: { type: Boolean, default: false },
   proLevel: { type: Number, default: 0 }, // 0=FREE, 1,2,3
   proSince: { type: Number, default: null },
+  
+  // ===== ROLES =====
+role: {
+  type: String,
+  enum: ["user", "founder"],
+  default: "user"
+}
 
   // ===== ENERGY / ADS =====
   adsWatchedToday: { type: Number, default: 0 },
