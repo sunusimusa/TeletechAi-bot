@@ -7,8 +7,6 @@ if (!window.Telegram || !Telegram.WebApp || !Telegram.WebApp.initDataUnsafe?.use
 const tg = Telegram.WebApp;
 tg.expand();
 
-const TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
-
 // ================== GLOBAL STATE ==================
 let balance = 0;
 let energy = 0;
@@ -35,10 +33,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 // ================== LOAD USER (FIXED) ==================
 async function loadUser() {
   try {
-    const tg = window.Telegram?.WebApp;
-    const telegramId =
-      tg?.initDataUnsafe?.user?.id || "guest";
-
+    const telegramId = TELEGRAM_ID;
     const ref =
       tg?.initDataUnsafe?.start_param || null;
 
