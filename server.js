@@ -386,6 +386,10 @@ const price = PRICES[level];
 
 if (user.tokens < price)
 return res.json({ error: "NOT_ENOUGH_TOKENS" });
+  
+if (level === 4) {
+  return res.json({ error: "LEVEL_NOT_AVAILABLE" });
+}
 
 // ===== TRANSFER TOKENS =====
 user.tokens -= price;
