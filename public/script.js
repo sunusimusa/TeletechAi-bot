@@ -149,6 +149,76 @@ function convertPoints() {
   });
 }
 
+async function openBox(box) {
+  if (openingLocked) return;
+  if (box.classList.contains("opened")) return;
+
+  openingLocked = true;
+  playSound("click");
+
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: TELEGRAM_ID })
+    });
+
+    const data = await res.json();
+    if (data.error) throw data.error;
+
+    box.classList.add("opened");
+
+    if (data.reward === 0) {
+      box.innerText = "😢";
+      playSound("lose");
+    } else {
+      box.innerText = `💰 ${data.reward}`;
+      playSound("win");
+    }
+
+    // 👑 Founder / PRO highlight
+    if (data.reward >= 500 && proLevel >= 3) {
+      box.classList.add("rare");
+    }
+
+    // update state
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+
+    updateUI();
+    openedCount++;
+
+    // close box
+    setTimeout(() => {
+      box.classList.remove("opened", "rare");
+      box.innerText = "";
+    }, 1500);
+
+    setTimeout(() => {
+      openingLocked = false;
+    }, 300);
+
+    // reset all after 6
+    if (openedCount >= 6) {
+      setTimeout(resetAllBoxes, 1800);
+    }
+
+  } catch (err) {
+    playSound("error");
+    alert(err.replaceAll("_", " "));
+    openingLocked = false;
+  }
+}
+
+function resetAllBoxes() {
+  document.querySelectorAll(".box").forEach(b => {
+    b.classList.remove("opened", "rare");
+    b.innerText = "";
+  });
+  openedCount = 0;
+}
+
 function joinYouTube() {
   tg.openLink("https://www.youtube.com/@Sunusicrypto");
 
