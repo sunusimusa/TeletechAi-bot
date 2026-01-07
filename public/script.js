@@ -394,3 +394,17 @@ async function sendToken() {
   document.getElementById("sendMsg").innerText =
     `✅ Sent ${amount} TOKEN (Gas ${data.gas})`;
 }
+
+// ===== AGREEMENT CHECK =====
+document.addEventListener("DOMContentLoaded", () => {
+  const agreed = localStorage.getItem("user_agreed");
+
+  if (!agreed) {
+    document.getElementById("agreementModal").style.display = "flex";
+  }
+});
+
+function acceptAgreement() {
+  localStorage.setItem("user_agreed", "yes");
+  document.getElementById("agreementModal").style.display = "none";
+}
