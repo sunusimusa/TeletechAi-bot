@@ -7,6 +7,8 @@ if (!window.Telegram || !Telegram.WebApp || !Telegram.WebApp.initDataUnsafe?.use
 const tg = Telegram.WebApp;
 tg.expand();
 
+const TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
+
 // ================== GLOBAL STATE ==================
 let balance = 0;
 let energy = 0;
