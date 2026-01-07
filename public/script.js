@@ -184,6 +184,63 @@ function resetAllBoxes() {
   openedCount = 0;
 }
 
+function buy100Energy() {
+  buyEnergy(100);
+}
+
+function buy500Energy() {
+  buyEnergy(500);
+}
+
+async function buyEnergy(amount) {
+  const res = await fetch("/api/buy-energy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      amount
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) {
+    alert("❌ " + data.error.replaceAll("_", " "));
+    return;
+  }
+
+  energy = data.energy;
+  balance = data.balance;
+  updateUI();
+
+  alert(`⚡ +${amount} Energy purchased`);
+}
+
+async function claimDailyBonus(btn) {
+  const res = await fetch("/api/daily", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: TELEGRAM_ID })
+  });
+
+  const data = await res.json();
+  if (data.error) {
+    alert("⏳ Daily bonus already claimed");
+    btn.disabled = true;
+    btn.style.opacity = 0.5;
+    return;
+  }
+
+  balance = data.balance;
+  energy = data.energy;
+  updateUI();
+
+  btn.disabled = true;
+  btn.innerText = "🎁 Claimed";
+  btn.style.opacity = 0.5;
+
+  alert(`🎉 Daily bonus +${data.reward}`);
+}
+
 function joinYouTube() {
   tg.openLink("https://www.youtube.com/@Sunusicrypto");
 
@@ -240,7 +297,29 @@ function convertPoints() {
   });
 }
 
+document.addEventListener("DOMContentLoaded", () => {
+  const lastDaily = localStorage.getItem("lastDailyClaim");
+  const today = new Date().toDateString();
 
+  if (lastDaily === today) {
+    const btn = document.getElementById("dailyBtn");
+    if (btn) {
+      btn.disabled = true;
+      btn.innerText = "🎁 Claimed";
+      btn.style.opacity = 0.5;
+    }
+  }
+});
+
+localStorage.setItem("lastDailyClaim", new Date().toDateString());
+
+function openRoadmap() {
+  window.location.href = "/roadmap.html";
+}
+
+function openWallet() {
+  window.location.href = "/wallet.html";
+}
 
 // ================== AGREEMENT ==================
 document.addEventListener("DOMContentLoaded", () => {
