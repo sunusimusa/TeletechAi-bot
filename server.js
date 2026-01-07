@@ -355,56 +355,69 @@ res.json({ tokens: user.tokens });
 });
 
 app.post("/api/pro/upgrade", async (req, res) => {
-  const { telegramId, level } = req.body;
+  try {
+    const { telegramId, level } = req.body;
 
-  if (!telegramId)
-    return res.json({ error: "NO_TELEGRAM_ID" });
+    if (!telegramId)
+      return res.json({ error: "NO_TELEGRAM_ID" });
 
-  const user = await User.findOne({ telegramId });
-  if (!user)
-    return res.json({ error: "USER_NOT_FOUND" });
+    const user = await User.findOne({ telegramId });
+    if (!user)
+      return res.json({ error: "USER_NOT_FOUND" });
 
-  const system = await User.findOne({ telegramId: "SYSTEM" });
-  if (!system)
-    return res.json({ error: "SYSTEM_WALLET_MISSING" });
+    // 🚫 PRO 4 (FOUNDER) ba a sayarwa
+    if (level === 4) {
+      return res.json({ error: "LEVEL_NOT_AVAILABLE" });
+    }
 
-  // 🚫 PRO LEVEL 4+ (FOUNDER / ADMIN ONLY)
-  if (level >= 4) {
-    return res.json({ error: "LEVEL_RESTRICTED" });
+    // 🚫 idan tuni founder ne
+    if (user.proLevel >= 4) {
+      return res.json({ error: "ALREADY_FOUNDER" });
+    }
+
+    // ===== PRO PRICES =====
+    const PRICES = {
+      1: 5,
+      2: 10,
+      3: 20
+    };
+
+    if (!PRICES[level])
+      return res.json({ error: "INVALID_LEVEL" });
+
+    if (user.proLevel >= level)
+      return res.json({ error: "ALREADY_UPGRADED" });
+
+    const price = PRICES[level];
+
+    if (user.tokens < price)
+      return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+    const system = await User.findOne({ telegramId: "SYSTEM" });
+    if (!system)
+      return res.json({ error: "SYSTEM_WALLET_MISSING" });
+
+    // 🔥 APPLY UPGRADE
+    user.tokens -= price;
+    system.tokens += price;
+
+    user.isPro = true;
+    user.proLevel = level;
+    user.proSince = Date.now();
+
+    await user.save();
+    await system.save();
+
+    return res.json({
+      success: true,
+      proLevel: user.proLevel,
+      tokens: user.tokens
+    });
+
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ error: "SERVER_ERROR" });
   }
-
-  // ===== PRO PRICES =====
-  const PRICES = {
-    1: 5,
-    2: 10,
-    3: 20
-  };
-
-  if (!PRICES[level])
-    return res.json({ error: "INVALID_LEVEL" });
-
-  if (user.proLevel >= level)
-    return res.json({ error: "ALREADY_UPGRADED" });
-
-  if (user.tokens < PRICES[level])
-    return res.json({ error: "NOT_ENOUGH_TOKENS" });
-
-  // ===== APPLY =====
-  user.tokens -= PRICES[level];
-  system.tokens += PRICES[level];
-
-  user.isPro = true;
-  user.proLevel = level;
-  user.proSince = Date.now();
-
-  await user.save();
-  await system.save();
-
-  return res.json({
-    success: true,
-    proLevel: user.proLevel,
-    tokens: user.tokens
-  });
 });
 
 // ===== TRANSFER TOKENS =====
