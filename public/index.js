@@ -14,7 +14,7 @@ function joinYouTube(e) {
   e.preventDefault(); // ⛔ hana auto back
 
   window.open(
-    "https://youtube.com/@YOUR_CHANNEL",
+    "https://www.youtube.com/@Sunusicrypto",
     "_blank"
   );
 
@@ -26,7 +26,7 @@ function joinGroup(e) {
   e.preventDefault(); // ⛔ hana auto back
 
   window.open(
-    "https://t.me/YOUR_GROUP_LINK",
+    "https://t.me/tele_tap_ai",
     "_blank"
   );
 
@@ -38,7 +38,7 @@ function joinChannel(e) {
   e.preventDefault(); // ⛔ hana auto back
 
   window.open(
-    "https://t.me/teletechai_bot",
+    "https://t.me/TeleAIupdates",
     "_blank"
   );
 
