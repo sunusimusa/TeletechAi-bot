@@ -81,11 +81,10 @@ function updateUI() {
 
   const bar = document.getElementById("energyFill");
   if (bar) {
-    const percent = Math.min((energy / MAX_ENERGY) * 100, 100);
-    bar.style.width = percent + "%";
+    bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 
-  // 👑 PRO / FOUNDER UI
+  // ===== PRO LEVEL 4 (FOUNDER) =====
   if (proLevel >= 4) {
     // Badge
     const badge = document.getElementById("proBadge");
@@ -94,20 +93,21 @@ function updateUI() {
       badge.classList.remove("hidden");
     }
 
-    // Founder dashboard
-    const founderDash = document.getElementById("founderDashboard");
-    if (founderDash) {
-      founderDash.classList.remove("hidden");
-    }
+    // Hide normal upgrade buttons
+    document.getElementById("proUpgradeBox")?.classList.add("hidden");
 
-    // Remove upgrade buttons
-    document.getElementById("upgradeBtn")?.remove();
-    document.getElementById("proLv2Btn")?.remove();
-    document.getElementById("proLv3Btn")?.remove();
+    // Show founder dashboard + actions
+    document.getElementById("founderDashboard")?.classList.remove("hidden");
+    document.getElementById("founderActions")?.classList.remove("hidden");
 
-    // Optional: body glow
     document.body.classList.add("founder");
+    return;
   }
+
+  // ===== NORMAL USERS =====
+  document.getElementById("proUpgradeBox")?.classList.remove("hidden");
+  document.getElementById("founderDashboard")?.classList.add("hidden");
+  document.getElementById("founderActions")?.classList.add("hidden");
 }
 
 // ================== TUTORIAL ==================
