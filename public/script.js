@@ -20,32 +20,30 @@ let openedCount = 0;
 let soundEnabled = true;
 let openingLocked = false;
 
+// 🔥 PRO STATE
+let proLevel = 0;
+let isPro = false;
+let role = "user";
 
-const MAX_ENERGY = 100;
+let MAX_ENERGY = 100;
 
 // ================== INIT ==================
 document.addEventListener("DOMContentLoaded", async () => {
   await loadUser();
 
-  // 🔄 AUTO REFRESH USER DATA (every 5 seconds)
-  setInterval(() => {
-    loadUser();
-  }, 5000);
+  // 🔄 AUTO REFRESH USER DATA
+  setInterval(loadUser, 5000);
 });
 
-// ================== LOAD USER (FIXED) ==================
+// ================== LOAD USER ==================
 async function loadUser() {
   try {
-    const telegramId = TELEGRAM_ID;
-    const ref =
-      tg?.initDataUnsafe?.start_param || null;
-
     const res = await fetch("/api/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        telegramId,
-        ref
+        telegramId: TELEGRAM_ID,
+        ref: tg.initDataUnsafe?.start_param || null
       })
     });
 
@@ -59,7 +57,19 @@ async function loadUser() {
     referralCode = data.referralCode ?? "";
     referralsCount = data.referralsCount ?? 0;
 
-    // 🔗 referral link
+    // ✅ PRO DATA
+    proLevel = data.proLevel ?? 0;
+    isPro = data.isPro ?? false;
+    role = data.role ?? "user";
+
+    // 🔥 MAX ENERGY BY LEVEL
+    MAX_ENERGY = 100;
+    if (proLevel === 1) MAX_ENERGY = 150;
+    if (proLevel === 2) MAX_ENERGY = 200;
+    if (proLevel === 3) MAX_ENERGY = 300;
+    if (proLevel >= 4) MAX_ENERGY = 9999;
+
+    // 🔗 Referral link
     if (referralCode) {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
@@ -67,19 +77,17 @@ async function loadUser() {
 
     updateUI();
   } catch (err) {
-    alert("❌ Failed to load user");
     console.error(err);
+    alert("❌ Failed to load user");
   }
 }
 
 // ================== UI UPDATE ==================
 function updateUI() {
   document.getElementById("balance").innerText = `Balance: ${balance}`;
-  document.getElementById("energy").innerText =
-    `Energy: ${energy} / ${MAX_ENERGY}`;
+  document.getElementById("energy").innerText = `Energy: ${energy} / ${MAX_ENERGY}`;
   document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
-  document.getElementById("refCount").innerText =
-    `👥 Referrals: ${referralsCount}`;
+  document.getElementById("refCount").innerText = `👥 Referrals: ${referralsCount}`;
 
   // 👑 FOUNDER BADGE
   if (proLevel >= 4) {
@@ -115,8 +123,7 @@ function playSound(type) {
 
 // ================== OPEN BOX ==================
 async function openBox(box) {
-  if (openingLocked) return;
-  if (box.classList.contains("opened")) return;
+  if (openingLocked || box.classList.contains("opened")) return;
 
   openingLocked = true;
   playSound("click");
@@ -131,7 +138,6 @@ async function openBox(box) {
     const data = await res.json();
     if (data.error) throw data.error;
 
-    // 🔓 Buɗe box
     box.classList.add("opened");
 
     if (data.reward === 0) {
@@ -142,30 +148,23 @@ async function openBox(box) {
       playSound("win");
     }
 
-    if (data.reward >= 200 && data.isPro) {
-  box.classList.add("rare");
-    }
-
-    // update state
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
+
     updateUI();
 
     openedCount++;
 
-    // ⏱️ rufe wannan box bayan 1.5s
     setTimeout(() => {
       box.classList.remove("opened");
       box.innerText = "";
     }, 1500);
 
-    // ⏱️ sake bada damar buɗe wani box
     setTimeout(() => {
       openingLocked = false;
     }, 300);
 
-    // 🔄 idan an buɗe 6 → reset duka
     if (openedCount >= 6) {
       setTimeout(resetAllBoxes, 1800);
     }
@@ -178,140 +177,24 @@ async function openBox(box) {
 }
 
 function resetAllBoxes() {
-  document.querySelectorAll(".box").forEach(box => {
-    box.classList.remove("opened");
-    box.innerText = "";
+  document.querySelectorAll(".box").forEach(b => {
+    b.classList.remove("opened", "rare");
+    b.innerText = "";
   });
   openedCount = 0;
 }
 
-function resetBoxes() {
-  document.querySelectorAll(".box").forEach(box => {
-    box.classList.remove("opened", "rare");
-    box.innerText = "";
-  });
-  openedCount = 0;
-}
-
-// ================== DAILY BONUS ==================
-async function claimDaily() {
-  const res = await fetch("/api/daily", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  });
-
-  const data = await res.json();
-  if (data.error) {
-    document.getElementById("dailyMsg").innerText = data.error;
-    return;
-  }
-
-  balance = data.balance;
-  energy = data.energy;
-
-  document.getElementById("dailyMsg").innerText =
-    `🎉 Daily reward +${data.reward}`;
-
-  updateUI();
-}
-
-// ================== CONVERT POINTS ==================
-async function convertPoints() {
-  const res = await fetch("/api/convert", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-}
-
-function openRoadmap() {
-  window.location.href = "/roadmap.html";
-}
-
-function openWallet() {
-  window.location.href = "/wallet.html";
-}
-
-// ================== MARKET ==================
-async function buyToken(amount = 1) {
-  const res = await fetch("/api/market/buy", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID, amount })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-}
-
-async function sellToken(amount = 1) {
-  const res = await fetch("/api/market/sell", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID, amount })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-}
-
-// ================== BUY ENERGY ==================
-async function buyEnergy(amount) {
-  const res = await fetch("/api/buy-energy", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ telegramId: TELEGRAM_ID, amount })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  balance = data.balance;
-  energy = data.energy;
-  updateUI();
-}
-
-// ================== REFERRAL ==================
-function copyRef() {
-  navigator.clipboard.writeText(
-    document.getElementById("refLink").value
-  );
-  alert("✅ Referral link copied");
-}
-
-// ================== TASKS ==================
 function joinYouTube() {
   tg.openLink("https://www.youtube.com/@Sunusicrypto");
 
   setTimeout(async () => {
-    const res = await fetch("/api/task/youtube", {
+    await fetch("/api/task/youtube", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telegramId: TELEGRAM_ID })
     });
-
-    const data = await res.json();
-    if (!data.error) {
-      tokens = data.tokens;
-      updateUI();
-      alert("🎉 +10 TOKEN");
-    }
+    loadUser();
+    alert("🎉 YouTube task completed!");
   }, 4000);
 }
 
@@ -319,18 +202,13 @@ function joinGroup() {
   tg.openLink("https://t.me/tele_tap_ai");
 
   setTimeout(async () => {
-    const res = await fetch("/api/task/group", {
+    await fetch("/api/task/group", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telegramId: TELEGRAM_ID })
     });
-
-    const data = await res.json();
-    if (!data.error) {
-      tokens = data.tokens;
-      updateUI();
-      alert("🎉 +5 TOKEN");
-    }
+    loadUser();
+    alert("🎉 Community joined!");
   }, 4000);
 }
 
@@ -338,81 +216,35 @@ function joinChannel() {
   tg.openLink("https://t.me/TeleAIupdates");
 
   setTimeout(async () => {
-    const res = await fetch("/api/task/channel", {
+    await fetch("/api/task/channel", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ telegramId: TELEGRAM_ID })
     });
-
-    const data = await res.json();
-    if (!data.error) {
-      tokens = data.tokens;
-      updateUI();
-      alert("🎉 +5 TOKEN");
-    }
+    loadUser();
+    alert("🎉 Channel joined!");
   }, 4000);
-    }
-
-async function upgradePro(level) {
-  const res = await fetch("/api/pro/upgrade", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: TELEGRAM_ID,
-      level
-    })
-  });
-
-  const data = await res.json();
-
-  if (data.error) {
-    alert(data.error.replaceAll("_", " "));
-    return;
-  }
-
-  alert(
-    `🚀 PRO Level ${level} Activated!\n🔥 Burned: ${data.burned}\n🏦 System: ${data.systemReceived}`
-  );
-
-  loadUser();
 }
 
-async function sendToken() {
-  const toWallet = document.getElementById("toWallet").value.trim();
-  const amount = Number(
-    document.getElementById("sendAmount").value
-  );
-
-  const res = await fetch("/api/send", {
+function convertPoints() {
+  fetch("/api/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: TELEGRAM_ID,
-      toWallet,
-      amount
-    })
+    body: JSON.stringify({ telegramId: TELEGRAM_ID })
+  })
+  .then(r => r.json())
+  .then(d => {
+    if (d.error) return alert(d.error);
+    loadUser();
+    alert("✅ Converted successfully");
   });
-
-  const data = await res.json();
-
-  if (data.error) {
-    document.getElementById("sendMsg").innerText =
-      "❌ " + data.error.replaceAll("_", " ");
-    return;
-  }
-
-  tokens = data.balance;
-  updateUI();
-
-  document.getElementById("sendMsg").innerText =
-    `✅ Sent ${amount} TOKEN (Gas ${data.gas})`;
 }
 
-// ===== AGREEMENT CHECK =====
+
+
+// ================== AGREEMENT ==================
 document.addEventListener("DOMContentLoaded", () => {
-  const agreed = localStorage.getItem("user_agreed");
-
-  if (!agreed) {
+  if (!localStorage.getItem("user_agreed")) {
     document.getElementById("agreementModal").style.display = "flex";
   }
 });
@@ -420,4 +252,4 @@ document.addEventListener("DOMContentLoaded", () => {
 function acceptAgreement() {
   localStorage.setItem("user_agreed", "yes");
   document.getElementById("agreementModal").style.display = "none";
-}
+               }
