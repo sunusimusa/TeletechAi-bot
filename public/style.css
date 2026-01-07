@@ -862,3 +862,18 @@ html {
   background: linear-gradient(90deg, #00ff88, #00ccff);
   transition: width 0.4s ease;
 }
+
+body.founder {
+  box-shadow: inset 0 0 80px rgba(255,215,0,0.12);
+}
+
+button {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:active {
+  transform: scale(0.96);
+  box-shadow: 0 0 12px rgba(0,255,255,0.4);
+  }
+
+
