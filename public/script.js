@@ -89,6 +89,10 @@ function updateUI() {
   document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
   document.getElementById("refCount").innerText = `👥 Referrals: ${referralsCount}`;
 
+const percent = Math.min((energy / MAX_ENERGY) * 100, 100);
+const bar = document.getElementById("energyFill");
+if (bar) bar.style.width = percent + "%";
+  
   // 👑 FOUNDER BADGE
   if (proLevel >= 4) {
     const badge = document.getElementById("proBadge");
@@ -101,6 +105,21 @@ function updateUI() {
     document.getElementById("proLv2Btn")?.remove();
     document.getElementById("proLv3Btn")?.remove();
   }
+
+  document.addEventListener("DOMContentLoaded", () => {
+  const seen = localStorage.getItem("tutorial_seen");
+
+  if (!seen) {
+    alert(
+      "👋 Welcome to TeleTech AI!\n\n" +
+      "🎁 Claim Daily Bonus\n" +
+      "⚡ Use Energy to open boxes\n" +
+      "👥 Invite friends to earn more\n" +
+      "🚀 Upgrade to PRO for benefits"
+    );
+    localStorage.setItem("tutorial_seen", "yes");
+  }
+});
 }
 
 // ================== SOUND ==================
