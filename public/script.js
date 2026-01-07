@@ -79,35 +79,33 @@ function updateUI() {
   document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
   document.getElementById("refCount").innerText = `👥 Referrals: ${referralsCount}`;
 
-  const bar = document.getElementById("energyFill");
-  if (bar) {
-    bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
-  }
+  // ===== FOUNDER LOGIC =====
+  const founderDashboard = document.getElementById("founderDashboard");
+  const founderActions = document.getElementById("founderActions");
+  const proUpgradeBox = document.getElementById("proUpgradeBox");
+  const proBadge = document.getElementById("proBadge");
 
-  // ===== PRO LEVEL 4 (FOUNDER) =====
   if (proLevel >= 4) {
-    // Badge
-    const badge = document.getElementById("proBadge");
-    if (badge) {
-      badge.innerText = "👑 FOUNDER";
-      badge.classList.remove("hidden");
+    // 👑 FOUNDER MODE
+    document.body.classList.add("founder");
+
+    if (proBadge) {
+      proBadge.innerText = "👑 FOUNDER";
+      proBadge.classList.remove("hidden");
     }
 
-    // Hide normal upgrade buttons
-    document.getElementById("proUpgradeBox")?.classList.add("hidden");
+    if (founderDashboard) founderDashboard.classList.remove("hidden");
+    if (founderActions) founderActions.classList.remove("hidden");
+    if (proUpgradeBox) proUpgradeBox.classList.add("hidden");
 
-    // Show founder dashboard + actions
-    document.getElementById("founderDashboard")?.classList.remove("hidden");
-    document.getElementById("founderActions")?.classList.remove("hidden");
+  } else {
+    // 👤 NORMAL USER MODE
+    document.body.classList.remove("founder");
 
-    document.body.classList.add("founder");
-    return;
+    if (founderDashboard) founderDashboard.classList.add("hidden");
+    if (founderActions) founderActions.classList.add("hidden");
+    if (proUpgradeBox) proUpgradeBox.classList.remove("hidden");
   }
-
-  // ===== NORMAL USERS =====
-  document.getElementById("proUpgradeBox")?.classList.remove("hidden");
-  document.getElementById("founderDashboard")?.classList.add("hidden");
-  document.getElementById("founderActions")?.classList.add("hidden");
 }
 
 // ================== TUTORIAL ==================
