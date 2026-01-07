@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>TeleTech AI Dashboard</title>
+  <title>👑 Founder Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <!-- Telegram WebApp -->
@@ -11,7 +11,7 @@
   <!-- Main CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
-<body>
+<body class="founder">
 
   <!-- 🔔 AGREEMENT MODAL -->
   <div id="agreementModal" class="agreement-modal hidden">
@@ -27,116 +27,94 @@
     </div>
   </div>
 
-  <!-- 👑 PRO / FOUNDER BADGE -->
-  <div id="proBadge" class="pro-badge hidden"></div>
+  <!-- 👑 FOUNDER BADGE -->
+  <div id="proBadge" class="pro-badge">
+    👑 FOUNDER
+  </div>
 
   <!-- 👑 FOUNDER DASHBOARD -->
-  <div id="founderDashboard" class="founder-box hidden">
+  <div id="founderDashboard" class="founder-box">
     <h2>👑 Founder Dashboard</h2>
 
     <div class="founder-stats">
       <p>🔥 Unlimited Energy</p>
-      <p>⚡ Fast Regen (30s)</p>
+      <p>⚡ Ultra Fast Regen (30s)</p>
       <p>🎁 Max Daily Rewards</p>
       <p>👥 Referral Multiplier x2</p>
+      <p>🛡️ System Privileges</p>
     </div>
 
     <div class="founder-actions">
       <button onclick="openFounderStats()">📊 Global Stats</button>
-      <button onclick="goLeaderboard()">🏆 Referral Leaderboard</button>
+      <button onclick="openReferralLeaderboard()">🏆 Referral Leaderboard</button>
+      <button onclick="openUsers()">👥 Users</button>
+      <button onclick="openSystemWallet()">🏦 System Wallet</button>
     </div>
-  </div>
-
-  <!-- 🎁 GAME TITLE -->
-  <h2 class="title">🎁 Lucky Box Game</h2>
-
-  <!-- 📦 BOXES (FIXED) -->
-  <div class="boxes">
-    <div class="box" onclick="openBox(this)">🎁</div>
-    <div class="box" onclick="openBox(this)">🎁</div>
-    <div class="box" onclick="openBox(this)">🎁</div>
-    <div class="box" onclick="openBox(this)">🎁</div>
-    <div class="box" onclick="openBox(this)">🎁</div>
-    <div class="box" onclick="openBox(this)">🎁</div>
-  </div>
-
-  <!-- 📊 USER STATS -->
-  <div class="stats">
-    <p id="balance">Balance: 0</p>
-    <p id="energy">Energy: 0 / 100</p>
-    <p id="tokens">Tokens: 0</p>
-    <p id="refCount">👥 Referrals: 0</p>
-  </div>
-
-  <!-- ⚡ ENERGY BAR -->
-  <div class="energy-bar">
-    <div id="energyFill" class="energy-fill"></div>
-  </div>
-
-  <!-- ⚡ ENERGY ACTIONS -->
-  <div class="actions">
-    <button onclick="buy100Energy()">⚡ Buy 100 Energy</button>
-    <button onclick="buy500Energy()">⚡ Buy 500 Energy</button>
-  </div>
-
-  <!-- 🎁 DAILY -->
-  <button id="dailyBtn" onclick="claimDailyBonus(this)">
-    🎁 Daily Bonus
-  </button>
-
-  <!-- 🔁 CONVERT -->
-  <button onclick="convertPoints()">
-    🔁 Convert Points
-  </button>
-
-<!-- 🚀 PRO UPGRADE (USER ONLY) -->
-<div id="proUpgradeBox" class="pro-upgrade">
-  <button id="upgradeBtn" onclick="upgradePro(1)">
-    🚀 Upgrade to PRO (Lv1)
-  </button>
-  <button id="proLv2Btn" onclick="upgradePro(2)">
-    ⭐ Upgrade to PRO Level 2 (10 TOKEN)
-  </button>
-  <button id="proLv3Btn" onclick="upgradePro(3)">
-    👑 Upgrade to PRO Level 3 (20 TOKEN)
-  </button>
-</div>
-
-<!-- 👑 FOUNDER ACTIONS (LEVEL 4 ONLY) -->
-<div id="founderActions" class="hidden founder-actions">
-  <button onclick="openFounderStats()">📊 Founder Global Stats</button>
-  <button onclick="openReferralLeaderboard()">🏆 Referral Leaderboard</button>
-</div>
-
-  <!-- 👥 REFERRAL -->
-  <div class="referral-box">
-    <p>Your Referral Link:</p>
-    <input id="refLink" readonly />
-    <button onclick="copyRef()">📋 Copy</button>
-  </div>
-
-  <!-- 📌 TASKS -->
-  <div class="tasks">
-    <button onclick="joinYouTube()">📺 Join YouTube</button>
-    <button onclick="joinGroup()">💬 Join Community</button>
-    <button onclick="joinChannel()">📢 Join Channel</button>
   </div>
 
   <!-- 🧭 NAVIGATION -->
   <div class="nav">
+    <button onclick="openMainGame()">🎁 Back to Game</button>
     <button onclick="openWallet()">👜 Wallet</button>
     <button onclick="openRoadmap()">🗺️ Roadmap</button>
-    <button onclick="goLeaderboard()">🏆 Leaderboard</button>
   </div>
 
-  <!-- 🔊 SOUNDS -->
-  <audio id="clickSound" src="/sounds/click.mp3"></audio>
-  <audio id="winSound" src="/sounds/win.mp3"></audio>
-  <audio id="loseSound" src="/sounds/lose.mp3"></audio>
-  <audio id="errorSound" src="/sounds/error.mp3"></audio>
+  <!-- 🧠 FOUNDER SCRIPT -->
+  <script>
+    // Telegram init
+    if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
+      alert("❌ Open from Telegram");
+      throw new Error("Not Telegram");
+    }
 
-  <!-- 🧠 MAIN SCRIPT -->
-  <script src="script.js"></script>
+    const tg = Telegram.WebApp;
+    tg.expand();
+
+    function acceptAgreement() {
+      localStorage.setItem("user_agreed", "yes");
+      document.getElementById("agreementModal").classList.add("hidden");
+    }
+
+    function openFounderStats() {
+      alert(
+        "📊 GLOBAL STATS\n\n" +
+        "• Total Users\n" +
+        "• Total Tokens\n" +
+        "• Total Burned\n" +
+        "• System Balance\n\n" +
+        "🚧 Advanced dashboard coming soon"
+      );
+    }
+
+    function openReferralLeaderboard() {
+      window.location.href = "/leaderboard.html";
+    }
+
+    function openUsers() {
+      alert("👥 Users management coming soon");
+    }
+
+    function openSystemWallet() {
+      alert("🏦 System wallet overview coming soon");
+    }
+
+    function openMainGame() {
+      window.location.href = "/index.html";
+    }
+
+    function openWallet() {
+      window.location.href = "/wallet.html";
+    }
+
+    function openRoadmap() {
+      window.location.href = "/roadmap.html";
+    }
+
+    // Agreement check
+    if (!localStorage.getItem("user_agreed")) {
+      document.getElementById("agreementModal").classList.remove("hidden");
+    }
+  </script>
 
 </body>
 </html>
