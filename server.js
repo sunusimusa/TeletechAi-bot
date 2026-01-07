@@ -125,7 +125,8 @@ app.post("/api/user", async (req, res) => {
       referralCode: generateCode(),
       referredBy: ref || null,
       referralsCount: 0,
-      seasonReferrals: 0
+      seasonReferrals: 0,
+      energy: 50
     });
 
     if (ref) {
@@ -140,6 +141,10 @@ app.post("/api/user", async (req, res) => {
       }
     }
   }
+
+  // ✅ MUHIMMI
+  regenEnergy(user);
+  await user.save();
 
   res.json({
     telegramId: user.telegramId,
