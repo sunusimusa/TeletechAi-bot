@@ -257,6 +257,46 @@ app.post("/api/open", async (req, res) => {
   });
 });
 
+// 👑 FOUNDER GLOBAL STATS
+app.get("/api/founder/stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments({
+      telegramId: { $ne: "SYSTEM" }
+    });
+
+    const proUsers = await User.countDocuments({
+      proLevel: { $gte: 1 }
+    });
+
+    const founders = await User.countDocuments({
+      proLevel: { $gte: 4 }
+    });
+
+    const totalTokens = await User.aggregate([
+      { $group: { _id: null, total: { $sum: "$tokens" } } }
+    ]);
+
+    const system = await User.findOne({ telegramId: "SYSTEM" });
+
+    const totalReferrals = await User.aggregate([
+      { $group: { _id: null, total: { $sum: "$referralsCount" } } }
+    ]);
+
+    res.json({
+      totalUsers,
+      proUsers,
+      founders,
+      totalTokens: totalTokens[0]?.total || 0,
+      systemBalance: system?.tokens || 0,
+      totalReferrals: totalReferrals[0]?.total || 0
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "FAILED_TO_LOAD_STATS" });
+  }
+});
+
 /* ================= CONVERT ================= */
 app.post("/api/convert", async (req, res) => {
 const { telegramId } = req.body;
