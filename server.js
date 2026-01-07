@@ -420,34 +420,6 @@ app.post("/api/pro/upgrade", async (req, res) => {
   }
 });
 
-// ===== TRANSFER TOKENS =====
-user.tokens -= price;
-system.tokens += price;
-
-user.isPro = true;
-user.proLevel = level;
-user.proSince = Date.now();
-
-await user.save();
-await system.save();
-
-// ===== SAVE TRANSACTION =====
-await Transaction.create({
-  fromWallet: user.walletAddress,
-  toWallet: system.walletAddress,
-  amount: price,
-  gasFee: 0,
-  type: "PRO_UPGRADE",
-  meta: `PRO_LEVEL_${level}` // ✅ GYARA A NAN
-});
-
-res.json({
-success: true,
-proLevel: user.proLevel,
-tokens: user.tokens
-});
-});
-
 app.post("/api/ads/reward", async (req, res) => {
 const { telegramId } = req.body;
 const user = await User.findOne({ telegramId });
