@@ -94,7 +94,7 @@ function regenEnergy(user) {
   }
 
   // 👑 FOUNDER / PRO LEVEL 4
-  if (user.proLevel >= 4) {
+    (user.proLevel >= 4) {
     ENERGY_TIME = 30 * 1000; // 30 seconds
     ENERGY_GAIN = 25;
     MAX_ENERGY = 9999; // 🔥 UNLIMITED FEEL
@@ -369,7 +369,7 @@ app.post("/api/pro/upgrade", async (req, res) => {
     return res.json({ error: "SYSTEM_WALLET_MISSING" });
 
   // 🚫 PRO LEVEL 4+ (FOUNDER / ADMIN ONLY)
-  if (level >= 4) {
+    (level >= 4) {
     return res.json({ error: "LEVEL_RESTRICTED" });
   }
 
