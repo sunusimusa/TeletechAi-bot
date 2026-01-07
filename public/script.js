@@ -378,6 +378,10 @@ function openReferralLeaderboard() {
   window.location.href = "/leaderboard.html";
 }
 
+function openFounderStats() {
+  window.location.href = "/founder-stats.html";
+}
+
 // ================== AGREEMENT ==================
 function checkAgreement() {
   if (!localStorage.getItem("user_agreed")) {
