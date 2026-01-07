@@ -72,7 +72,7 @@ async function loadUser() {
   }
 }
 
-// ================== UI ==================
+// ================== UI UPDATE ==================
 function updateUI() {
   document.getElementById("balance").innerText = `Balance: ${balance}`;
   document.getElementById("energy").innerText = `Energy: ${energy} / ${MAX_ENERGY}`;
@@ -80,17 +80,33 @@ function updateUI() {
   document.getElementById("refCount").innerText = `👥 Referrals: ${referralsCount}`;
 
   const bar = document.getElementById("energyFill");
-  if (bar) bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
+  if (bar) {
+    const percent = Math.min((energy / MAX_ENERGY) * 100, 100);
+    bar.style.width = percent + "%";
+  }
 
-  renderFounderDashboard();
-  // 👑 FOUNDER
-  if (proLevel >= 4 || role === "founder") {
-    document.getElementById("proBadge")?.classList.remove("hidden");
-    document.getElementById("proBadge").innerText = "👑 FOUNDER";
+  // 👑 PRO / FOUNDER UI
+  if (proLevel >= 4) {
+    // Badge
+    const badge = document.getElementById("proBadge");
+    if (badge) {
+      badge.innerText = "👑 FOUNDER";
+      badge.classList.remove("hidden");
+    }
 
+    // Founder dashboard
+    const founderDash = document.getElementById("founderDashboard");
+    if (founderDash) {
+      founderDash.classList.remove("hidden");
+    }
+
+    // Remove upgrade buttons
     document.getElementById("upgradeBtn")?.remove();
     document.getElementById("proLv2Btn")?.remove();
     document.getElementById("proLv3Btn")?.remove();
+
+    // Optional: body glow
+    document.body.classList.add("founder");
   }
 }
 
