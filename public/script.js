@@ -364,12 +364,14 @@ function renderFounderDashboard() {
   }
 }
 
+// ================== FOUNDER ACTIONS ==================
 function openFounderStats() {
   alert(
-    "👑 Founder Privileges\n\n" +
-    "• Unlimited Energy\n" +
-    "• Highest Rewards\n" +
-    "• Admin-level access (future)\n"
+    "📊 GLOBAL STATS\n\n" +
+    "• Total Users\n" +
+    "• Total Tokens Burned\n" +
+    "• System Wallet Balance\n\n" +
+    "🚧 Full dashboard coming soon"
   );
 }
 
