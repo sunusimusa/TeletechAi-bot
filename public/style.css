@@ -846,3 +846,19 @@ html {
   border-radius: 8px;
   font-size: 16px;
 }
+
+.energy-bar {
+  width: 100%;
+  height: 12px;
+  background: #1c2230;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-top: 6px;
+}
+
+#energyFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00ff88, #00ccff);
+  transition: width 0.4s ease;
+}
