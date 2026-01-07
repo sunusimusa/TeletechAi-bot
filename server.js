@@ -369,6 +369,10 @@ const system = await User.findOne({ telegramId: "SYSTEM" });
 if (!system)
 return res.json({ error: "SYSTEM_WALLET_MISSING" });
 
+  if (level === 4) {
+  return res.json({ error: "LEVEL_NOT_AVAILABLE" });
+  }
+
 // ===== PRO PRICES =====
 const PRICES = {
 1: 5,
