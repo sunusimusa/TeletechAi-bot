@@ -80,17 +80,19 @@ function updateUI() {
   document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
   document.getElementById("refCount").innerText =
     `👥 Referrals: ${referralsCount}`;
-}
 
-if (proLevel === 4) {
-  document.getElementById("proBadge").innerText = "👑 FOUNDER";
-  document.getElementById("proBadge").classList.remove("hidden");
-}
+  // 👑 FOUNDER BADGE
+  if (proLevel >= 4) {
+    const badge = document.getElementById("proBadge");
+    if (badge) {
+      badge.innerText = "👑 FOUNDER";
+      badge.classList.remove("hidden");
+    }
 
-if (proLevel >= 4) {
-  document.getElementById("upgradeBtn")?.remove();
-  document.getElementById("proLv2Btn")?.remove();
-  document.getElementById("proLv3Btn")?.remove();
+    document.getElementById("upgradeBtn")?.remove();
+    document.getElementById("proLv2Btn")?.remove();
+    document.getElementById("proLv3Btn")?.remove();
+  }
 }
 
 // ================== SOUND ==================
