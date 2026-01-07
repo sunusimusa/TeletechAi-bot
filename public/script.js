@@ -284,7 +284,7 @@ function copyRef() {
 
 // ================== TASKS ==================
 function joinYouTube() {
-  tg.openLink("https://youtube.com/@Sunusicrypto");
+  tg.openLink("https://www.youtube.com/@Sunusicrypto");
 
   setTimeout(async () => {
     const res = await fetch("/api/task/youtube", {
