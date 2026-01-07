@@ -1,20 +1,3 @@
-// ================== TELEGRAM ==================
-const tg = window.Telegram?.WebApp;
-tg?.expand();
-
-// ✅ REAL TELEGRAM USER ID
-const TELEGRAM_ID =
-  tg?.initDataUnsafe?.user?.id || null;
-
-// ✅ REFERRAL CODE (daga Telegram start param)
-const REF =
-  tg?.initDataUnsafe?.start_param || null;
-
-if (!TELEGRAM_ID) {
-  alert("❌ Please open this game from Telegram");
-  throw new Error("Telegram WebApp not detected");
-}
-
 // ================== GLOBAL STATE ==================
 let balance = 0;
 let energy = 0;
