@@ -89,6 +89,11 @@ if (user.proLevel === 3) {
 ENERGY_TIME = 60 * 1000; // 1 minute
 ENERGY_GAIN = 15;
 }
+  if (user.proLevel === 4) {
+  ENERGY_TIME = 30 * 1000; // 30 seconds
+  ENERGY_GAIN = 25;
+  }
+  
 const MAX_ENERGY = 100;
   
 if (!user.lastEnergy) user.lastEnergy = now;
