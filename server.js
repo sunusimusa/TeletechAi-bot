@@ -127,16 +127,18 @@ function regenEnergy(user) {
 app.post("/api/user", async (req, res) => {
   try {
     const { telegramId, ref } = req.body;
-    if (!telegramId) {
+
+    // 🔒 NAN NE DAIDAITACCEN WURI
+    if (!telegramId || telegramId === "guest") {
       return res.json({ error: "INVALID_TELEGRAM_ID" });
     }
 
     let user = await User.findOne({ telegramId });
 
-    const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
-
-    // ================= CREATE USER (SAU DAYA KAWAI) =================
+    // ================= CREATE USER =================
     if (!user) {
+      const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
+
       user = await User.create({
         telegramId,
         walletAddress: await generateWalletUnique(),
@@ -146,13 +148,13 @@ app.post("/api/user", async (req, res) => {
         seasonReferrals: 0,
 
         energy: isFounder ? 9999 : 50,
-        freeTries: isFounder ? 9999 : 3, // 👑 KAI KADAI
+        freeTries: isFounder ? 9999 : 3,
         isPro: isFounder,
         proLevel: isFounder ? 4 : 0,
         role: isFounder ? "founder" : "user"
       });
 
-      // ================= REFERRAL BONUS =================
+      // 🔗 REFERRAL BONUS
       if (ref) {
         const refUser = await User.findOne({ referralCode: ref });
         if (refUser && refUser.telegramId !== telegramId) {
@@ -168,25 +170,15 @@ app.post("/api/user", async (req, res) => {
       }
     }
 
-    // ================= ENERGY REGEN =================
+    // ⚡ ENERGY REGEN
     regenEnergy(user);
 
     const maxEnergy = getMaxEnergy(user.proLevel);
-    if (user.energy > maxEnergy) {
-      user.energy = maxEnergy;
-    }
+    if (user.energy > maxEnergy) user.energy = maxEnergy;
 
-    // ================= ROLE SAFETY =================
-    if (isFounder) {
-      user.role = "founder";
-      user.proLevel = 4;
-      user.isPro = true;
-      user.freeTries = 9999;
-    }
-
+    user.role = user.proLevel >= 4 ? "founder" : "user";
     await user.save();
 
-    // ================= RESPONSE =================
     res.json({
       telegramId: user.telegramId,
       walletAddress: user.walletAddress,
@@ -194,7 +186,7 @@ app.post("/api/user", async (req, res) => {
       energy: user.energy,
       maxEnergy,
       tokens: user.tokens,
-      freeTries: user.freeTries,
+      freeTries: user.freeTries || 0,
       referralCode: user.referralCode,
       referralsCount: user.referralsCount,
       proLevel: user.proLevel,
@@ -647,12 +639,24 @@ app.post("/api/wallet/send", async (req, res) => {
 });
 
 app.get("/api/ref/leaderboard", async (req, res) => {
-  const top = await User.find({ telegramId: { $ne: "SYSTEM" } })
-    .sort({ seasonReferrals: -1 })
-    .limit(20)
-    .select("telegramId seasonReferrals");
+  try {
+    const top = await User.find({
+      telegramId: { $ne: "SYSTEM" },
+      seasonReferrals: { $gt: 0 } // 👈 MUHIMMI
+    })
+      .sort({ seasonReferrals: -1 })
+      .limit(20)
+      .select("telegramId seasonReferrals referralCode");
 
-  res.json({ top });
+    res.json({
+      season: "Season 1",
+      top
+    });
+
+  } catch (err) {
+    console.error("❌ leaderboard error:", err);
+    res.status(500).json({ error: "FAILED_TO_LOAD_LEADERBOARD" });
+  }
 });
 
 /* ================= SEASON CHECK ================= */
