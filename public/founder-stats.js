@@ -1,20 +1,13 @@
-// Telegram check
-if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
-  alert("❌ Open from Telegram");
-  throw new Error("Not Telegram");
-}
-
-const tg = Telegram.WebApp;
-tg.expand();
-
 async function loadFounderStats() {
   try {
-    const res = await fetch("/api/founder/stats", {
-      cache: "no-store"
-    });
-
+    const res = await fetch("/api/founder/stats");
     const data = await res.json();
-    if (data.error) throw data.error;
+
+    if (data.error) {
+      alert("⛔ Access denied");
+      window.location.href = "/dashboard.html";
+      return;
+    }
 
     document.getElementById("totalUsers").innerText = data.totalUsers;
     document.getElementById("proUsers").innerText = data.proUsers;
@@ -24,8 +17,8 @@ async function loadFounderStats() {
     document.getElementById("totalReferrals").innerText = data.totalReferrals;
 
   } catch (err) {
-    alert("❌ Failed to load founder stats");
     console.error(err);
+    alert("❌ Failed to load founder stats");
   }
 }
 
@@ -33,4 +26,4 @@ function goBack() {
   window.location.href = "/dashboard.html";
 }
 
-loadFounderStats();
+document.addEventListener("DOMContentLoaded", loadFounderStats);
