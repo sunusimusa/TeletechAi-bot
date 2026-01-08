@@ -14,7 +14,6 @@ import sendRoutes from "./routes/send.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
-import { checkReferralSeason } from "./services/season.service.js";
 
 dotenv.config();
 
