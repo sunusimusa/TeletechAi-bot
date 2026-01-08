@@ -225,33 +225,27 @@ app.post("/api/open", async (req, res) => {
 
 app.get("/api/founder/stats", async (req, res) => {
   try {
-    // 👤 REAL USERS (ba SYSTEM ba)
     const totalUsers = await User.countDocuments({
       telegramId: { $ne: "SYSTEM" }
     });
 
-    // 🚀 PRO USERS (1–3 kawai)
     const proUsers = await User.countDocuments({
       telegramId: { $ne: "SYSTEM" },
       proLevel: { $gte: 1, $lt: 4 }
     });
 
-    // 👑 FOUNDERS (KAWAI LEVEL 4)
+    // 👑 FOUNDER = KAI KAWAI
     const founders = await User.countDocuments({
-      telegramId: { $ne: "SYSTEM" },
-      proLevel: 4
+      telegramId: FOUNDER_TELEGRAM_ID
     });
 
-    // 🪙 TOTAL TOKENS (excluding SYSTEM)
     const totalTokensAgg = await User.aggregate([
       { $match: { telegramId: { $ne: "SYSTEM" } } },
       { $group: { _id: null, total: { $sum: "$tokens" } } }
     ]);
 
-    // 🏦 SYSTEM WALLET
     const system = await User.findOne({ telegramId: "SYSTEM" });
 
-    // 🔗 TOTAL REFERRALS
     const totalReferralsAgg = await User.aggregate([
       { $match: { telegramId: { $ne: "SYSTEM" } } },
       { $group: { _id: null, total: { $sum: "$referralsCount" } } }
@@ -260,7 +254,7 @@ app.get("/api/founder/stats", async (req, res) => {
     res.json({
       totalUsers,
       proUsers,
-      founders,
+      founders, // 👉 ZAI ZAMA 1 KAWAI
       totalTokens: totalTokensAgg[0]?.total || 0,
       systemBalance: system?.tokens || 0,
       totalReferrals: totalReferralsAgg[0]?.total || 0
