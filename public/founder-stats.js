@@ -1,9 +1,14 @@
 async function loadFounderStats() {
   try {
-    const res = await fetch("/api/founder/stats");
+    const res = await fetch("/api/founder/stats", {
+      headers: {
+        "x-telegram-id": TELEGRAM_ID // 🔒 MUHIMMI SOSSOSAI
+      }
+    });
+
     const data = await res.json();
 
-    if (data.error) {
+    if (!res.ok || data.error) {
       alert("⛔ Access denied");
       window.location.href = "/dashboard.html";
       return;
