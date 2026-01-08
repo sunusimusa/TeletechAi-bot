@@ -36,6 +36,9 @@ const TRANSFER_RULES = {
   pro3: { dailyLimit: 1000, cooldown: 0, gas: 0.01 }
 };
 
+const FOUNDER_TELEGRAM_ID = "1248500925"; 
+// 🔁 ka maye gurbinsa da telegramId naka
+
 /* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
@@ -395,12 +398,19 @@ app.post("/api/task/channel", async (req, res) => {
 app.post("/api/pro/upgrade", async (req, res) => {
   const { telegramId, level } = req.body;
 
+  // 👑 KAI FOUNDER NE – BA KA BUKATAR UPGRADE
+  if (telegramId === FOUNDER_TELEGRAM_ID) {
+    return res.json({ error: "FOUNDER_CANNOT_UPGRADE" });
+  }
+
   const user = await User.findOne({ telegramId });
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
+  // 🚫 PRO LEVEL 4 BA A SAYARWA
   if (level === 4)
     return res.json({ error: "LEVEL_NOT_AVAILABLE" });
 
+  // 🚫 IDAN WANI YA TABA ZAMA FOUNDER
   if (user.proLevel >= 4)
     return res.json({ error: "ALREADY_FOUNDER" });
 
@@ -418,6 +428,7 @@ app.post("/api/pro/upgrade", async (req, res) => {
   if (!system)
     return res.json({ error: "SYSTEM_WALLET_MISSING" });
 
+  // 💸 BIYA
   user.tokens -= PRICES[level];
   system.tokens += PRICES[level];
 
