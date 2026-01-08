@@ -275,6 +275,55 @@ app.get("/api/founder/stats", async (req, res) => {
   }
 });
 
+const FOUNDER_TELEGRAM_ID = "1248500925"; // ⚠️ saka naka
+
+app.get("/api/founder/analytics", async (req, res) => {
+  const telegramId = req.headers["x-telegram-id"];
+
+  if (telegramId !== FOUNDER_TELEGRAM_ID) {
+    return res.status(403).json({ error: "FORBIDDEN" });
+  }
+
+  try {
+    // 👥 Users growth (last 7 days)
+    const usersGrowth = await User.aggregate([
+      {
+        $match: { telegramId: { $ne: "SYSTEM" } }
+      },
+      {
+        $group: {
+          _id: {
+            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+          },
+          count: { $sum: 1 }
+        }
+      },
+      { $sort: { _id: 1 } },
+      { $limit: 7 }
+    ]);
+
+    // 💰 Revenue (tokens + balance)
+    const revenue = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalTokens: { $sum: "$tokens" },
+          totalBalance: { $sum: "$balance" }
+        }
+      }
+    ]);
+
+    res.json({
+      usersGrowth,
+      revenue: revenue[0] || { totalTokens: 0, totalBalance: 0 }
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "FAILED" });
+  }
+});
+
 app.post("/api/convert", async (req, res) => {
   try {
     const { telegramId } = req.body;
