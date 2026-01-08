@@ -664,6 +664,12 @@ setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
+import { startBot } from "./bot.js";
+
+/* duk server code naka a sama */
+
+startBot(); // 👈 NAN KAWAI
+
 /* ================= START ================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
