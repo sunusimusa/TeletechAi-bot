@@ -45,6 +45,13 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
+// ================= STATIC WEBAPP =================
+app.use(express.static("public"));
+
+app.get("/", (req, res) => {
+  res.sendFile(process.cwd() + "/public/index.html");
+});
+
 /* ================= ROUTES ================= */
 app.use("/api/roadmap", roadmapRoutes);
 app.use("/api/market", marketRoutes);
