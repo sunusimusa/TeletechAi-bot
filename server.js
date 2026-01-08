@@ -4,6 +4,9 @@ import cors from "cors";
 import dotenv from "dotenv";
 
 import User from "./models/User.js";
+import { checkReferralSeason } from "./services/season.service.js";
+
+import User from "./models/User.js";
 
 // ROUTES
 import withdrawRoutes from "./routes/withdraw.routes.js";
@@ -14,6 +17,8 @@ import sendRoutes from "./routes/send.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
+
+
 
 dotenv.config();
 
@@ -190,21 +195,21 @@ app.post("/api/user", async (req, res) => {
 });
 
 // ===== HELPERS =====
-async function generateWalletUnique() {
-  let wallet;
-  let exists = true;
-
-  while (exists) {
-    wallet =
-      "TTECH-" +
-      Math.random().toString(36).substring(2, 8).toUpperCase();
-
-    exists = await User.findOne({ walletAddress: wallet });
-  }
-
-  return wallet;
+function generateCode() {
+  return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+function getMaxEnergy(proLevel = 0) {
+  if (proLevel === 1) return 150;
+  if (proLevel === 2) return 200;
+  if (proLevel === 3) return 300;
+  if (proLevel >= 4) return 9999;
+  return 100;
+}
+
+async function getSystemWallet() {
+  return await User.findOne({ telegramId: "SYSTEM" });
+}
 /* ================= DAILY ================= */
 app.post("/api/daily", async (req, res) => {
   const { telegramId } = req.body;
@@ -499,95 +504,116 @@ app.post("/api/pro/upgrade", async (req, res) => {
 });
 
 app.post("/api/ads/reward", async (req, res) => {
-const { telegramId } = req.body;
-const user = await User.findOne({ telegramId });
+  try {
+    const { telegramId } = req.body;
+    const user = await User.findOne({ telegramId });
 
-if (!user) return res.json({ error: "USER_NOT_FOUND" });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-// 🔒 BASIC LIMIT (MVP)
-const now = Date.now();
-const COOLDOWN = 30 * 60 * 1000; // 30 minutes
+    regenEnergy(user);
 
-if (user.lastAd && now - user.lastAd < COOLDOWN) {
-return res.json({ error: "Come back later" });
-}
+    const now = Date.now();
+    const COOLDOWN = 30 * 60 * 1000; // 30 mins
+    const MAX_ENERGY = getMaxEnergy(user.proLevel);
 
-user.energy = Math.min(100, user.energy + 20);
-user.lastAd = now;
+    if (user.lastAd && now - user.lastAd < COOLDOWN) {
+      return res.json({ error: "COME_BACK_LATER" });
+    }
 
-await user.save();
+    user.energy = Math.min(MAX_ENERGY, user.energy + 20);
+    user.lastAd = now;
 
-res.json({ success: true, energy: user.energy });
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy,
+      maxEnergy: MAX_ENERGY
+    });
+
+  } catch (err) {
+    console.error("❌ ads/reward:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 app.post("/api/ads/claim", async (req, res) => {
-const { telegramId } = req.body;
-if (!telegramId)
-return res.json({ error: "NO_TELEGRAM_ID" });
+  try {
+    const { telegramId } = req.body;
+    if (!telegramId)
+      return res.json({ error: "NO_TELEGRAM_ID" });
 
-const user = await User.findOne({ telegramId });
-if (!user)
-return res.json({ error: "USER_NOT_FOUND" });
+    const user = await User.findOne({ telegramId });
+    if (!user)
+      return res.json({ error: "USER_NOT_FOUND" });
 
-const now = Date.now();
+    regenEnergy(user);
 
-// 🧠 Determine user tier
-let tier = "free";
-if (user.isPro && user.proLevel === 1) tier = "pro1";
-if (user.isPro && user.proLevel === 2) tier = "pro2";
-if (user.isPro && user.proLevel >= 3) tier = "pro3";
+    const now = Date.now();
+    const MAX_ENERGY = getMaxEnergy(user.proLevel);
 
-const rule = ADS_RULES[tier];
+    // 🧠 USER TIER
+    let tier = "free";
+    if (user.isPro && user.proLevel === 1) tier = "pro1";
+    if (user.isPro && user.proLevel === 2) tier = "pro2";
+    if (user.isPro && user.proLevel === 3) tier = "pro3";
+    if (user.proLevel >= 4) tier = "pro3"; // 👑 Founder treated as pro3+
 
-// ⛔ Energy full
-if (user.energy >= MAX_ENERGY) {
-return res.json({ error: "ENERGY_FULL" });
-}
+    const rule = ADS_RULES[tier];
 
-// ⏱️ Cooldown check
-if (now - user.lastAdClaim < rule.cooldown) {
-const wait = Math.ceil(
-(rule.cooldown - (now - user.lastAdClaim)) / 1000
-);
-return res.json({
-error: "COOLDOWN_ACTIVE",
-waitSeconds: wait
-});
-}
+    // ⛔ Energy full
+    if (user.energy >= MAX_ENERGY) {
+      return res.json({ error: "ENERGY_FULL" });
+    }
 
-// 📆 Daily limit reset (UTC day)
-const today = new Date().toISOString().slice(0, 10);
-if (user.lastAdDay !== today) {
-user.adsWatchedToday = 0;
-user.lastAdDay = today;
-}
+    // ⏱️ Cooldown
+    const lastClaim = user.lastAdClaim || 0;
+    if (now - lastClaim < rule.cooldown) {
+      const wait = Math.ceil(
+        (rule.cooldown - (now - lastClaim)) / 1000
+      );
+      return res.json({
+        error: "COOLDOWN_ACTIVE",
+        waitSeconds: wait
+      });
+    }
 
-if (user.adsWatchedToday >= rule.dailyLimit) {
-return res.json({ error: "DAILY_LIMIT_REACHED" });
-}
+    // 📆 Daily reset
+    const today = new Date().toISOString().slice(0, 10);
+    if (user.lastAdDay !== today) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = today;
+    }
 
-// ✅ APPLY REWARD
-const rewardEnergy =
-tier === "pro3"
-? MAX_ENERGY
-: Math.min(
-rule.reward,
-MAX_ENERGY - user.energy
-);
+    if (user.adsWatchedToday >= rule.dailyLimit) {
+      return res.json({ error: "DAILY_LIMIT_REACHED" });
+    }
 
-user.energy += rewardEnergy;
-user.lastAdClaim = now;
-user.adsWatchedToday += 1;
+    // ✅ REWARD
+    const rewardEnergy =
+      user.proLevel >= 4
+        ? MAX_ENERGY
+        : Math.min(rule.reward, MAX_ENERGY - user.energy);
 
-await user.save();
+    user.energy += rewardEnergy;
+    user.lastAdClaim = now;
+    user.adsWatchedToday += 1;
 
-res.json({
-success: true,
-rewardEnergy,
-energy: user.energy,
-adsWatchedToday: user.adsWatchedToday,
-tier
-});
+    await user.save();
+
+    res.json({
+      success: true,
+      rewardEnergy,
+      energy: user.energy,
+      maxEnergy: MAX_ENERGY,
+      adsWatchedToday: user.adsWatchedToday,
+      tier
+    });
+
+  } catch (err) {
+    console.error("❌ ads/claim:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 app.post("/api/token/transfer", async (req, res) => {
@@ -740,8 +766,6 @@ app.get("/api/ref/leaderboard", async (req, res) => {
     top
   });
 });
-
-import { checkReferralSeason } from "./services/season.service.js";
 
 setInterval(() => {
   checkReferralSeason().catch(console.error);
