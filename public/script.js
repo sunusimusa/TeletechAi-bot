@@ -58,7 +58,11 @@ async function loadUser() {
     isPro = data.isPro ?? false;
     role = data.role ?? "user";
 
-    MAX_ENERGY = [100,150,200,300][proLevel] || (proLevel >= 4 ? 9999 : 100);
+    if (proLevel >= 4) {
+  MAX_ENERGY = 9999;
+} else {
+  MAX_ENERGY = [100, 150, 200, 300][proLevel] || 100;
+    }
 
     if (referralCode) {
       document.getElementById("refLink").value =
