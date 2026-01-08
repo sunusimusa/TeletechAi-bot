@@ -940,3 +940,11 @@ button:active {
     0 0 15px rgba(255,215,0,0.9),
     0 0 30px rgba(255,215,0,0.6);
 }
+
+.box {
+  cursor: pointer;
+}
+
+.box.opened {
+  pointer-events: none;
+}
