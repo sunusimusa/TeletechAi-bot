@@ -1,12 +1,15 @@
-// ================== TELEGRAM ==================
-if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
-  alert("❌ Please open this game from Telegram");
-  throw new Error("Not opened inside Telegram");
-}
+// ================== TELEGRAM SAFE INIT ==================
+let tg = null;
+let TELEGRAM_ID = "guest";
 
-const tg = Telegram.WebApp;
-tg.expand();
-const TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
+if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user) {
+  tg = Telegram.WebApp;
+  tg.expand();
+  TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
+  console.log("✅ Telegram user:", TELEGRAM_ID);
+} else {
+  console.warn("⚠️ Not opened from Telegram (DEV MODE)");
+}
 
 // ================== GLOBAL STATE ==================
 let balance = 0;
@@ -15,16 +18,12 @@ let tokens = 0;
 let freeTries = 0;
 let referralCode = "";
 let referralsCount = 0;
-let openedCount = 0;
 
 let proLevel = 0;
 let isPro = false;
-let role = "user";
 let MAX_ENERGY = 100;
 
-let openingLocked = false;
-let soundEnabled = true;
-
+let openingLocked = false; // ✅ SAU DAYA KAWAI
 // ================== INIT ==================
 document.addEventListener("DOMContentLoaded", async () => {
   showTutorialOnce();
@@ -74,11 +73,9 @@ async function loadUser() {
 
 // ================== UI UPDATE ==================
 function updateUI() {
-  // 🛡️ Kariya idan page ba shi da stats
   const balanceEl = document.getElementById("balance");
   if (!balanceEl) return;
 
-  // ===== BASIC STATS =====
   balanceEl.innerText = `Balance: ${balance}`;
   document.getElementById("energy").innerText =
     `Energy: ${energy} / ${MAX_ENERGY}`;
@@ -86,47 +83,37 @@ function updateUI() {
   document.getElementById("refCount").innerText =
     `👥 Referrals: ${referralsCount}`;
 
-  // ===== ENERGY BAR =====
   const bar = document.getElementById("energyFill");
   if (bar) {
-    const percent = Math.min((energy / MAX_ENERGY) * 100, 100);
-    bar.style.width = percent + "%";
+    bar.style.width =
+      Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 
-  // ===== ELEMENTS =====
   const founderDashboard = document.getElementById("founderDashboard");
   const founderActions = document.getElementById("founderActions");
   const proUpgradeBox = document.getElementById("proUpgradeBox");
   const proBadge = document.getElementById("proBadge");
 
-  // ===== 👑 FOUNDER MODE (PRO LEVEL 4) =====
   if (proLevel >= 4) {
     document.body.classList.add("founder");
 
-    // 👑 Badge
     if (proBadge) {
       proBadge.innerText = "👑 FOUNDER";
       proBadge.classList.remove("hidden");
     }
 
-    // 👑 Founder panels
     founderDashboard?.classList.remove("hidden");
     founderActions?.classList.remove("hidden");
-
-    // 🚫 Hide upgrade buttons
     proUpgradeBox?.classList.add("hidden");
-
-    return; // 🔴 MUHIMMI – kada ya wuce nan
+    return;
   }
 
-  // ===== 👤 NORMAL USER MODE =====
   document.body.classList.remove("founder");
-
   proBadge?.classList.add("hidden");
   founderDashboard?.classList.add("hidden");
   founderActions?.classList.add("hidden");
   proUpgradeBox?.classList.remove("hidden");
-    }
+}
 
 // ================== TUTORIAL ==================
 function showTutorialOnce() {
@@ -183,8 +170,6 @@ function convertPoints() {
   });
 }
 
-let openingLocked = false;
-
 async function openBox(box) {
   if (!box) return;
   if (openingLocked) return;
@@ -225,7 +210,7 @@ async function openBox(box) {
       box.classList.remove("opened", "rare");
       box.innerText = "";
       openingLocked = false;
-    }, 1500);
+    }, 1200);
 
   } catch (err) {
     console.error(err);
