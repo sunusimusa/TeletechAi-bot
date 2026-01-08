@@ -226,9 +226,7 @@ app.post("/api/open", async (req, res) => {
   }
 });
 
-const FOUNDER_TELEGRAM_ID = "1248500925"; 
-// 🔁 SA LALLAI ka maye gurbin da telegramId naka na gaskiya
-
+// ================= FOUNDER STATS =================
 app.get("/api/founder/stats", async (req, res) => {
   const telegramId = req.headers["x-telegram-id"];
 
@@ -250,13 +248,13 @@ app.get("/api/founder/stats", async (req, res) => {
       proLevel: { $gte: 4 }
     });
 
-    const totalTokens = await User.aggregate([
+    const totalTokensAgg = await User.aggregate([
       { $group: { _id: null, total: { $sum: "$tokens" } } }
     ]);
 
     const system = await User.findOne({ telegramId: "SYSTEM" });
 
-    const totalReferrals = await User.aggregate([
+    const totalReferralsAgg = await User.aggregate([
       { $group: { _id: null, total: { $sum: "$referralsCount" } } }
     ]);
 
@@ -264,9 +262,9 @@ app.get("/api/founder/stats", async (req, res) => {
       totalUsers,
       proUsers,
       founders,
-      totalTokens: totalTokens[0]?.total || 0,
+      totalTokens: totalTokensAgg[0]?.total || 0,
       systemBalance: system?.tokens || 0,
-      totalReferrals: totalReferrals[0]?.total || 0
+      totalReferrals: totalReferralsAgg[0]?.total || 0
     });
 
   } catch (err) {
@@ -275,11 +273,11 @@ app.get("/api/founder/stats", async (req, res) => {
   }
 });
 
-const FOUNDER_TELEGRAM_ID = "1248500925"; // ⚠️ saka naka
-
+// ================= FOUNDER ANALYTICS =================
 app.get("/api/founder/analytics", async (req, res) => {
   const telegramId = req.headers["x-telegram-id"];
 
+  // 🔒 KAI KADAI
   if (telegramId !== FOUNDER_TELEGRAM_ID) {
     return res.status(403).json({ error: "FORBIDDEN" });
   }
@@ -287,13 +285,14 @@ app.get("/api/founder/analytics", async (req, res) => {
   try {
     // 👥 Users growth (last 7 days)
     const usersGrowth = await User.aggregate([
-      {
-        $match: { telegramId: { $ne: "SYSTEM" } }
-      },
+      { $match: { telegramId: { $ne: "SYSTEM" } } },
       {
         $group: {
           _id: {
-            $dateToString: { format: "%Y-%m-%d", date: "$createdAt" }
+            $dateToString: {
+              format: "%Y-%m-%d",
+              date: "$createdAt"
+            }
           },
           count: { $sum: 1 }
         }
@@ -303,7 +302,7 @@ app.get("/api/founder/analytics", async (req, res) => {
     ]);
 
     // 💰 Revenue (tokens + balance)
-    const revenue = await User.aggregate([
+    const revenueAgg = await User.aggregate([
       {
         $group: {
           _id: null,
@@ -315,11 +314,14 @@ app.get("/api/founder/analytics", async (req, res) => {
 
     res.json({
       usersGrowth,
-      revenue: revenue[0] || { totalTokens: 0, totalBalance: 0 }
+      revenue: revenueAgg[0] || {
+        totalTokens: 0,
+        totalBalance: 0
+      }
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ founder analytics error:", err);
     res.status(500).json({ error: "FAILED" });
   }
 });
