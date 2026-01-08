@@ -127,10 +127,15 @@ function regenEnergy(user) {
 app.post("/api/user", async (req, res) => {
   try {
     const { telegramId, ref } = req.body;
-    if (!telegramId) return res.json({ error: "INVALID_TELEGRAM_ID" });
+    if (!telegramId) {
+      return res.json({ error: "INVALID_TELEGRAM_ID" });
+    }
 
     let user = await User.findOne({ telegramId });
 
+    const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
+
+    // ================= CREATE USER (SAU DAYA KAWAI) =================
     if (!user) {
       user = await User.create({
         telegramId,
@@ -139,14 +144,23 @@ app.post("/api/user", async (req, res) => {
         referredBy: ref || null,
         referralsCount: 0,
         seasonReferrals: 0,
-        energy: 50
+
+        energy: isFounder ? 9999 : 50,
+        freeTries: isFounder ? 9999 : 3, // 👑 KAI KADAI
+        isPro: isFounder,
+        proLevel: isFounder ? 4 : 0,
+        role: isFounder ? "founder" : "user"
       });
 
+      // ================= REFERRAL BONUS =================
       if (ref) {
         const refUser = await User.findOne({ referralCode: ref });
         if (refUser && refUser.telegramId !== telegramId) {
           refUser.balance += 500;
-          refUser.energy = Math.min(100, refUser.energy + 20);
+          refUser.energy = Math.min(
+            getMaxEnergy(refUser.proLevel),
+            refUser.energy + 20
+          );
           refUser.referralsCount += 1;
           refUser.seasonReferrals += 1;
           await refUser.save();
@@ -154,13 +168,25 @@ app.post("/api/user", async (req, res) => {
       }
     }
 
+    // ================= ENERGY REGEN =================
     regenEnergy(user);
-    const maxEnergy = getMaxEnergy(user.proLevel);
-    if (user.energy > maxEnergy) user.energy = maxEnergy;
 
-    user.role = user.proLevel >= 4 ? "founder" : "user";
+    const maxEnergy = getMaxEnergy(user.proLevel);
+    if (user.energy > maxEnergy) {
+      user.energy = maxEnergy;
+    }
+
+    // ================= ROLE SAFETY =================
+    if (isFounder) {
+      user.role = "founder";
+      user.proLevel = 4;
+      user.isPro = true;
+      user.freeTries = 9999;
+    }
+
     await user.save();
 
+    // ================= RESPONSE =================
     res.json({
       telegramId: user.telegramId,
       walletAddress: user.walletAddress,
@@ -168,16 +194,16 @@ app.post("/api/user", async (req, res) => {
       energy: user.energy,
       maxEnergy,
       tokens: user.tokens,
-      freeTries: user.freeTries || 0,
+      freeTries: user.freeTries,
       referralCode: user.referralCode,
       referralsCount: user.referralsCount,
-      proLevel: user.proLevel || 0,
-      isPro: user.isPro || false,
+      proLevel: user.proLevel,
+      isPro: user.isPro,
       role: user.role
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("❌ /api/user error:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
