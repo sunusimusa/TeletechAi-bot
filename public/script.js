@@ -420,6 +420,16 @@ function renderFounderDashboard() {
   }
 }
 
+function openFounder() {
+  // founder only
+  if (proLevel < 4) {
+    alert("👑 Founder access only");
+    return;
+  }
+
+  window.location.href = "/founder-stats.html";
+}
+
 // ================== FOUNDER ACTIONS ==================
 function openFounderStats() {
   alert(
