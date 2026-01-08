@@ -225,27 +225,37 @@ app.post("/api/open", async (req, res) => {
 
 app.get("/api/founder/stats", async (req, res) => {
   try {
+    // 👤 REAL USERS (ba SYSTEM ba)
     const totalUsers = await User.countDocuments({
       telegramId: { $ne: "SYSTEM" }
     });
 
+    // 🚀 PRO USERS (1–3 kawai)
     const proUsers = await User.countDocuments({
-      proLevel: { $gte: 1 }
+      telegramId: { $ne: "SYSTEM" },
+      proLevel: { $gte: 1, $lt: 4 }
     });
 
+    // 👑 FOUNDERS (KAWAI LEVEL 4)
     const founders = await User.countDocuments({
-      proLevel: { $gte: 4 }
+      telegramId: { $ne: "SYSTEM" },
+      proLevel: 4
     });
 
+    // 🪙 TOTAL TOKENS (excluding SYSTEM)
     const totalTokensAgg = await User.aggregate([
+      { $match: { telegramId: { $ne: "SYSTEM" } } },
       { $group: { _id: null, total: { $sum: "$tokens" } } }
     ]);
 
+    // 🏦 SYSTEM WALLET
+    const system = await User.findOne({ telegramId: "SYSTEM" });
+
+    // 🔗 TOTAL REFERRALS
     const totalReferralsAgg = await User.aggregate([
+      { $match: { telegramId: { $ne: "SYSTEM" } } },
       { $group: { _id: null, total: { $sum: "$referralsCount" } } }
     ]);
-
-    const system = await User.findOne({ telegramId: "SYSTEM" });
 
     res.json({
       totalUsers,
@@ -257,7 +267,7 @@ app.get("/api/founder/stats", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ /api/founder/stats:", err);
+    console.error("❌ founder stats error:", err);
     res.status(500).json({ error: "FAILED_TO_LOAD_STATS" });
   }
 });
