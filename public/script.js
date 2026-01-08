@@ -441,6 +441,10 @@ function openFounderStats() {
   );
 }
 
+function openTokenStats() {
+  window.location.href = "/token-stats.html";
+}
+
 function openReferralLeaderboard() {
   window.location.href = "/leaderboard.html";
 }
