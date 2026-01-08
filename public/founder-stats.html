@@ -5,6 +5,9 @@
   <title>👑 Founder Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
   <style>
     body {
       background: #0f1220;
@@ -15,13 +18,15 @@
 
     h1 {
       text-align: center;
-      margin-bottom: 20px;
+      margin-bottom: 25px;
     }
 
+    /* ===== STATS CARDS ===== */
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
       gap: 15px;
+      margin-bottom: 40px;
     }
 
     .card {
@@ -44,9 +49,24 @@
       color: #4ade80;
     }
 
+    /* ===== CHARTS ===== */
+    .charts {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 40px;
+      margin-bottom: 30px;
+    }
+
+    canvas {
+      background: #181c33;
+      padding: 15px;
+      border-radius: 12px;
+    }
+
+    /* ===== BACK BUTTON ===== */
     .back {
-      margin-top: 30px;
       text-align: center;
+      margin-top: 20px;
     }
 
     button {
@@ -56,6 +76,7 @@
       background: #2563eb;
       color: #fff;
       font-size: 16px;
+      cursor: pointer;
     }
   </style>
 </head>
@@ -63,6 +84,7 @@
 
   <h1>👑 Founder Global Dashboard</h1>
 
+  <!-- ===== STATS ===== -->
   <div class="grid">
     <div class="card">
       <h2>Total Users</h2>
@@ -95,10 +117,18 @@
     </div>
   </div>
 
+  <!-- ===== CHARTS ===== -->
+  <div class="charts">
+    <canvas id="usersChart"></canvas>
+    <canvas id="revenueChart"></canvas>
+  </div>
+
+  <!-- ===== BACK ===== -->
   <div class="back">
     <button onclick="goBack()">⬅ Back</button>
   </div>
 
+  <!-- SCRIPT -->
   <script src="/founder-stats.js"></script>
 </body>
 </html>
