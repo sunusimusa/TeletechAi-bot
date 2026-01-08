@@ -126,6 +126,51 @@ function showTutorialOnce() {
   }
 }
 
+// ================== SOUND SYSTEM ==================
+let soundUnlocked = false;
+
+function unlockSound() {
+  if (soundUnlocked) return;
+
+  const sounds = [
+    document.getElementById("clickSound"),
+    document.getElementById("winSound"),
+    document.getElementById("loseSound")
+  ];
+
+  sounds.forEach(s => {
+    if (!s) return;
+    s.volume = 0;
+    s.play().then(() => {
+      s.pause();
+      s.currentTime = 0;
+      s.volume = 1;
+    }).catch(() => {});
+  });
+
+  soundUnlocked = true;
+  console.log("🔊 Sound unlocked");
+}
+
+// unlock on FIRST TAP
+document.addEventListener("click", unlockSound, { once: true });
+
+function playSound(type) {
+  if (!soundUnlocked) return;
+
+  const map = {
+    click: "clickSound",
+    win: "winSound",
+    lose: "loseSound"
+  };
+
+  const el = document.getElementById(map[type]);
+  if (!el) return;
+
+  el.currentTime = 0;
+  el.play().catch(() => {});
+}
+
 // ================== DAILY BONUS ==================
 async function claimDailyBonus(btn) {
   const res = await fetch("/api/daily", {
@@ -177,6 +222,9 @@ async function openBox(box) {
   openingLocked = true;
   console.log("📦 Box clicked");
 
+  // 🔊 click sound
+  playSound("click");
+
   try {
     const res = await fetch("/api/open", {
       method: "POST",
@@ -192,20 +240,32 @@ async function openBox(box) {
       return;
     }
 
+    // 📦 OPEN ANIMATION
     box.classList.add("opened");
 
     if (data.reward > 0) {
       box.innerText = `💰 ${data.reward}`;
-      if (data.reward >= 200) box.classList.add("rare");
+
+      // 🔊 win sound
+      playSound("win");
+
+      if (data.reward >= 200) {
+        box.classList.add("rare");
+      }
     } else {
       box.innerText = "😢";
+
+      // 🔊 lose sound
+      playSound("lose");
     }
 
+    // 🔄 UPDATE STATE
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
     updateUI();
 
+    // ⏱️ RESET BOX
     setTimeout(() => {
       box.classList.remove("opened", "rare");
       box.innerText = "";
@@ -215,7 +275,7 @@ async function openBox(box) {
   } catch (err) {
     console.error(err);
     openingLocked = false;
-    alert("Network error");
+    alert("❌ Network error");
   }
 }
 
