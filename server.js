@@ -179,6 +179,117 @@ app.post("/api/user", async (req, res) => {
   }
 });
 
+app.post("/api/open", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+    const user = await User.findOne({ telegramId });
+
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    // ⚡ regen energy kafin komai
+    regenEnergy(user);
+
+    // 🎟️ amfani da freeTries ko energy
+    if (user.freeTries > 0) {
+      user.freeTries -= 1;
+    } else if (user.energy >= 10) {
+      user.energy -= 10;
+    } else {
+      return res.json({ error: "NO_ENERGY" });
+    }
+
+    // 🎁 REWARD POOLS
+    let rewards = [0, 100, 200];
+    if (user.proLevel === 2) rewards = [100, 200, 500];
+    if (user.proLevel === 3) rewards = [200, 500, 1000];
+    if (user.proLevel >= 4) rewards = [500, 1000, 2000];
+
+    const reward =
+      rewards[Math.floor(Math.random() * rewards.length)];
+
+    user.balance += reward;
+    await user.save();
+
+    res.json({
+      reward,
+      balance: user.balance,
+      energy: user.energy,
+      freeTries: user.freeTries
+    });
+
+  } catch (err) {
+    console.error("❌ /api/open:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+app.get("/api/founder/stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments({
+      telegramId: { $ne: "SYSTEM" }
+    });
+
+    const proUsers = await User.countDocuments({
+      proLevel: { $gte: 1 }
+    });
+
+    const founders = await User.countDocuments({
+      proLevel: { $gte: 4 }
+    });
+
+    const totalTokensAgg = await User.aggregate([
+      { $group: { _id: null, total: { $sum: "$tokens" } } }
+    ]);
+
+    const totalReferralsAgg = await User.aggregate([
+      { $group: { _id: null, total: { $sum: "$referralsCount" } } }
+    ]);
+
+    const system = await User.findOne({ telegramId: "SYSTEM" });
+
+    res.json({
+      totalUsers,
+      proUsers,
+      founders,
+      totalTokens: totalTokensAgg[0]?.total || 0,
+      systemBalance: system?.tokens || 0,
+      totalReferrals: totalReferralsAgg[0]?.total || 0
+    });
+
+  } catch (err) {
+    console.error("❌ /api/founder/stats:", err);
+    res.status(500).json({ error: "FAILED_TO_LOAD_STATS" });
+  }
+});
+
+app.post("/api/convert", async (req, res) => {
+  try {
+    const { telegramId } = req.body;
+    const user = await User.findOne({ telegramId });
+
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    const CONVERT_COST = 10000; // points → 1 token
+
+    if (user.balance < CONVERT_COST)
+      return res.json({ error: "NOT_ENOUGH_POINTS" });
+
+    user.balance -= CONVERT_COST;
+    user.tokens += 1;
+
+    await user.save();
+
+    res.json({
+      balance: user.balance,
+      tokens: user.tokens
+    });
+
+  } catch (err) {
+    console.error("❌ /api/convert:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= DAILY BONUS ================= */
 app.post("/api/daily", async (req, res) => {
   const { telegramId } = req.body;
