@@ -184,16 +184,12 @@ function convertPoints() {
 }
 
 async function openBox(box) {
-  if (openingLocked) return;
+  // 🛑 idan yana budewa ko an riga an bude
+  if (openingLocked || box.classList.contains("opened")) return;
 
-  if (box.classList.contains("opened")) {
-    openingLocked = false;
-    return;
-  }
-
-  if (energy < 10 && freeTries <= 0) {
+  // 🛑 idan babu energy ko free tries
+  if (energy <= 0 && freeTries <= 0) {
     alert("⚡ Not enough energy");
-    openingLocked = false;
     return;
   }
 
@@ -209,40 +205,48 @@ async function openBox(box) {
 
     const data = await res.json();
 
+    // ❌ ERROR DAGA BACKEND
     if (data.error) {
       alert("❌ " + data.error.replaceAll("_", " "));
-      openingLocked = false;
+      openingLocked = false; // 🔥 MUHIMMI
       return;
     }
 
+    // ✅ OPEN BOX UI
     box.classList.add("opened");
 
     if (data.reward > 0) {
       box.innerText = `💰 ${data.reward}`;
       playSound("win");
-      if (data.reward >= 200) box.classList.add("rare");
+
+      if (data.reward >= 200) {
+        box.classList.add("rare");
+      }
     } else {
       box.innerText = "😢";
       playSound("lose");
     }
 
+    // 🔄 UPDATE STATE
     balance = data.balance;
     energy = data.energy;
-    freeTries = data.freeTries;
+    freeTries = data.freeTries ?? freeTries;
+
     updateUI();
 
+    // ⏱️ Rufe box bayan 1.5s
     setTimeout(() => {
       box.classList.remove("opened", "rare");
       box.innerText = "";
-      openingLocked = false;
+      openingLocked = false; // 🔥 SAKI LOCK
     }, 1500);
 
   } catch (err) {
     console.error(err);
     alert("❌ Network error");
-    openingLocked = false;
+    openingLocked = false; // 🔥 SAKI LOCK KO DA YAUSHE
   }
-}
+  }
 
 function resetAllBoxes() {
   document.querySelectorAll(".box").forEach(b => {
