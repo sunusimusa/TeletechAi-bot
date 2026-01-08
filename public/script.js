@@ -183,18 +183,14 @@ function convertPoints() {
   });
 }
 
-async function openBox(box) {
-  // 🛑 idan yana budewa ko an riga an bude
-  if (openingLocked || box.classList.contains("opened")) return;
+let openingLocked = false;
 
-  // 🛑 idan babu energy ko free tries
-  if (energy <= 0 && freeTries <= 0) {
-    alert("⚡ Not enough energy");
-    return;
-  }
+async function openBox(box) {
+  if (!box) return;
+  if (openingLocked) return;
 
   openingLocked = true;
-  playSound("click");
+  console.log("📦 Box clicked");
 
   try {
     const res = await fetch("/api/open", {
@@ -205,48 +201,38 @@ async function openBox(box) {
 
     const data = await res.json();
 
-    // ❌ ERROR DAGA BACKEND
     if (data.error) {
-      alert("❌ " + data.error.replaceAll("_", " "));
-      openingLocked = false; // 🔥 MUHIMMI
+      alert(data.error.replaceAll("_", " "));
+      openingLocked = false;
       return;
     }
 
-    // ✅ OPEN BOX UI
     box.classList.add("opened");
 
     if (data.reward > 0) {
       box.innerText = `💰 ${data.reward}`;
-      playSound("win");
-
-      if (data.reward >= 200) {
-        box.classList.add("rare");
-      }
+      if (data.reward >= 200) box.classList.add("rare");
     } else {
       box.innerText = "😢";
-      playSound("lose");
     }
 
-    // 🔄 UPDATE STATE
     balance = data.balance;
     energy = data.energy;
-    freeTries = data.freeTries ?? freeTries;
-
+    freeTries = data.freeTries;
     updateUI();
 
-    // ⏱️ Rufe box bayan 1.5s
     setTimeout(() => {
       box.classList.remove("opened", "rare");
       box.innerText = "";
-      openingLocked = false; // 🔥 SAKI LOCK
+      openingLocked = false;
     }, 1500);
 
   } catch (err) {
     console.error(err);
-    alert("❌ Network error");
-    openingLocked = false; // 🔥 SAKI LOCK KO DA YAUSHE
+    openingLocked = false;
+    alert("Network error");
   }
-  }
+}
 
 function resetAllBoxes() {
   document.querySelectorAll(".box").forEach(b => {
