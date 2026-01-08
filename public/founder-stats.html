@@ -1,56 +1,147 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>👑 Founder Stats</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Founder Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: radial-gradient(circle at top, #111827, #020617);
+      color: #fff;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    .title {
+      text-align: center;
+      font-size: 26px;
+      font-weight: bold;
+      margin-bottom: 20px;
+      color: gold;
+    }
+
+    .card {
+      background: rgba(255, 255, 255, 0.06);
+      border-radius: 16px;
+      padding: 16px;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .label {
+      font-size: 14px;
+      opacity: 0.8;
+    }
+
+    .value {
+      font-size: 20px;
+      font-weight: bold;
+      color: #22c55e;
+    }
+
+    .back {
+      margin-top: 20px;
+      width: 100%;
+      padding: 14px;
+      border-radius: 30px;
+      border: none;
+      font-size: 16px;
+      font-weight: bold;
+      background: linear-gradient(90deg, gold, orange);
+      cursor: pointer;
+    }
+
+    .loading {
+      text-align: center;
+      opacity: 0.7;
+    }
+  </style>
 </head>
+<body>
 
-<body class="founder">
+  <div class="container">
+    <div class="title">👑 Founder Global Stats</div>
 
-  <h2 class="title">👑 Founder Global Stats</h2>
-  <p class="roadmap-sub">Live system overview</p>
+    <div id="loading" class="loading">Loading stats...</div>
 
-  <div class="roadmap-card active">
-    <p>👥 <b>Total Users</b></p>
-    <h3 id="totalUsers">0</h3>
+    <div id="stats" style="display:none;">
+      <div class="card">
+        <div class="label">👥 Total Users</div>
+        <div class="value" id="totalUsers">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">🚀 Pro Users</div>
+        <div class="value" id="proUsers">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">👑 Founders</div>
+        <div class="value" id="founders">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">🪙 Total Tokens</div>
+        <div class="value" id="totalTokens">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">🏦 System Balance</div>
+        <div class="value" id="systemBalance">0</div>
+      </div>
+
+      <div class="card">
+        <div class="label">🔗 Total Referrals</div>
+        <div class="value" id="totalReferrals">0</div>
+      </div>
+    </div>
+
+    <button class="back" onclick="goBack()">⬅ Back to App</button>
   </div>
 
-  <div class="roadmap-card completed">
-    <p>🚀 <b>PRO Users</b></p>
-    <h3 id="proUsers">0</h3>
-  </div>
+  <script>
+    async function loadFounderStats() {
+      try {
+        const res = await fetch("/api/founder/stats");
+        const data = await res.json();
 
-  <div class="roadmap-card completed">
-    <p>👑 <b>Founders</b></p>
-    <h3 id="founders">0</h3>
-  </div>
+        if (data.error) {
+          document.getElementById("loading").innerText =
+            "❌ Failed to load stats";
+          return;
+        }
 
-  <div class="roadmap-card active">
-    <p>🪙 <b>Total Tokens (All Users)</b></p>
-    <h3 id="totalTokens">0</h3>
-  </div>
+        document.getElementById("totalUsers").innerText = data.totalUsers;
+        document.getElementById("proUsers").innerText = data.proUsers;
+        document.getElementById("founders").innerText = data.founders;
+        document.getElementById("totalTokens").innerText = data.totalTokens;
+        document.getElementById("systemBalance").innerText = data.systemBalance;
+        document.getElementById("totalReferrals").innerText = data.totalReferrals;
 
-  <div class="roadmap-card active">
-    <p>🏦 <b>System Wallet Balance</b></p>
-    <h3 id="systemBalance">0</h3>
-  </div>
+        document.getElementById("loading").style.display = "none";
+        document.getElementById("stats").style.display = "block";
 
-  <div class="roadmap-card upcoming">
-    <p>👥 <b>Total Referrals</b></p>
-    <h3 id="totalReferrals">0</h3>
-  </div>
+      } catch (e) {
+        document.getElementById("loading").innerText =
+          "❌ Network error";
+      }
+    }
 
-  <button id="founderBtn"
-  onclick="openFounder()">
-  👑 FOUNDER
-  </button>
+    function goBack() {
+      window.location.href = "/";
+    }
 
-  <button class="back-btn" onclick="goBack()">⬅ Back to Dashboard</button>
+    loadFounderStats();
+  </script>
 
-  <script src="founder-stats.js"></script>
 </body>
 </html>
