@@ -45,11 +45,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// ================= STATIC WEBAPP =================
-app.get("/", (req, res) => {
-  res.sendFile(process.cwd() + "/public/index.html");
-});
-
 /* ================= ROUTES ================= */
 app.use("/api/roadmap", roadmapRoutes);
 app.use("/api/market", marketRoutes);
@@ -670,6 +665,11 @@ import { startBot } from "./bot.js";
 setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
+
+// 🔥 TELEGRAM WEBAPP FIX (CATCH ALL)
+app.get("*", (req, res) => {
+  res.sendFile(process.cwd() + "/public/index.html");
+});
 
 /* ================= START ================= */
 const PORT = process.env.PORT || 3000;
