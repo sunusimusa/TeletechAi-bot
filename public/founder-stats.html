@@ -2,146 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Founder Dashboard</title>
+  <title>👑 Founder Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <style>
     body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle at top, #111827, #020617);
+      background: #0f1220;
       color: #fff;
-    }
-
-    .container {
-      max-width: 420px;
-      margin: auto;
+      font-family: Arial, sans-serif;
       padding: 20px;
     }
 
-    .title {
+    h1 {
       text-align: center;
-      font-size: 26px;
-      font-weight: bold;
       margin-bottom: 20px;
-      color: gold;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 15px;
     }
 
     .card {
-      background: rgba(255, 255, 255, 0.06);
-      border-radius: 16px;
-      padding: 16px;
-      margin-bottom: 14px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
+      background: #181c33;
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+      box-shadow: 0 0 10px rgba(0,0,0,0.3);
     }
 
-    .label {
+    .card h2 {
       font-size: 14px;
       opacity: 0.8;
+      margin-bottom: 10px;
     }
 
-    .value {
-      font-size: 20px;
+    .card p {
+      font-size: 24px;
       font-weight: bold;
-      color: #22c55e;
+      color: #4ade80;
     }
 
     .back {
-      margin-top: 20px;
-      width: 100%;
-      padding: 14px;
-      border-radius: 30px;
-      border: none;
-      font-size: 16px;
-      font-weight: bold;
-      background: linear-gradient(90deg, gold, orange);
-      cursor: pointer;
+      margin-top: 30px;
+      text-align: center;
     }
 
-    .loading {
-      text-align: center;
-      opacity: 0.7;
+    button {
+      padding: 12px 20px;
+      border-radius: 10px;
+      border: none;
+      background: #2563eb;
+      color: #fff;
+      font-size: 16px;
     }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="title">👑 Founder Global Stats</div>
+  <h1>👑 Founder Global Dashboard</h1>
 
-    <div id="loading" class="loading">Loading stats...</div>
-
-    <div id="stats" style="display:none;">
-      <div class="card">
-        <div class="label">👥 Total Users</div>
-        <div class="value" id="totalUsers">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">🚀 Pro Users</div>
-        <div class="value" id="proUsers">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">👑 Founders</div>
-        <div class="value" id="founders">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">🪙 Total Tokens</div>
-        <div class="value" id="totalTokens">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">🏦 System Balance</div>
-        <div class="value" id="systemBalance">0</div>
-      </div>
-
-      <div class="card">
-        <div class="label">🔗 Total Referrals</div>
-        <div class="value" id="totalReferrals">0</div>
-      </div>
+  <div class="grid">
+    <div class="card">
+      <h2>Total Users</h2>
+      <p id="totalUsers">--</p>
     </div>
 
-    <button class="back" onclick="goBack()">⬅ Back to App</button>
+    <div class="card">
+      <h2>Pro Users</h2>
+      <p id="proUsers">--</p>
+    </div>
+
+    <div class="card">
+      <h2>Founders</h2>
+      <p id="founders">--</p>
+    </div>
+
+    <div class="card">
+      <h2>Total Tokens</h2>
+      <p id="totalTokens">--</p>
+    </div>
+
+    <div class="card">
+      <h2>System Balance</h2>
+      <p id="systemBalance">--</p>
+    </div>
+
+    <div class="card">
+      <h2>Total Referrals</h2>
+      <p id="totalReferrals">--</p>
+    </div>
   </div>
 
-  <script>
-    async function loadFounderStats() {
-      try {
-        const res = await fetch("/api/founder/stats");
-        const data = await res.json();
+  <div class="back">
+    <button onclick="goBack()">⬅ Back</button>
+  </div>
 
-        if (data.error) {
-          document.getElementById("loading").innerText =
-            "❌ Failed to load stats";
-          return;
-        }
-
-        document.getElementById("totalUsers").innerText = data.totalUsers;
-        document.getElementById("proUsers").innerText = data.proUsers;
-        document.getElementById("founders").innerText = data.founders;
-        document.getElementById("totalTokens").innerText = data.totalTokens;
-        document.getElementById("systemBalance").innerText = data.systemBalance;
-        document.getElementById("totalReferrals").innerText = data.totalReferrals;
-
-        document.getElementById("loading").style.display = "none";
-        document.getElementById("stats").style.display = "block";
-
-      } catch (e) {
-        document.getElementById("loading").innerText =
-          "❌ Network error";
-      }
-    }
-
-    function goBack() {
-      window.location.href = "/";
-    }
-
-    loadFounderStats();
-  </script>
-
+  <script src="/founder-stats.js"></script>
 </body>
 </html>
