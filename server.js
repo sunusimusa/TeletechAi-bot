@@ -664,9 +664,6 @@ setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
-import { startBot } from "./bot.js";
-startBot();
-
 /* ================= START ================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
