@@ -209,6 +209,243 @@ app.post("/api/daily", async (req, res) => {
   res.json({ reward, balance: user.balance, energy: user.energy });
 });
 
+app.post("/api/buy-energy", async (req, res) => {
+  const { telegramId, amount } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  const priceMap = { 100: 500, 500: 2000 };
+  const cost = priceMap[amount];
+  if (!cost) return res.json({ error: "INVALID_AMOUNT" });
+
+  if (user.balance < cost)
+    return res.json({ error: "NOT_ENOUGH_COINS" });
+
+  const MAX_ENERGY = getMaxEnergy(user.proLevel);
+
+  user.balance -= cost;
+  user.energy = Math.min(MAX_ENERGY, user.energy + amount);
+
+  await user.save();
+
+  res.json({
+    balance: user.balance,
+    energy: user.energy,
+    maxEnergy: MAX_ENERGY
+  });
+});
+
+app.post("/api/task/youtube", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user || user.joinedYoutube)
+    return res.json({ error: "ALREADY_DONE" });
+
+  user.joinedYoutube = true;
+  user.tokens += 10;
+
+  await user.save();
+  res.json({ tokens: user.tokens });
+});
+
+app.post("/api/task/group", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user || user.joinedGroup)
+    return res.json({ error: "ALREADY_DONE" });
+
+  user.joinedGroup = true;
+  user.tokens += 5;
+
+  await user.save();
+  res.json({ tokens: user.tokens });
+});
+
+app.post("/api/task/channel", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+
+  if (!user || user.joinedChannel)
+    return res.json({ error: "ALREADY_DONE" });
+
+  user.joinedChannel = true;
+  user.tokens += 5;
+
+  await user.save();
+  res.json({ tokens: user.tokens });
+});
+
+app.post("/api/pro/upgrade", async (req, res) => {
+  const { telegramId, level } = req.body;
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  if (level === 4)
+    return res.json({ error: "LEVEL_NOT_AVAILABLE" });
+
+  if (user.proLevel >= 4)
+    return res.json({ error: "ALREADY_FOUNDER" });
+
+  const PRICES = { 1: 5, 2: 10, 3: 20 };
+  if (!PRICES[level])
+    return res.json({ error: "INVALID_LEVEL" });
+
+  if (user.proLevel >= level)
+    return res.json({ error: "ALREADY_UPGRADED" });
+
+  if (user.tokens < PRICES[level])
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  const system = await User.findOne({ telegramId: "SYSTEM" });
+  if (!system)
+    return res.json({ error: "SYSTEM_WALLET_MISSING" });
+
+  user.tokens -= PRICES[level];
+  system.tokens += PRICES[level];
+
+  user.isPro = true;
+  user.proLevel = level;
+  user.proSince = Date.now();
+
+  await user.save();
+  await system.save();
+
+  res.json({
+    success: true,
+    proLevel: user.proLevel,
+    tokens: user.tokens
+  });
+});
+
+app.post("/api/ads/reward", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  regenEnergy(user);
+
+  const now = Date.now();
+  const COOLDOWN = 30 * 60 * 1000;
+  const MAX_ENERGY = getMaxEnergy(user.proLevel);
+
+  if (user.lastAd && now - user.lastAd < COOLDOWN)
+    return res.json({ error: "COME_BACK_LATER" });
+
+  user.energy = Math.min(MAX_ENERGY, user.energy + 20);
+  user.lastAd = now;
+
+  await user.save();
+  res.json({ energy: user.energy, maxEnergy: MAX_ENERGY });
+});
+
+app.post("/api/ads/claim", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  regenEnergy(user);
+
+  let tier = "free";
+  if (user.isPro && user.proLevel === 1) tier = "pro1";
+  if (user.isPro && user.proLevel === 2) tier = "pro2";
+  if (user.proLevel >= 3) tier = "pro3";
+
+  const rule = ADS_RULES[tier];
+  const MAX_ENERGY = getMaxEnergy(user.proLevel);
+  const now = Date.now();
+
+  if (user.energy >= MAX_ENERGY)
+    return res.json({ error: "ENERGY_FULL" });
+
+  if (now - (user.lastAdClaim || 0) < rule.cooldown)
+    return res.json({ error: "COOLDOWN_ACTIVE" });
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (user.lastAdDay !== today) {
+    user.adsWatchedToday = 0;
+    user.lastAdDay = today;
+  }
+
+  if (user.adsWatchedToday >= rule.dailyLimit)
+    return res.json({ error: "DAILY_LIMIT_REACHED" });
+
+  const rewardEnergy = Math.min(rule.reward, MAX_ENERGY - user.energy);
+
+  user.energy += rewardEnergy;
+  user.adsWatchedToday += 1;
+  user.lastAdClaim = now;
+
+  await user.save();
+  res.json({ rewardEnergy, energy: user.energy });
+});
+
+app.post("/api/token/transfer", async (req, res) => {
+  const { fromTelegramId, toTelegramId, amount } = req.body;
+
+  const sender = await User.findOne({ telegramId: fromTelegramId });
+  const receiver = await User.findOne({ telegramId: toTelegramId });
+
+  if (!sender || !receiver)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  if (sender.tokens < amount)
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  const rule = TRANSFER_RULES[
+    sender.proLevel >= 3 ? "pro3" :
+    sender.proLevel === 2 ? "pro2" :
+    sender.proLevel === 1 ? "pro1" : "free"
+  ];
+
+  const gas = Math.ceil(amount * rule.gas);
+  const receiveAmount = amount - gas;
+
+  const system = await getSystemWallet();
+
+  sender.tokens -= amount;
+  receiver.tokens += receiveAmount;
+  system.tokens += gas;
+
+  await sender.save();
+  await receiver.save();
+  await system.save();
+
+  res.json({ sent: amount, received: receiveAmount, gas });
+});
+
+app.post("/api/wallet/send", async (req, res) => {
+  const { telegramId, toWallet, amount } = req.body;
+
+  const sender = await User.findOne({ telegramId });
+  const receiver = await User.findOne({ walletAddress: toWallet });
+
+  if (!sender || !receiver)
+    return res.json({ error: "USER_NOT_FOUND" });
+
+  if (sender.tokens < amount)
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  sender.tokens -= amount;
+  receiver.tokens += amount;
+
+  await sender.save();
+  await receiver.save();
+
+  res.json({ success: true });
+});
+
+app.get("/api/ref/leaderboard", async (req, res) => {
+  const top = await User.find({ telegramId: { $ne: "SYSTEM" } })
+    .sort({ seasonReferrals: -1 })
+    .limit(20)
+    .select("telegramId seasonReferrals");
+
+  res.json({ top });
+});
+
 /* ================= SEASON CHECK ================= */
 setInterval(() => {
   checkReferralSeason().catch(console.error);
