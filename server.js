@@ -226,46 +226,52 @@ app.post("/api/open", async (req, res) => {
   }
 });
 
+const FOUNDER_TELEGRAM_ID = "1248500925"; 
+// 🔁 SA LALLAI ka maye gurbin da telegramId naka na gaskiya
+
 app.get("/api/founder/stats", async (req, res) => {
+  const telegramId = req.headers["x-telegram-id"];
+
+  // 🔒 KAI KADAI FOUNDER
+  if (telegramId !== FOUNDER_TELEGRAM_ID) {
+    return res.status(403).json({ error: "FORBIDDEN" });
+  }
+
   try {
     const totalUsers = await User.countDocuments({
       telegramId: { $ne: "SYSTEM" }
     });
 
     const proUsers = await User.countDocuments({
-      telegramId: { $ne: "SYSTEM" },
-      proLevel: { $gte: 1, $lt: 4 }
+      proLevel: { $gte: 1 }
     });
 
-    // 👑 FOUNDER = KAI KAWAI
     const founders = await User.countDocuments({
-      telegramId: FOUNDER_TELEGRAM_ID
+      proLevel: { $gte: 4 }
     });
 
-    const totalTokensAgg = await User.aggregate([
-      { $match: { telegramId: { $ne: "SYSTEM" } } },
+    const totalTokens = await User.aggregate([
       { $group: { _id: null, total: { $sum: "$tokens" } } }
     ]);
 
     const system = await User.findOne({ telegramId: "SYSTEM" });
 
-    const totalReferralsAgg = await User.aggregate([
-      { $match: { telegramId: { $ne: "SYSTEM" } } },
+    const totalReferrals = await User.aggregate([
       { $group: { _id: null, total: { $sum: "$referralsCount" } } }
     ]);
 
     res.json({
       totalUsers,
       proUsers,
-      founders, // 👉 ZAI ZAMA 1 KAWAI
-      totalTokens: totalTokensAgg[0]?.total || 0,
+      founders,
+      totalTokens: totalTokens[0]?.total || 0,
       systemBalance: system?.tokens || 0,
-      totalReferrals: totalReferralsAgg[0]?.total || 0
+      totalReferrals: totalReferrals[0]?.total || 0
     });
 
   } catch (err) {
     console.error("❌ founder stats error:", err);
-    res.status(500).json({ error: "FAILED_TO_LOAD_STATS" });
+    res.status(500).json({ error: "FAILED" });
   }
 });
 
