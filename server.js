@@ -150,15 +150,22 @@ app.post("/api/user", async (req, res) => {
   regenEnergy(user);
   await user.save();
 
-  res.json({
-    telegramId: user.telegramId,
-    walletAddress: user.walletAddress,
-    balance: user.balance,
-    energy: user.energy,
-    tokens: user.tokens,
-    referralCode: user.referralCode,
-    referralsCount: user.referralsCount
-  });
+res.json({
+  telegramId: user.telegramId,
+  walletAddress: user.walletAddress,
+
+  balance: user.balance,
+  energy: user.energy,
+  tokens: user.tokens,
+  freeTries: user.freeTries || 0,
+
+  referralCode: user.referralCode,
+  referralsCount: user.referralsCount,
+
+  // 👑 MUHIMMI SOSSOSAI
+  proLevel: user.proLevel || 0,
+  isPro: user.isPro || false,
+  role: user.proLevel >= 4 ? "founder" : "user"
 });
 
 // ===== HELPERS =====
