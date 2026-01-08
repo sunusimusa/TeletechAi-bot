@@ -227,14 +227,14 @@ app.post("/api/daily", async (req, res) => {
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
   const { telegramId } = req.body;
-
   const user = await User.findOne({ telegramId });
-  if (!user) {
-    return res.json({ error: "USER_NOT_FOUND" });
-  }
 
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  // ⚡ Regen kafin komai
   regenEnergy(user);
 
+  // 🎟️ amfani da freeTries ko energy
   if (user.freeTries > 0) {
     user.freeTries--;
   } else if (user.energy >= 10) {
@@ -243,10 +243,16 @@ app.post("/api/open", async (req, res) => {
     return res.json({ error: "NO_ENERGY" });
   }
 
-  const rewards = [0, 100, 200, 500];
-  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+  // 🎁 REWARDS
+  let rewards = [0, 100, 200];
 
+  if (user.proLevel === 2) rewards = [100, 200, 500];
+  if (user.proLevel === 3) rewards = [200, 500, 1000];
+  if (user.proLevel >= 4) rewards = [500, 1000, 2000];
+
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
   user.balance += reward;
+
   await user.save();
 
   res.json({
