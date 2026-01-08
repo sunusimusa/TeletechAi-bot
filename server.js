@@ -115,66 +115,95 @@ function regenEnergy(user) {
 }
 
 app.post("/api/user", async (req, res) => {
-  const { telegramId, ref } = req.body;
+  try {
+    const { telegramId, ref } = req.body;
 
-  if (!telegramId || telegramId === "guest") {
-    return res.json({ error: "INVALID_TELEGRAM_ID" });
-  }
+    if (!telegramId || telegramId === "guest") {
+      return res.json({ error: "INVALID_TELEGRAM_ID" });
+    }
 
-  let user = await User.findOne({ telegramId });
+    let user = await User.findOne({ telegramId });
 
-  if (!user) {
-    user = await User.create({
-      telegramId,
-      walletAddress: generateWallet(),
-      referralCode: generateCode(),
-      referredBy: ref || null,
-      referralsCount: 0,
-      seasonReferrals: 0,
-      energy: 50
-    });
+    // ================= CREATE USER =================
+    if (!user) {
+  user = await User.create({
+    telegramId,
+    walletAddress: await generateWalletUnique(), // 👈 MUHIMMI
+    referralCode: generateCode(),
+    referredBy: ref || null,
+    referralsCount: 0,
+    seasonReferrals: 0,
+    energy: 50
+  });
 
-    if (ref) {
-      const refUser = await User.findOne({ referralCode: ref });
+  if (ref) {
+    const refUser = await User.findOne({ referralCode: ref });
 
-      if (refUser && refUser.telegramId !== telegramId) {
-        refUser.balance += 500;
-        refUser.energy = Math.min(100, refUser.energy + 20);
-        refUser.referralsCount += 1;
-        refUser.seasonReferrals += 1;
-        await refUser.save();
-      }
+    if (refUser && refUser.telegramId !== telegramId) {
+      refUser.balance += 500;
+      refUser.energy = Math.min(100, refUser.energy + 20);
+      refUser.referralsCount += 1;
+      refUser.seasonReferrals += 1;
+      await refUser.save();
     }
   }
+    }
+    
+    // ================= ENERGY REGEN =================
+    regenEnergy(user);
 
-  // ✅ MUHIMMI
-  regenEnergy(user);
-  await user.save();
+    // ================= MAX ENERGY FIX =================
+    const MAX_ENERGY = getMaxEnergy(user.proLevel);
 
-res.json({
-  telegramId: user.telegramId,
-  walletAddress: user.walletAddress,
+    if (user.energy > MAX_ENERGY) {
+      user.energy = MAX_ENERGY;
+    }
 
-  balance: user.balance,
-  energy: user.energy,
-  tokens: user.tokens,
-  freeTries: user.freeTries || 0,
+    // ================= ROLE FIX =================
+    user.role = user.proLevel >= 4 ? "founder" : "user";
 
-  referralCode: user.referralCode,
-  referralsCount: user.referralsCount,
+    await user.save();
 
-  // 👑 MUHIMMI SOSSOSAI
-  proLevel: user.proLevel || 0,
-  isPro: user.isPro || false,
-  role: user.proLevel >= 4 ? "founder" : "user"
+    // ================= RESPONSE =================
+    res.json({
+      telegramId: user.telegramId,
+      walletAddress: user.walletAddress,
+
+      balance: user.balance,
+      energy: user.energy,
+      maxEnergy: MAX_ENERGY,
+
+      tokens: user.tokens,
+      freeTries: user.freeTries || 0,
+
+      referralCode: user.referralCode,
+      referralsCount: user.referralsCount,
+
+      proLevel: user.proLevel || 0,
+      isPro: user.isPro || false,
+      role: user.role
+    });
+
+  } catch (err) {
+    console.error("❌ /api/user error:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 // ===== HELPERS =====
-function generateWallet() {
-return (
-"TTECH-" +
-Math.random().toString(36).substring(2, 8).toUpperCase()
-);
+async function generateWalletUnique() {
+  let wallet;
+  let exists = true;
+
+  while (exists) {
+    wallet =
+      "TTECH-" +
+      Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    exists = await User.findOne({ walletAddress: wallet });
+  }
+
+  return wallet;
 }
 
 /* ================= DAILY ================= */
