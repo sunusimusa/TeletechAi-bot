@@ -1,51 +1,57 @@
-// ================== TELEGRAM SAFE INIT (FINAL) ==================
+/* =====================================================
+   TELEGRAM WEBAPP SAFE INIT (PRODUCTION)
+===================================================== */
 const tg = window.Telegram?.WebApp || null;
 
 let TELEGRAM_ID = "guest";
 let REF = null;
 
 if (tg) {
-  tg.ready();    // ✅ MUHIMMI SOSSOSAI
-  tg.expand();   // ✅ gyara Not Found / blank page
+  tg.ready();     // MUHIMMI
+  tg.expand();    // MUHIMMI
 
   if (tg.initDataUnsafe?.user?.id) {
     TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
   }
 
-  // 🔗 Referral (start_param)
   if (tg.initDataUnsafe?.start_param) {
     REF = tg.initDataUnsafe.start_param;
   }
 
   console.log("✅ Telegram ID:", TELEGRAM_ID);
-  console.log("🔗 REF:", REF);
-
+  console.log("🔗 Referral:", REF);
 } else {
-  console.warn("⚠️ Not opened from Telegram (DEV MODE)");
+  console.warn("⚠️ Opened outside Telegram (DEV MODE)");
 }
 
-// ================== GLOBAL STATE ==================
+/* =====================================================
+   GLOBAL STATE
+===================================================== */
 let balance = 0;
 let energy = 0;
 let tokens = 0;
 let freeTries = 0;
-let referralCode = "";
 let referralsCount = 0;
-
+let referralCode = "";
 let proLevel = 0;
-let isPro = false;
 let MAX_ENERGY = 100;
+let openingLocked = false;
 
-let openingLocked = false; // ✅ SAU DAYA KAWAI
-// ================== INIT ==================
-document.addEventListener("DOMContentLoaded", async () => {
-  showTutorialOnce();
-  checkAgreement();
-  await loadUser();
-  setInterval(loadUser, 5000);
+/* =====================================================
+   INIT
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  if (TELEGRAM_ID === "guest") {
+    alert("❌ Open this app from Telegram");
+    return;
+  }
+
+  loadUser();
 });
 
-// ================== LOAD USER ==================
+/* =====================================================
+   LOAD / CREATE USER
+===================================================== */
 async function loadUser() {
   try {
     const res = await fetch("/api/user", {
@@ -53,52 +59,45 @@ async function loadUser() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         telegramId: TELEGRAM_ID,
-        ref: tg.initDataUnsafe?.start_param || null
+        ref: REF
       })
     });
 
     const data = await res.json();
     if (data.error) throw data.error;
 
-    balance = data.balance ?? 0;
-    energy = data.energy ?? 0;
-    tokens = data.tokens ?? 0;
-    freeTries = data.freeTries ?? 0;
-    referralCode = data.referralCode ?? "";
-    referralsCount = data.referralsCount ?? 0;
+    balance = data.balance;
+    energy = data.energy;
+    tokens = data.tokens;
+    freeTries = data.freeTries;
+    referralsCount = data.referralsCount;
+    referralCode = data.referralCode;
+    proLevel = data.proLevel;
+    MAX_ENERGY = data.maxEnergy;
 
-    proLevel = data.proLevel ?? 0;
-    isPro = data.isPro ?? false;
-    role = data.role ?? "user";
-
-    if (proLevel >= 4) {
-  MAX_ENERGY = 9999;
-} else {
-  MAX_ENERGY = [100, 150, 200, 300][proLevel] || 100;
-    }
+    updateUI();
 
     if (referralCode) {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
     }
 
-    updateUI();
   } catch (e) {
     console.error(e);
+    alert("❌ Failed to load user");
   }
 }
 
-// ================== UI UPDATE ==================
+/* =====================================================
+   UI UPDATE
+===================================================== */
 function updateUI() {
-  const balanceEl = document.getElementById("balance");
-  if (!balanceEl) return;
-
-  balanceEl.innerText = `Balance: ${balance}`;
+  document.getElementById("balance").innerText = `Balance: ${balance}`;
+  document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
+  document.getElementById("freeTries").innerText = `Free tries: ${freeTries}`;
+  document.getElementById("refCount").innerText = `👥 Referrals: ${referralsCount}`;
   document.getElementById("energy").innerText =
     `Energy: ${energy} / ${MAX_ENERGY}`;
-  document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
-  document.getElementById("refCount").innerText =
-    `👥 Referrals: ${referralsCount}`;
 
   const bar = document.getElementById("energyFill");
   if (bar) {
@@ -106,90 +105,59 @@ function updateUI() {
       Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 
-  const founderDashboard = document.getElementById("founderDashboard");
-  const founderActions = document.getElementById("founderActions");
-  const proUpgradeBox = document.getElementById("proUpgradeBox");
-  const proBadge = document.getElementById("proBadge");
-
+  // Founder button
   if (proLevel >= 4) {
-    document.body.classList.add("founder");
+    document.getElementById("founderActions")?.classList.remove("hidden");
+  }
+}
 
-    if (proBadge) {
-      proBadge.innerText = "👑 FOUNDER";
-      proBadge.classList.remove("hidden");
+/* =====================================================
+   OPEN BOX
+===================================================== */
+async function openBox(box) {
+  if (openingLocked) return;
+  openingLocked = true;
+
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ telegramId: TELEGRAM_ID })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error.replaceAll("_", " "));
+      openingLocked = false;
+      return;
     }
 
-    founderDashboard?.classList.remove("hidden");
-    founderActions?.classList.remove("hidden");
-    proUpgradeBox?.classList.add("hidden");
-    return;
-  }
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
 
-  document.body.classList.remove("founder");
-  proBadge?.classList.add("hidden");
-  founderDashboard?.classList.add("hidden");
-  founderActions?.classList.add("hidden");
-  proUpgradeBox?.classList.remove("hidden");
-}
+    box.classList.add("opened");
+    box.innerText = data.reward > 0 ? `💰 ${data.reward}` : "😢";
 
-// ================== TUTORIAL ==================
-function showTutorialOnce() {
-  if (!localStorage.getItem("tutorial_seen")) {
-    alert(
-      "👋 Welcome to TeleTech AI!\n\n" +
-      "🎁 Daily Bonus\n⚡ Open Boxes\n👥 Invite Friends\n🚀 Upgrade PRO"
-    );
-    localStorage.setItem("tutorial_seen", "yes");
+    updateUI();
+
+    setTimeout(() => {
+      box.classList.remove("opened");
+      box.innerText = "";
+      openingLocked = false;
+    }, 1200);
+
+  } catch (err) {
+    console.error(err);
+    openingLocked = false;
+    alert("❌ Network error");
   }
 }
 
-// ================== SOUND SYSTEM ==================
-let soundUnlocked = false;
-
-function unlockSound() {
-  if (soundUnlocked) return;
-
-  const sounds = [
-    document.getElementById("clickSound"),
-    document.getElementById("winSound"),
-    document.getElementById("loseSound")
-  ];
-
-  sounds.forEach(s => {
-    if (!s) return;
-    s.volume = 0;
-    s.play().then(() => {
-      s.pause();
-      s.currentTime = 0;
-      s.volume = 1;
-    }).catch(() => {});
-  });
-
-  soundUnlocked = true;
-  console.log("🔊 Sound unlocked");
-}
-
-// unlock on FIRST TAP
-document.addEventListener("click", unlockSound, { once: true });
-
-function playSound(type) {
-  if (!soundUnlocked) return;
-
-  const map = {
-    click: "clickSound",
-    win: "winSound",
-    lose: "loseSound"
-  };
-
-  const el = document.getElementById(map[type]);
-  if (!el) return;
-
-  el.currentTime = 0;
-  el.play().catch(() => {});
-}
-
-// ================== DAILY BONUS ==================
-async function claimDailyBonus(btn) {
+/* =====================================================
+   DAILY BONUS
+===================================================== */
+async function claimDaily() {
   const res = await fetch("/api/daily", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -204,108 +172,82 @@ async function claimDailyBonus(btn) {
 
   balance = data.balance;
   energy = data.energy;
-  localStorage.setItem("lastDailyClaim", new Date().toDateString());
-
-  btn.disabled = true;
-  btn.innerText = "🎁 Claimed";
-  btn.style.opacity = 0.5;
-
   updateUI();
+
+  alert("🎁 Daily bonus claimed!");
 }
 
-// ================== CONVERT ==================
-function convertPoints() {
-  if (proLevel < 1) {
-    alert("🔒 PRO required");
-    return;
-  }
-
-  fetch("/api/convert", {
+/* =====================================================
+   CONVERT
+===================================================== */
+async function convertPoints() {
+  const res = await fetch("/api/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ telegramId: TELEGRAM_ID })
-  })
-  .then(r => r.json())
-  .then(d => {
-    if (d.error) return alert(d.error);
-    loadUser();
   });
-}
 
-async function openBox(box) {
-  if (!box) return;
-  if (openingLocked) return;
-
-  openingLocked = true;
-  console.log("📦 Box clicked");
-
-  // 🔊 click sound
-  playSound("click");
-
-  try {
-    const res = await fetch("/api/open", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ telegramId: TELEGRAM_ID })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      alert(data.error.replaceAll("_", " "));
-      openingLocked = false;
-      return;
-    }
-
-    // 📦 OPEN ANIMATION
-    box.classList.add("opened");
-
-    if (data.reward > 0) {
-      box.innerText = `💰 ${data.reward}`;
-
-      // 🔊 win sound
-      playSound("win");
-
-      if (data.reward >= 200) {
-        box.classList.add("rare");
-      }
-    } else {
-      box.innerText = "😢";
-
-      // 🔊 lose sound
-      playSound("lose");
-    }
-
-    // 🔄 UPDATE STATE
-    balance = data.balance;
-    energy = data.energy;
-    freeTries = data.freeTries;
-    updateUI();
-
-    // ⏱️ RESET BOX
-    setTimeout(() => {
-      box.classList.remove("opened", "rare");
-      box.innerText = "";
-      openingLocked = false;
-    }, 1200);
-
-  } catch (err) {
-    console.error(err);
-    openingLocked = false;
-    alert("❌ Network error");
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
   }
+
+  loadUser();
 }
 
-function resetAllBoxes() {
-  document.querySelectorAll(".box").forEach(b => {
-    b.classList.remove("opened", "rare");
-    b.innerText = "";
+/* =====================================================
+   BUY ENERGY
+===================================================== */
+async function buyEnergy(amount) {
+  const res = await fetch("/api/buy-energy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ telegramId: TELEGRAM_ID, amount })
   });
-  openedCount = 0;
+
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  balance = data.balance;
+  energy = data.energy;
+  updateUI();
 }
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+function openRoadmap() {
+  window.location.href = "/roadmap.html";
+}
+
+function openWallet() {
+  window.location.href = "/wallet.html";
+}
+
+function openLeaderboard() {
+  window.location.href = "/leaderboard.html";
+}
+
+function openFounderStats() {
+  window.location.href = "/founder-stats.html";
+}
+
+/* =====================================================
+   COPY REF
+===================================================== */
+function copyRef() {
+  navigator.clipboard.writeText(
+    document.getElementById("refLink").value
+  );
+  alert("🔗 Referral link copied!");
+      }
 
 function joinYouTube() {
-  tg.openLink("https://www.youtube.com/@Sunusicrypto");
+  tg.openLink("https://www.youtube.com/@Sunusicrypto"); // 🔁 canza idan kana so
 
   setTimeout(async () => {
     const res = await fetch("/api/task/youtube", {
@@ -365,9 +307,9 @@ function joinChannel() {
     alert("🎉 Channel joined +5 TOKEN");
     loadUser();
   }, 4000);
-}
+      }
 
-async function upgradePro(level) {
+async function upgradePro(level = 1) {
   const res = await fetch("/api/pro/upgrade", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -378,7 +320,6 @@ async function upgradePro(level) {
   });
 
   const data = await res.json();
-
   if (data.error) {
     alert(data.error.replaceAll("_", " "));
     return;
@@ -404,62 +345,101 @@ async function buyEnergy(amount) {
     return;
   }
 
-  energy = data.energy;
   balance = data.balance;
+  energy = data.energy;
   updateUI();
 
   alert(`⚡ +${amount} Energy purchased`);
 }
 
-function openWallet() {
-  window.location.href = "/wallet.html";
+async function buyToken(amount = 1) {
+  const res = await fetch("/api/convert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+
+  alert("🪙 Successfully bought 1 TTECH token");
+}
+
+async function sellToken(amount = 1) {
+  const res = await fetch("/api/sell", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      amount
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+
+  alert("💰 Token sold successfully");
+}
+
+async function withdraw() {
+  const toWallet = document.getElementById("toWallet").value.trim();
+  const amount = Number(
+    document.getElementById("sendAmount").value
+  );
+
+  if (!toWallet || amount <= 0) {
+    alert("❌ Enter valid wallet & amount");
+    return;
+  }
+
+  const res = await fetch("/api/wallet/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      telegramId: TELEGRAM_ID,
+      toWallet,
+      amount
+    })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  tokens = data.balance;
+  updateUI();
+
+  alert(
+    `✅ Withdraw successful\nSent: ${data.sent}\nGas: ${data.gasFee}`
+  );
+
+  document.getElementById("toWallet").value = "";
+  document.getElementById("sendAmount").value = "";
 }
 
 function openRoadmap() {
   window.location.href = "/roadmap.html";
-}
-
-function copyRef() {
-  navigator.clipboard.writeText(
-    document.getElementById("refLink").value
-  );
-  alert("👑 Referral link copied!");
-}
-
-function renderFounderDashboard() {
-  if (proLevel >= 4) {
-    const box = document.getElementById("founderDashboard");
-    if (box) box.classList.remove("hidden");
-  }
-}
-
-function openFounder() {
-  // founder only
-  if (proLevel < 4) {
-    alert("👑 Founder access only");
-    return;
-  }
-
-  window.location.href = "/founder-stats.html";
-}
-
-// ================== FOUNDER ACTIONS ==================
-function openFounderStats() {
-  alert(
-    "📊 GLOBAL STATS\n\n" +
-    "• Total Users\n" +
-    "• Total Tokens Burned\n" +
-    "• System Wallet Balance\n\n" +
-    "🚧 Full dashboard coming soon"
-  );
-}
-
-function openReferralLeaderboard() {
-  window.location.href = "/leaderboard.html";
-}
-
-function openFounderStats() {
-  window.location.href = "/founder-stats.html";
 }
 
 // ================== AGREEMENT ==================
@@ -473,3 +453,4 @@ function acceptAgreement() {
   localStorage.setItem("user_agreed", "yes");
   document.getElementById("agreementModal").style.display = "none";
 }
+
