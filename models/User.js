@@ -1,43 +1,47 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
-  telegramId: { type: String, unique: true },
+  // ===== IDENTITY =====
+  telegramId: {
+    type: String,
+    unique: true,
+    index: true,
+    required: true
+  },
 
   // ===== GAME =====
   balance: { type: Number, default: 0 },
   energy: { type: Number, default: 100 },
-  lastEnergy: { type: Number, default: Date.now },
+  lastEnergy: { type: Number, default: () => Date.now() },
   freeTries: { type: Number, default: 3 },
   tokens: { type: Number, default: 0 },
 
   // ===== WALLET =====
-  walletAddress: { type: String, unique: true },
+  walletAddress: {
+    type: String,
+    unique: true,
+    index: true
+  },
 
   // ===== REFERRAL =====
-  referralCode: { type: String },
+  referralCode: { type: String, index: true },
   referredBy: { type: String, default: null },
   referralsCount: { type: Number, default: 0 },
   seasonReferrals: { type: Number, default: 0 },
 
   // ===== PRO =====
   isPro: { type: Boolean, default: false },
-  proLevel: { type: Number, default: 0 }, // 0=FREE, 1,2,3
+  proLevel: { type: Number, default: 0 }, // 0–3
   proSince: { type: Number, default: null },
-  
-  // ===== ROLES =====
-role: {
-  type: String,
-  enum: ["user", "founder"],
-  default: "user"
-},
 
-  userId: {
-  type: String,
-  unique: true,
-  index: true
-  }
+  // ===== ROLE =====
+  role: {
+    type: String,
+    enum: ["user", "founder"],
+    default: "user"
+  },
 
-  // ===== ENERGY / ADS =====
+  // ===== ADS / ENERGY =====
   adsWatchedToday: { type: Number, default: 0 },
   lastAd: { type: Number, default: 0 },
   lastAdClaim: { type: Number, default: 0 },
@@ -70,10 +74,7 @@ role: {
         enum: ["pending", "approved", "rejected"],
         default: "pending"
       },
-      createdAt: {
-        type: Date,
-        default: Date.now
-      }
+      createdAt: { type: Date, default: Date.now }
     }
   ]
 }, { timestamps: true });
