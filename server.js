@@ -77,15 +77,15 @@ app.get("*", (req, res) => {
 });
 
 /* ================= DATABASE + SERVER ================= */
-const PORT = process.env.PORT || 10000;
-
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(async () => {
     console.log("✅ MongoDB Connected");
-  } catch (err) {
+    await ensureSystemWallet();
+  })
+  .catch(err => {
     console.error("❌ Mongo Error:", err);
-  }
-});
+  });
 
 /* ================= SYSTEM WALLET ================= */
 async function ensureSystemWallet() {
