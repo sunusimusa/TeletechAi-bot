@@ -114,4 +114,45 @@ async function claimDaily() {
   }
 }
 
+/* ================= WATCH AD ================= */
+async function watchAd() {
+  try {
+    const btn = document.getElementById("watchAdBtn");
+    if (btn) btn.disabled = true;
+
+    // 🎬 fake ad delay (5 sec)
+    document.getElementById("adMsg").innerText = "📺 Watching ad...";
+    await new Promise(r => setTimeout(r, 5000));
+
+    const res = await fetch("/api/ads/watch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById("adMsg").innerText =
+        data.error.replaceAll("_", " ");
+      return;
+    }
+
+    energy = data.energy;
+    balance = data.balance;
+
+    document.getElementById("adMsg").innerText =
+      `⚡ +${data.rewardEnergy} Energy | 💰 +${data.rewardCoins} coins
+       (${data.adsLeft} ads left today)`;
+
+    updateUI();
+
+  } catch (e) {
+    alert("Ad failed");
+  } finally {
+    const btn = document.getElementById("watchAdBtn");
+    if (btn) btn.disabled = false;
+  }
+}
+
 
