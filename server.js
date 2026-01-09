@@ -703,6 +703,11 @@ app.get("*", (req, res) => {
   res.sendFile(process.cwd() + "/public/index.html");
 });
 
+// ================= TELEGRAM WEBAPP FIX =================
+app.get("*", (req, res) => {
+  res.sendFile(process.cwd() + "/public/index.html");
+});
+
 // ================= START SERVER =================
 const PORT = process.env.PORT || 10000;
 
