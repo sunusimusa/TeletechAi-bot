@@ -1,22 +1,85 @@
-// ================= TELEGRAM INIT =================
-const tg = window.Telegram?.WebApp;
-
-if (!tg) {
-  alert("❌ Please open this app from Telegram");
-} else {
-  tg.ready();
-  tg.expand();
-
-  const TELEGRAM_ID =
-    tg.initDataUnsafe?.user?.id || "guest";
-
-  console.log("Telegram ID:", TELEGRAM_ID);
-
-  document.body.insertAdjacentHTML(
-    "beforeend",
-    `<p style="margin-top:20px;color:green;">
-      ✅ App Loaded<br/>
-      Telegram ID: ${TELEGRAM_ID}
-    </p>`
-  );
+/* ================= USER ID ================= */
+let USER_ID = localStorage.getItem("USER_ID");
+if (!USER_ID) {
+  USER_ID = "user_" + Math.random().toString(36).substring(2, 10);
+  localStorage.setItem("USER_ID", USER_ID);
 }
+
+/* ================= STATE ================= */
+let balance = 0;
+let energy = 0;
+let tokens = 0;
+let freeTries = 0;
+
+/* ================= LOAD USER ================= */
+async function loadUser() {
+  try {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+    if (data.error) throw data.error;
+
+    balance = data.balance;
+    energy = data.energy;
+    tokens = data.tokens;
+    freeTries = data.freeTries;
+
+    updateUI();
+
+    document.getElementById("appStatus").innerText =
+      "✅ App Loaded (Browser Mode)";
+
+  } catch (err) {
+    alert("Failed to load user");
+    console.error(err);
+  }
+}
+
+/* ================= OPEN BOX ================= */
+async function openBox(el) {
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+
+    alert("🎁 You won: " + data.reward);
+    updateUI();
+
+  } catch (e) {
+    alert("Server error");
+  }
+}
+
+/* ================= UI ================= */
+function updateUI() {
+  document.getElementById("balance").innerText =
+    "Balance: " + balance;
+
+  document.getElementById("energy").innerText =
+    "Energy: " + energy;
+
+  document.getElementById("freeTries").innerText =
+    "Free tries: " + freeTries;
+
+  document.getElementById("tokens").innerText =
+    "Tokens: " + tokens;
+}
+
+/* ================= START ================= */
+document.addEventListener("DOMContentLoaded", loadUser);
