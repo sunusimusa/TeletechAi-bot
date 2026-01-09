@@ -4,39 +4,34 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
+const WEBAPP_URL = "https://teletechai.onrender.com";
 
-const WEBAPP_URL = process.env.WEBAPP_URL;
-
-// ================= START COMMAND =================
 bot.start(async (ctx) => {
-  try {
-    const ref = ctx.startPayload || null;
+  const ref = ctx.startPayload || "";
 
-    const finalUrl = ref
-      ? `${WEBAPP_URL}?ref=${ref}`
-      : WEBAPP_URL;
+  const url = ref
+    ? `${WEBAPP_URL}?ref=${ref}`
+    : WEBAPP_URL;
 
-    await ctx.reply(
-      "🔥 *TeleTech AI*\n\nEarn coins, rewards & future tokens.\n\n👇 Open the app to start playing:",
-      {
-        parse_mode: "Markdown",
-        ...Markup.inlineKeyboard([
-          Markup.button.webApp("🚀 Open App", finalUrl)
-        ])
+  await ctx.reply(
+    "🔥 *TeleTech AI*\n\n" +
+    "Earn • Play • Invite • Grow\n\n" +
+    "👇 Tap below to open the app",
+    {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "🚀 Open App",
+              web_app: { url }
+            }
+          ]
+        ]
       }
-    );
-  } catch (err) {
-    console.error(err);
-    ctx.reply("❌ Error occurred. Try again later.");
-  }
+    }
+  );
 });
 
-// ================= EXPORT START FUNCTION =================
-export function startBot() {
-  bot.launch().then(() => {
-    console.log("🤖 TeleTech AI Bot is running...");
-  });
-
-  process.once("SIGINT", () => bot.stop("SIGINT"));
-  process.once("SIGTERM", () => bot.stop("SIGTERM"));
-}
+bot.launch();
+console.log("🤖 Bot running...");
