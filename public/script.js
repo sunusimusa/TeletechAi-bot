@@ -1,21 +1,30 @@
-/* ================= GLOBAL DEVICE ID ================= */
-function getDeviceId() {
-  let id = localStorage.getItem("device_id");
-  if (!id) {
-    id = crypto.randomUUID();
-    localStorage.setItem("device_id", id);
+const tg = window.Telegram?.WebApp || null;
+
+let TELEGRAM_ID = "guest";
+let REF = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (!tg) {
+    alert("❌ Open this app from Telegram");
+    return;
   }
-  return id;
-}
 
-const USER_ID = getDeviceId();
+  tg.ready();
+  tg.expand();
 
-/* ================= REFERRAL ================= */
-const urlParams = new URLSearchParams(window.location.search);
-const REF = urlParams.get("ref");
+  TELEGRAM_ID = String(tg.initDataUnsafe?.user?.id || "guest");
 
-console.log("✅ USER_ID:", USER_ID);
-console.log("🔗 REF:", REF);
+  REF =
+    tg.initDataUnsafe?.start_param ||
+    new URLSearchParams(window.location.search).get("ref");
+
+  if (TELEGRAM_ID === "guest") {
+    alert("❌ Open this app from Telegram");
+    return;
+  }
+
+  loadUser();
+});
 
 /* =====================================================
    GLOBAL STATE
