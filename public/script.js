@@ -1,36 +1,21 @@
-const tg = window.Telegram?.WebApp || null;
-
-let TELEGRAM_ID = "guest";
-let REF = null;
-
-document.addEventListener("DOMContentLoaded", () => {
-  if (!tg) {
-    alert("❌ Open this app from Telegram");
-    return;
+/* ================= GLOBAL DEVICE ID ================= */
+function getDeviceId() {
+  let id = localStorage.getItem("device_id");
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem("device_id", id);
   }
+  return id;
+}
 
-  tg.ready();
-  tg.expand();
+const USER_ID = getDeviceId();
 
-  if (tg.initDataUnsafe?.user?.id) {
-    TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
-  }
+/* ================= REFERRAL ================= */
+const urlParams = new URLSearchParams(window.location.search);
+const REF = urlParams.get("ref");
 
-  REF =
-    tg.initDataUnsafe?.start_param ||
-    new URLSearchParams(window.location.search).get("tgWebAppStartParam") ||
-    new URLSearchParams(window.location.search).get("ref");
-
-  if (TELEGRAM_ID === "guest") {
-    alert("❌ Open this app from Telegram");
-    return;
-  }
-
-  console.log("✅ Telegram ID:", TELEGRAM_ID);
-  console.log("🔗 Referral:", REF);
-
-  loadUser();
-});
+console.log("✅ USER_ID:", USER_ID);
+console.log("🔗 REF:", REF);
 
 /* =====================================================
    GLOBAL STATE
@@ -66,7 +51,7 @@ async function loadUser() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        telegramId: TELEGRAM_ID,
+        userId: USER_ID,
         ref: REF
       })
     });
@@ -87,10 +72,9 @@ async function loadUser() {
 
     if (referralCode) {
       document.getElementById("refLink").value =
-        `https://t.me/teletechai_bot?start=${referralCode}`;
+        `${location.origin}/?ref=${referralCode}`;
     }
 
-    // ✅ AGREEMENT – ANAN NE MAFI DACE
     checkAgreement();
 
   } catch (e) {
