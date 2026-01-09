@@ -1,28 +1,38 @@
-/* =====================================================
-   TELEGRAM WEBAPP SAFE INIT (PRODUCTION)
-===================================================== */
+/* ================= TELEGRAM WEBAPP SAFE INIT ================= */
 const tg = window.Telegram?.WebApp || null;
 
 let TELEGRAM_ID = "guest";
 let REF = null;
 
-if (tg) {
-  tg.ready();     // MUHIMMI
-  tg.expand();    // MUHIMMI
+document.addEventListener("DOMContentLoaded", () => {
+  if (!tg) {
+    console.warn("Opened outside Telegram");
+    return;
+  }
+
+  tg.ready();
+  tg.expand();
 
   if (tg.initDataUnsafe?.user?.id) {
     TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
   }
 
-  if (tg.initDataUnsafe?.start_param) {
-    REF = tg.initDataUnsafe.start_param;
-  }
+  // ✅ REFERRAL (DUKKAN HANYOYI)
+  REF =
+    tg.initDataUnsafe?.start_param ||
+    new URLSearchParams(window.location.search).get("tgWebAppStartParam") ||
+    new URLSearchParams(window.location.search).get("ref");
 
   console.log("✅ Telegram ID:", TELEGRAM_ID);
   console.log("🔗 Referral:", REF);
-} else {
-  console.warn("⚠️ Opened outside Telegram (DEV MODE)");
-}
+
+  if (TELEGRAM_ID === "guest") {
+    alert("❌ Open this app from Telegram");
+    return;
+  }
+
+  loadUser();
+});
 
 /* =====================================================
    GLOBAL STATE
@@ -81,6 +91,9 @@ async function loadUser() {
       document.getElementById("refLink").value =
         `https://t.me/teletechai_bot?start=${referralCode}`;
     }
+
+    // ✅ AGREEMENT – ANAN NE MAFI DACE
+    checkAgreement();
 
   } catch (e) {
     console.error(e);
@@ -400,49 +413,73 @@ async function sellToken(amount = 1) {
 }
 
 async function withdraw() {
-  const toWallet = document.getElementById("toWallet").value.trim();
-  const amount = Number(
-    document.getElementById("sendAmount").value
-  );
+  if (!TELEGRAM_ID || TELEGRAM_ID === "guest") {
+    alert("❌ Open this app from Telegram");
+    return;
+  }
 
-  if (!toWallet || amount <= 0) {
+  const walletInput = document.getElementById("toWallet");
+  const amountInput = document.getElementById("sendAmount");
+
+  const toWallet = walletInput.value.trim();
+  const amount = Number(amountInput.value);
+
+  if (!toWallet || !amount || amount <= 0) {
     alert("❌ Enter valid wallet & amount");
     return;
   }
 
-  const res = await fetch("/api/wallet/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      telegramId: TELEGRAM_ID,
-      toWallet,
-      amount
-    })
-  });
+  // 🔒 lock button
+  const btn = document.activeElement;
+  if (btn) btn.disabled = true;
 
-  const data = await res.json();
+  try {
+    const res = await fetch("/api/wallet/send", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        telegramId: TELEGRAM_ID,
+        toWallet,
+        amount
+      })
+    });
 
-  if (data.error) {
-    alert(data.error.replaceAll("_", " "));
-    return;
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error.replaceAll("_", " "));
+      return;
+    }
+
+    tokens = data.balance;
+    updateUI();
+
+    alert(
+      `✅ Withdraw successful\n\n` +
+      `Sent: ${data.sent}\n` +
+      `Gas fee: ${data.gasFee}`
+    );
+
+    walletInput.value = "";
+    amountInput.value = "";
+
+  } catch (err) {
+    console.error(err);
+    alert("❌ Network error, try again");
+  } finally {
+    if (btn) btn.disabled = false;
   }
-
-  tokens = data.balance;
-  updateUI();
-
-  alert(
-    `✅ Withdraw successful\nSent: ${data.sent}\nGas: ${data.gasFee}`
-  );
-
-  document.getElementById("toWallet").value = "";
-  document.getElementById("sendAmount").value = "";
 }
 
 function openRoadmap() {
-  window.location.href = "/roadmap.html";
+  if (!tg) {
+    window.location.href = "/roadmap.html"; // browser fallback
+    return;
+  }
+
+  tg.openLink(location.origin + "/roadmap.html");
 }
 
-// ================== AGREEMENT ==================
 function checkAgreement() {
   if (!localStorage.getItem("user_agreed")) {
     document.getElementById("agreementModal").style.display = "flex";
@@ -453,3 +490,4 @@ function acceptAgreement() {
   localStorage.setItem("user_agreed", "yes");
   document.getElementById("agreementModal").style.display = "none";
 }
+
