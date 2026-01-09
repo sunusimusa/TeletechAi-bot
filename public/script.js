@@ -3,23 +3,22 @@ const tg = window.Telegram?.WebApp || null;
 let TELEGRAM_ID = "guest";
 let REF = null;
 
-document.addEventListener("DOMContentLoaded", () => {
-  if (!tg) {
-    alert("❌ Open this app from Telegram");
-    return;
-  }
-
+if (tg) {
   tg.ready();
   tg.expand();
 
-  TELEGRAM_ID = String(tg.initDataUnsafe?.user?.id || "guest");
+  if (tg.initDataUnsafe?.user?.id) {
+    TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
+  }
 
   REF =
     tg.initDataUnsafe?.start_param ||
     new URLSearchParams(window.location.search).get("ref");
+}
 
-  if (TELEGRAM_ID === "guest") {
-    alert("❌ Open this app from Telegram");
+document.addEventListener("DOMContentLoaded", () => {
+  if (!tg || TELEGRAM_ID === "guest") {
+    console.warn("Not Telegram environment");
     return;
   }
 
