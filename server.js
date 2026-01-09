@@ -70,12 +70,6 @@ setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
-/* ================= TELEGRAM MINI APP FIX ================= */
-// ⚠️ DOLE YA ZAMA NA ƘARSHE
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 /* ================= DATABASE + SERVER ================= */
 mongoose
   .connect(process.env.MONGODB_URI)
