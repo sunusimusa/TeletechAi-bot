@@ -703,11 +703,9 @@ app.get("*", (req, res) => {
   res.sendFile(process.cwd() + "/public/index.html");
 });
 
-/* ================= START SERVER ================= */
-const PORT = process.env.PORT || 3000;
+// ================= START SERVER =================
+const PORT = process.env.PORT || 10000;
+
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
-
-// 🤖 START TELEGRAM BOT
-import "./bot.js";
