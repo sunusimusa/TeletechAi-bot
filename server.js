@@ -135,40 +135,50 @@ app.post("/api/user", async (req, res) => {
 
     let user = await User.findOne({ telegramId });
 
-    // ================= CREATE USER =================
-    if (!user) {
-      const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
+    // ================= CREATE USER ================= 
+if (!user) {
+  const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
 
-      user = await User.create({
-        telegramId,
-        walletAddress: await generateWalletUnique(),
-        referralCode: generateCode(),
-        referredBy: ref || null,
-        referralsCount: 0,
-        seasonReferrals: 0,
+  user = await User.create({
+    telegramId,
+    walletAddress: await generateWalletUnique(),
+    referralCode: generateCode(),
 
-        energy: isFounder ? 9999 : 50,
-        freeTries: isFounder ? 9999 : 3,
-        isPro: isFounder,
-        proLevel: isFounder ? 4 : 0,
-        role: isFounder ? "founder" : "user"
-      });
+    referredBy: null, // ❌ KAR A SA ref ANAN
+    referralsCount: 0,
+    seasonReferrals: 0,
 
-      // 🔗 REFERRAL BONUS
-      if (ref) {
-        const refUser = await User.findOne({ referralCode: ref });
-        if (refUser && refUser.telegramId !== telegramId) {
-          refUser.balance += 500;
-          refUser.energy = Math.min(
-            getMaxEnergy(refUser.proLevel),
-            refUser.energy + 20
-          );
-          refUser.referralsCount += 1;
-          refUser.seasonReferrals += 1;
-          await refUser.save();
-        }
-      }
+    energy: isFounder ? 9999 : 50,
+    freeTries: isFounder ? 9999 : 3,
+    isPro: isFounder,
+    proLevel: isFounder ? 4 : 0,
+    role: isFounder ? "founder" : "user"
+  });
+
+  // 🔗 REFERRAL BONUS (SAFE & LOCKED)
+  if (ref) {
+    const refUser = await User.findOne({ referralCode: ref });
+
+    // ❌ hana self-referral
+    if (refUser && refUser.telegramId !== telegramId) {
+
+      // 🔒 lock referral sau ɗaya kacal
+      user.referredBy = refUser.telegramId;
+
+      refUser.balance += 500;
+      refUser.energy = Math.min(
+        getMaxEnergy(refUser.proLevel),
+        refUser.energy + 20
+      );
+
+      refUser.referralsCount += 1;
+      refUser.seasonReferrals += 1;
+
+      await refUser.save();
+      await user.save(); // 👈 MUHIMMI
     }
+  }
+}
 
     // ⚡ ENERGY REGEN
     regenEnergy(user);
