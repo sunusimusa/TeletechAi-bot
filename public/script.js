@@ -1,17 +1,22 @@
+// ================= TELEGRAM INIT =================
 const tg = window.Telegram?.WebApp;
 
 if (!tg) {
-  document.body.innerHTML = "<h3>❌ Open from Telegram</h3>";
+  alert("❌ Please open this app from Telegram");
 } else {
   tg.ready();
+  tg.expand();
 
-  const user = tg.initDataUnsafe?.user;
+  const TELEGRAM_ID =
+    tg.initDataUnsafe?.user?.id || "guest";
 
-  if (!user || !user.id) {
-    document.body.innerHTML = "<h3>❌ No Telegram user</h3>";
-  } else {
-    console.log("Telegram ID:", user.id);
-    document.getElementById("balance").innerText =
-      "Balance: loading...";
-  }
+  console.log("Telegram ID:", TELEGRAM_ID);
+
+  document.body.insertAdjacentHTML(
+    "beforeend",
+    `<p style="margin-top:20px;color:green;">
+      ✅ App Loaded<br/>
+      Telegram ID: ${TELEGRAM_ID}
+    </p>`
+  );
 }
