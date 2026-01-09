@@ -31,6 +31,12 @@ role: {
   default: "user"
 },
 
+  userId: {
+  type: String,
+  unique: true,
+  index: true
+  }
+
   // ===== ENERGY / ADS =====
   adsWatchedToday: { type: Number, default: 0 },
   lastAd: { type: Number, default: 0 },
