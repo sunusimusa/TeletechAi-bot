@@ -2,6 +2,8 @@ import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
 import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 
 import User from "./models/User.js";
 import { checkReferralSeason } from "./services/season.service.js";
@@ -15,10 +17,16 @@ import sendRoutes from "./routes/send.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
-import { startBot } from "./bot.js";
+
+// ❌ MUN CIRE WANNAN GABA ƊAYA
+// import { startBot } from "./bot.js";
 
 dotenv.config();
 const app = express();
+
+/* ================= PATH FIX (ESM) ================= */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /* ================= CONFIG ================= */
 const BASE_DAILY_REWARD = 500;
@@ -37,14 +45,15 @@ const TRANSFER_RULES = {
   pro3: { dailyLimit: 1000, cooldown: 0, gas: 0.01 }
 };
 
-const FOUNDER_TELEGRAM_ID = "1248500925"; 
-// 🔁 ka maye gurbinsa da telegramId naka
+const FOUNDER_TELEGRAM_ID = "1248500925";
 
 /* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(express.static("public"));
+
+// ⚠️ MUHIMMI GA TELEGRAM MINI APP
+app.use(express.static(path.join(__dirname, "public")));
 
 /* ================= ROUTES ================= */
 app.use("/api/roadmap", roadmapRoutes);
@@ -56,13 +65,30 @@ app.use("/api/wallet", walletRoutes);
 app.use("/api/pro", proRoutes);
 app.use("/api/stats", statsRoutes);
 
-/* ================= DATABASE ================= */
-mongoose.connect(process.env.MONGODB_URI)
-  .then(async () => {
+/* ================= SEASON CHECK ================= */
+setInterval(() => {
+  checkReferralSeason().catch(console.error);
+}, 60 * 60 * 1000);
+
+/* ================= TELEGRAM MINI APP FIX ================= */
+// ⚠️ DOLE YA ZAMA NA ƘARSHE
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
+/* ================= DATABASE + SERVER ================= */
+const PORT = process.env.PORT || 10000;
+
+app.listen(PORT, async () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+
+  try {
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ MongoDB Connected");
-    await ensureSystemWallet();
-  })
-  .catch(err => console.error("❌ Mongo Error:", err));
+  } catch (err) {
+    console.error("❌ Mongo Error:", err);
+  }
+});
 
 /* ================= SYSTEM WALLET ================= */
 async function ensureSystemWallet() {
