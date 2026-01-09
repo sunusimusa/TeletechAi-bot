@@ -668,21 +668,19 @@ app.get("/api/ref/leaderboard", async (req, res) => {
   }
 });
 
-import { startBot } from "./bot.js";
-
 /* ================= SEASON CHECK ================= */
 setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
-// 🔥 TELEGRAM WEBAPP FIX (CATCH ALL)
+/* ================= TELEGRAM WEBAPP FIX (CATCH ALL) ================= */
+// ⚠️ dole ya zo BAYAN duk /api routes
 app.get("*", (req, res) => {
   res.sendFile(process.cwd() + "/public/index.html");
 });
 
-/* ================= START ================= */
+/* ================= START SERVER ================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  startBot(); // 🤖 BOT YA TASHI NAN
 });
