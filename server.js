@@ -79,9 +79,6 @@ app.get("*", (req, res) => {
 /* ================= DATABASE + SERVER ================= */
 const PORT = process.env.PORT || 10000;
 
-app.listen(PORT, async () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-
   try {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("✅ MongoDB Connected");
