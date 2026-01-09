@@ -738,12 +738,6 @@ setInterval(() => {
   checkReferralSeason().catch(console.error);
 }, 60 * 60 * 1000);
 
-/* ================= TELEGRAM WEBAPP FIX (CATCH ALL) ================= */
-/* ⚠️ dole ya zo BAYAN duk /api routes */
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 // ================= START SERVER =================
 const PORT = process.env.PORT || 10000;
 
