@@ -692,14 +692,9 @@ setInterval(() => {
 }, 60 * 60 * 1000);
 
 /* ================= TELEGRAM WEBAPP FIX (CATCH ALL) ================= */
-// ⚠️ dole ya zo BAYAN duk /api routes
+/* ⚠️ dole ya zo BAYAN duk /api routes */
 app.get("*", (req, res) => {
-  res.sendFile(process.cwd() + "/public/index.html");
-});
-
-// ================= TELEGRAM WEBAPP FIX =================
-app.get("*", (req, res) => {
-  res.sendFile(process.cwd() + "/public/index.html");
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // ================= START SERVER =================
