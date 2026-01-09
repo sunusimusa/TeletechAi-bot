@@ -15,7 +15,6 @@ import sendRoutes from "./routes/send.routes.js";
 import walletRoutes from "./routes/wallet.routes.js";
 import proRoutes from "./routes/pro.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
-import "./bot.js";
 
 dotenv.config();
 const app = express();
@@ -685,3 +684,6 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
 });
+
+// 🤖 START TELEGRAM BOT
+import "./bot.js";
