@@ -126,22 +126,25 @@ function regenEnergy(user) {
 /* ================= USER INIT ================= */
 app.post("/api/user", async (req, res) => {
   try {
-    const { userId, ref } = req.body;
+    const { telegramId, ref } = req.body;
 
-    if (!userId) {
-      return res.json({ error: "INVALID_USER_ID" });
+    // 🔒 SECURITY CHECK
+    if (!telegramId) {
+      return res.json({ error: "INVALID_TELEGRAM_ID" });
     }
 
-    let user = await User.findOne({ userId });
+    let user = await User.findOne({ telegramId });
 
+    // ================= CREATE USER =================
     if (!user) {
       user = await User.create({
-        userId,
+        telegramId,
         walletAddress: await generateWalletUnique(),
         referralCode: generateCode(),
         referredBy: ref || null,
         referralsCount: 0,
         seasonReferrals: 0,
+
         balance: 0,
         tokens: 0,
         energy: 50,
@@ -154,7 +157,8 @@ app.post("/api/user", async (req, res) => {
       // 🔗 REFERRAL BONUS
       if (ref) {
         const refUser = await User.findOne({ referralCode: ref });
-        if (refUser && refUser.userId !== userId) {
+
+        if (refUser && refUser.telegramId !== telegramId) {
           refUser.balance += 500;
           refUser.energy = Math.min(
             getMaxEnergy(refUser.proLevel),
@@ -167,6 +171,7 @@ app.post("/api/user", async (req, res) => {
       }
     }
 
+    // ⚡ ENERGY REGEN
     regenEnergy(user);
 
     const maxEnergy = getMaxEnergy(user.proLevel);
@@ -175,7 +180,7 @@ app.post("/api/user", async (req, res) => {
     await user.save();
 
     res.json({
-      userId: user.userId,
+      telegramId: user.telegramId,
       walletAddress: user.walletAddress,
       balance: user.balance,
       energy: user.energy,
@@ -190,7 +195,7 @@ app.post("/api/user", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ /api/user:", err);
+    console.error("❌ /api/user error:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
