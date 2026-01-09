@@ -43,16 +43,21 @@ let openingLocked = false;
    INIT
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
-  if (TELEGRAM_ID === "guest") {
-    alert("❌ Open this app from Telegram");
+  if (!window.Telegram || !Telegram.WebApp) {
+    alert("❌ Please open this app from Telegram");
     return;
   }
 
-  loadUser();
+  if (!TELEGRAM_ID || TELEGRAM_ID === "guest") {
+    alert("❌ Invalid Telegram session");
+    return;
+  }
+
+  loadUser(); // ✅ yanzu lafiya
 });
 
 /* =====================================================
-   LOAD / CREATE USER
+   LOAD / CREATE USER (FINAL – CORRECT)
 ===================================================== */
 async function loadUser() {
   try {
@@ -60,7 +65,7 @@ async function loadUser() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId: USER_ID,
+        telegramId: USER_ID, // ✅ MUHIMMI
         ref: REF
       })
     });
@@ -79,18 +84,21 @@ async function loadUser() {
 
     updateUI();
 
+    // 🔗 Referral link
     if (referralCode) {
       document.getElementById("refLink").value =
-        `${location.origin}/?ref=${referralCode}`;
+        `https://t.me/teletechai_bot?start=${referralCode}`;
     }
 
+    // ✅ Agreement check
     checkAgreement();
 
   } catch (e) {
     console.error(e);
     alert("❌ Failed to load user");
   }
-}
+ }
+
 
 /* =====================================================
    UI UPDATE
