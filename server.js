@@ -126,77 +126,62 @@ function regenEnergy(user) {
 /* ================= USER INIT ================= */
 app.post("/api/user", async (req, res) => {
   try {
-    const { telegramId, ref } = req.body;
+    const { userId, ref } = req.body;
 
-    // 🔒 NAN NE DAIDAITACCEN WURI
-    if (!telegramId || telegramId === "guest") {
-      return res.json({ error: "INVALID_TELEGRAM_ID" });
+    if (!userId) {
+      return res.json({ error: "INVALID_USER_ID" });
     }
 
-    let user = await User.findOne({ telegramId });
+    let user = await User.findOne({ userId });
 
-    // ================= CREATE USER ================= 
-if (!user) {
-  const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
+    if (!user) {
+      user = await User.create({
+        userId,
+        walletAddress: await generateWalletUnique(),
+        referralCode: generateCode(),
+        referredBy: ref || null,
+        referralsCount: 0,
+        seasonReferrals: 0,
+        balance: 0,
+        tokens: 0,
+        energy: 50,
+        freeTries: 3,
+        proLevel: 0,
+        isPro: false,
+        role: "user"
+      });
 
-  user = await User.create({
-    telegramId,
-    walletAddress: await generateWalletUnique(),
-    referralCode: generateCode(),
-
-    referredBy: null, // ❌ KAR A SA ref ANAN
-    referralsCount: 0,
-    seasonReferrals: 0,
-
-    energy: isFounder ? 9999 : 50,
-    freeTries: isFounder ? 9999 : 3,
-    isPro: isFounder,
-    proLevel: isFounder ? 4 : 0,
-    role: isFounder ? "founder" : "user"
-  });
-
-  // 🔗 REFERRAL BONUS (SAFE & LOCKED)
-  if (ref) {
-    const refUser = await User.findOne({ referralCode: ref });
-
-    // ❌ hana self-referral
-    if (refUser && refUser.telegramId !== telegramId) {
-
-      // 🔒 lock referral sau ɗaya kacal
-      user.referredBy = refUser.telegramId;
-
-      refUser.balance += 500;
-      refUser.energy = Math.min(
-        getMaxEnergy(refUser.proLevel),
-        refUser.energy + 20
-      );
-
-      refUser.referralsCount += 1;
-      refUser.seasonReferrals += 1;
-
-      await refUser.save();
-      await user.save(); // 👈 MUHIMMI
+      // 🔗 REFERRAL BONUS
+      if (ref) {
+        const refUser = await User.findOne({ referralCode: ref });
+        if (refUser && refUser.userId !== userId) {
+          refUser.balance += 500;
+          refUser.energy = Math.min(
+            getMaxEnergy(refUser.proLevel),
+            refUser.energy + 20
+          );
+          refUser.referralsCount += 1;
+          refUser.seasonReferrals += 1;
+          await refUser.save();
+        }
+      }
     }
-  }
-}
 
-    // ⚡ ENERGY REGEN
     regenEnergy(user);
 
     const maxEnergy = getMaxEnergy(user.proLevel);
     if (user.energy > maxEnergy) user.energy = maxEnergy;
 
-    user.role = user.proLevel >= 4 ? "founder" : "user";
     await user.save();
 
     res.json({
-      telegramId: user.telegramId,
+      userId: user.userId,
       walletAddress: user.walletAddress,
       balance: user.balance,
       energy: user.energy,
       maxEnergy,
       tokens: user.tokens,
-      freeTries: user.freeTries || 0,
+      freeTries: user.freeTries,
       referralCode: user.referralCode,
       referralsCount: user.referralsCount,
       proLevel: user.proLevel,
@@ -205,7 +190,7 @@ if (!user) {
     });
 
   } catch (err) {
-    console.error("❌ /api/user error:", err);
+    console.error("❌ /api/user:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
