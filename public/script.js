@@ -83,3 +83,35 @@ function updateUI() {
 
 /* ================= START ================= */
 document.addEventListener("DOMContentLoaded", loadUser);
+
+/* ================= DAILY BONUS ================= */
+async function claimDaily() {
+  try {
+    const res = await fetch("/api/daily", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      document.getElementById("dailyMsg").innerText =
+        "❌ Come back tomorrow";
+      return;
+    }
+
+    balance = data.balance;
+    energy = data.energy;
+
+    document.getElementById("dailyMsg").innerText =
+      `🎁 +${data.reward} coins | 🔥 Streak: ${data.streak}`;
+
+    updateUI();
+
+  } catch (e) {
+    alert("Daily failed");
+  }
+}
+
+
