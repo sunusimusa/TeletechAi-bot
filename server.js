@@ -105,6 +105,52 @@ app.post("/api/open", async (req, res) => {
   });
 });
 
+/* ================= DAILY BONUS ================= */
+app.post("/api/daily", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    const now = Date.now();
+    const DAY = 24 * 60 * 60 * 1000;
+
+    // ❌ already claimed today
+    if (user.lastDaily && now - user.lastDaily < DAY) {
+      return res.json({ error: "COME_BACK_LATER" });
+    }
+
+    // 🔁 streak logic
+    if (user.lastDaily && now - user.lastDaily < DAY * 2) {
+      user.dailyStreak += 1;
+    } else {
+      user.dailyStreak = 1;
+    }
+
+    // 🎁 reward
+    let reward = 500;
+    if (user.dailyStreak >= 3) reward = 800;
+    if (user.dailyStreak >= 7) reward = 1200;
+
+    user.balance += reward;
+    user.energy = Math.min(200, user.energy + 20);
+    user.lastDaily = now;
+
+    await user.save();
+
+    res.json({
+      reward,
+      streak: user.dailyStreak,
+      balance: user.balance,
+      energy: user.energy
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
