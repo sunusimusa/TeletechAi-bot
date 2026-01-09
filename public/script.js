@@ -1,4 +1,3 @@
-/* ================= TELEGRAM WEBAPP SAFE INIT ================= */
 const tg = window.Telegram?.WebApp || null;
 
 let TELEGRAM_ID = "guest";
@@ -6,7 +5,7 @@ let REF = null;
 
 document.addEventListener("DOMContentLoaded", () => {
   if (!tg) {
-    console.warn("Opened outside Telegram");
+    alert("❌ Open this app from Telegram");
     return;
   }
 
@@ -17,19 +16,18 @@ document.addEventListener("DOMContentLoaded", () => {
     TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
   }
 
-  // ✅ REFERRAL (DUKKAN HANYOYI)
   REF =
     tg.initDataUnsafe?.start_param ||
     new URLSearchParams(window.location.search).get("tgWebAppStartParam") ||
     new URLSearchParams(window.location.search).get("ref");
 
-  console.log("✅ Telegram ID:", TELEGRAM_ID);
-  console.log("🔗 Referral:", REF);
-
   if (TELEGRAM_ID === "guest") {
     alert("❌ Open this app from Telegram");
     return;
   }
+
+  console.log("✅ Telegram ID:", TELEGRAM_ID);
+  console.log("🔗 Referral:", REF);
 
   loadUser();
 });
@@ -228,6 +226,8 @@ async function buyEnergy(amount) {
   balance = data.balance;
   energy = data.energy;
   updateUI();
+
+  alert(`⚡ +${amount} Energy purchased`);
 }
 
 /* =====================================================
@@ -472,12 +472,11 @@ async function withdraw() {
 }
 
 function openRoadmap() {
-  if (!tg) {
-    window.location.href = "/roadmap.html"; // browser fallback
-    return;
+  if (tg) {
+    tg.openLink(location.origin + "/roadmap.html");
+  } else {
+    window.location.href = "/roadmap.html";
   }
-
-  tg.openLink(location.origin + "/roadmap.html");
 }
 
 function checkAgreement() {
@@ -490,4 +489,3 @@ function acceptAgreement() {
   localStorage.setItem("user_agreed", "yes");
   document.getElementById("agreementModal").style.display = "none";
 }
-
