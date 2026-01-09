@@ -151,6 +151,57 @@ app.post("/api/daily", async (req, res) => {
   }
 });
 
+/* ================= WATCH AD ================= */
+app.post("/api/ads/watch", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    const now = Date.now();
+    const today = new Date().toISOString().slice(0, 10);
+
+    // 🔁 reset daily counter
+    if (user.lastAdDay !== today) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = today;
+    }
+
+    // 🚫 daily limit
+    if (user.adsWatchedToday >= 5) {
+      return res.json({ error: "DAILY_LIMIT_REACHED" });
+    }
+
+    // ⏱ cooldown (5 minutes)
+    if (user.lastAdAt && now - user.lastAdAt < 5 * 60 * 1000) {
+      return res.json({ error: "COOLDOWN_ACTIVE" });
+    }
+
+    // 🎁 reward
+    const rewardEnergy = 20;
+    const rewardCoins = 100;
+
+    user.energy = Math.min(200, user.energy + rewardEnergy);
+    user.balance += rewardCoins;
+    user.adsWatchedToday += 1;
+    user.lastAdAt = now;
+
+    await user.save();
+
+    res.json({
+      energy: user.energy,
+      balance: user.balance,
+      rewardEnergy,
+      rewardCoins,
+      adsLeft: 5 - user.adsWatchedToday
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
