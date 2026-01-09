@@ -128,8 +128,8 @@ app.post("/api/user", async (req, res) => {
   try {
     const { telegramId, ref } = req.body;
 
-    // 🔒 SECURITY CHECK
-    if (!telegramId) {
+    // 🔒 SECURITY
+    if (!telegramId || telegramId === "guest") {
       return res.json({ error: "INVALID_TELEGRAM_ID" });
     }
 
@@ -137,6 +137,8 @@ app.post("/api/user", async (req, res) => {
 
     // ================= CREATE USER =================
     if (!user) {
+      const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
+
       user = await User.create({
         telegramId,
         walletAddress: await generateWalletUnique(),
@@ -147,18 +149,24 @@ app.post("/api/user", async (req, res) => {
 
         balance: 0,
         tokens: 0,
-        energy: 50,
-        freeTries: 3,
-        proLevel: 0,
-        isPro: false,
-        role: "user"
+
+        energy: isFounder ? 9999 : 50,
+        freeTries: isFounder ? 9999 : 3,
+
+        isPro: isFounder,
+        proLevel: isFounder ? 4 : 0,
+        role: isFounder ? "founder" : "user"
       });
 
-      // 🔗 REFERRAL BONUS
+      // 🔗 REFERRAL BONUS (ONCE)
       if (ref) {
         const refUser = await User.findOne({ referralCode: ref });
 
-        if (refUser && refUser.telegramId !== telegramId) {
+        if (
+          refUser &&
+          refUser.telegramId !== telegramId &&
+          !user.referredBy // kariya daga duplicate
+        ) {
           refUser.balance += 500;
           refUser.energy = Math.min(
             getMaxEnergy(refUser.proLevel),
@@ -166,6 +174,7 @@ app.post("/api/user", async (req, res) => {
           );
           refUser.referralsCount += 1;
           refUser.seasonReferrals += 1;
+
           await refUser.save();
         }
       }
