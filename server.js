@@ -103,10 +103,21 @@ function generateCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+async function generateReferralCodeUnique() {
+  let code, exists = true;
+  while (exists) {
+    code = generateCode();
+    exists = await User.findOne({ referralCode: code });
+  }
+  return code;
+}
+
 async function generateWalletUnique() {
   let wallet, exists = true;
   while (exists) {
-    wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    wallet =
+      "TTECH-" +
+      Math.random().toString(36).substring(2, 8).toUpperCase();
     exists = await User.findOne({ walletAddress: wallet });
   }
   return wallet;
@@ -120,10 +131,6 @@ function getMaxEnergy(level = 0) {
   return 100;
 }
 
-async function getSystemWallet() {
-  return await User.findOne({ telegramId: "SYSTEM" });
-}
-
 function regenEnergy(user) {
   const now = Date.now();
   let time = 5 * 60 * 1000, gain = 5, max = 100;
@@ -135,10 +142,11 @@ function regenEnergy(user) {
 
   if (!user.lastEnergy) user.lastEnergy = now;
   const diff = Math.floor((now - user.lastEnergy) / time);
+
   if (diff > 0) {
     user.energy = Math.min(max, user.energy + diff * gain);
     user.lastEnergy = now;
-  }
+  }                  
 }
 
 /* ================= USER INIT ================= */
@@ -153,15 +161,16 @@ app.post("/api/user", async (req, res) => {
 
     let user = await User.findOne({ telegramId });
 
-    // ================= CREATE USER =================
+    /* ================= CREATE USER ================= */
     if (!user) {
       const isFounder = telegramId === FOUNDER_TELEGRAM_ID;
 
       user = await User.create({
         telegramId,
         walletAddress: await generateWalletUnique(),
-        referralCode: generateCode(),
-        referredBy: ref || null,
+        referralCode: await generateReferralCodeUnique(),
+        referredBy: null,
+
         referralsCount: 0,
         seasonReferrals: 0,
 
@@ -176,15 +185,16 @@ app.post("/api/user", async (req, res) => {
         role: isFounder ? "founder" : "user"
       });
 
-      // 🔗 REFERRAL BONUS (ONCE)
+      /* ========== REFERRAL BONUS (ONCE ONLY) ========== */
       if (ref) {
         const refUser = await User.findOne({ referralCode: ref });
 
         if (
           refUser &&
-          refUser.telegramId !== telegramId &&
-          !user.referredBy // kariya daga duplicate
+          refUser.telegramId !== telegramId
         ) {
+          user.referredBy = refUser.telegramId; // 🔒 lock referral
+
           refUser.balance += 500;
           refUser.energy = Math.min(
             getMaxEnergy(refUser.proLevel),
@@ -198,24 +208,34 @@ app.post("/api/user", async (req, res) => {
       }
     }
 
-    // ⚡ ENERGY REGEN
+    /* ================= ENERGY REGEN ================= */
     regenEnergy(user);
 
     const maxEnergy = getMaxEnergy(user.proLevel);
-    if (user.energy > maxEnergy) user.energy = maxEnergy;
+
+    // 👑 kare founder
+    if (user.proLevel < 4 && user.energy > maxEnergy) {
+      user.energy = maxEnergy;
+    }
 
     await user.save();
 
+    /* ================= RESPONSE ================= */
     res.json({
       telegramId: user.telegramId,
       walletAddress: user.walletAddress,
+
       balance: user.balance,
+      tokens: user.tokens,
+
       energy: user.energy,
       maxEnergy,
-      tokens: user.tokens,
       freeTries: user.freeTries,
+
       referralCode: user.referralCode,
+      referredBy: user.referredBy,
       referralsCount: user.referralsCount,
+
       proLevel: user.proLevel,
       isPro: user.isPro,
       role: user.role
@@ -271,36 +291,52 @@ app.post("/api/open", async (req, res) => {
   }
 });
 
-// ================= FOUNDER STATS =================
+// ================= FOUNDER STATS (FINAL) =================
 app.get("/api/founder/stats", async (req, res) => {
-  const telegramId = req.headers["x-telegram-id"];
-
-  // 🔒 KAI KADAI FOUNDER
-  if (telegramId !== FOUNDER_TELEGRAM_ID) {
-    return res.status(403).json({ error: "FORBIDDEN" });
-  }
-
   try {
+    const telegramId = req.headers["x-telegram-id"];
+
+    // 🔒 KAI KADAI FOUNDER
+    if (!telegramId || telegramId !== FOUNDER_TELEGRAM_ID) {
+      return res.status(403).json({ error: "FORBIDDEN" });
+    }
+
+    // 👥 TOTAL USERS (excluding SYSTEM)
     const totalUsers = await User.countDocuments({
       telegramId: { $ne: "SYSTEM" }
     });
 
+    // ⭐ PRO USERS
     const proUsers = await User.countDocuments({
-      proLevel: { $gte: 1 }
+      proLevel: { $gte: 1, $lt: 4 }
     });
 
+    // 👑 FOUNDERS
     const founders = await User.countDocuments({
       proLevel: { $gte: 4 }
     });
 
+    // 🪙 TOTAL TOKENS IN SYSTEM
     const totalTokensAgg = await User.aggregate([
-      { $group: { _id: null, total: { $sum: "$tokens" } } }
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$tokens" }
+        }
+      }
     ]);
 
+    // 🏦 SYSTEM WALLET
     const system = await User.findOne({ telegramId: "SYSTEM" });
 
+    // 👥 TOTAL REFERRALS (ALL USERS)
     const totalReferralsAgg = await User.aggregate([
-      { $group: { _id: null, total: { $sum: "$referralsCount" } } }
+      {
+        $group: {
+          _id: null,
+          total: { $sum: "$referralsCount" }
+        }
+      }
     ]);
 
     res.json({
@@ -313,24 +349,31 @@ app.get("/api/founder/stats", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("❌ founder stats error:", err);
-    res.status(500).json({ error: "FAILED" });
+    console.error("❌ /api/founder/stats error:", err);
+    res.status(500).json({ error: "FAILED_TO_LOAD_STATS" });
   }
 });
 
-// ================= FOUNDER ANALYTICS =================
+// ================= FOUNDER ANALYTICS (FINAL) =================
 app.get("/api/founder/analytics", async (req, res) => {
-  const telegramId = req.headers["x-telegram-id"];
-
-  // 🔒 KAI KADAI
-  if (telegramId !== FOUNDER_TELEGRAM_ID) {
-    return res.status(403).json({ error: "FORBIDDEN" });
-  }
-
   try {
-    // 👥 Users growth (last 7 days)
+    const telegramId = req.headers["x-telegram-id"];
+
+    // 🔒 KAI KADAI FOUNDER
+    if (!telegramId || telegramId !== FOUNDER_TELEGRAM_ID) {
+      return res.status(403).json({ error: "FORBIDDEN" });
+    }
+
+    /* =====================================================
+       👥 USERS GROWTH (LAST 7 DAYS)
+    ===================================================== */
     const usersGrowth = await User.aggregate([
-      { $match: { telegramId: { $ne: "SYSTEM" } } },
+      {
+        $match: {
+          telegramId: { $ne: "SYSTEM" },
+          createdAt: { $exists: true }
+        }
+      },
       {
         $group: {
           _id: {
@@ -346,7 +389,9 @@ app.get("/api/founder/analytics", async (req, res) => {
       { $limit: 7 }
     ]);
 
-    // 💰 Revenue (tokens + balance)
+    /* =====================================================
+       💰 REVENUE (TOKENS + BALANCE)
+    ===================================================== */
     const revenueAgg = await User.aggregate([
       {
         $group: {
@@ -357,17 +402,19 @@ app.get("/api/founder/analytics", async (req, res) => {
       }
     ]);
 
+    const revenue = revenueAgg[0] || {
+      totalTokens: 0,
+      totalBalance: 0
+    };
+
     res.json({
-      usersGrowth,
-      revenue: revenueAgg[0] || {
-        totalTokens: 0,
-        totalBalance: 0
-      }
+      usersGrowth, // [{ _id: "2026-01-01", count: 12 }, ...]
+      revenue      // { totalTokens: 1234, totalBalance: 567890 }
     });
 
   } catch (err) {
-    console.error("❌ founder analytics error:", err);
-    res.status(500).json({ error: "FAILED" });
+    console.error("❌ /api/founder/analytics error:", err);
+    res.status(500).json({ error: "FAILED_TO_LOAD_ANALYTICS" });
   }
 });
 
