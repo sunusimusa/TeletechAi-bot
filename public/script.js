@@ -1,12 +1,25 @@
-// ================== TELEGRAM SAFE INIT ==================
-let tg = null;
-let TELEGRAM_ID = "guest";
+// ================== TELEGRAM SAFE INIT (FINAL) ==================
+const tg = window.Telegram?.WebApp || null;
 
-if (window.Telegram && Telegram.WebApp && Telegram.WebApp.initDataUnsafe?.user) {
-  tg = Telegram.WebApp;
-  tg.expand();
-  TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
-  console.log("✅ Telegram user:", TELEGRAM_ID);
+let TELEGRAM_ID = "guest";
+let REF = null;
+
+if (tg) {
+  tg.ready();    // ✅ MUHIMMI SOSSOSAI
+  tg.expand();   // ✅ gyara Not Found / blank page
+
+  if (tg.initDataUnsafe?.user?.id) {
+    TELEGRAM_ID = String(tg.initDataUnsafe.user.id);
+  }
+
+  // 🔗 Referral (start_param)
+  if (tg.initDataUnsafe?.start_param) {
+    REF = tg.initDataUnsafe.start_param;
+  }
+
+  console.log("✅ Telegram ID:", TELEGRAM_ID);
+  console.log("🔗 REF:", REF);
+
 } else {
   console.warn("⚠️ Not opened from Telegram (DEV MODE)");
 }
