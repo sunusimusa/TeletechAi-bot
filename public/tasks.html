@@ -1,7 +1,9 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Tasks & Ads</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -10,20 +12,38 @@
 
 <div class="tasks">
 
+  <!-- 🎥 WATCH AD -->
   <button onclick="watchAdTask()">
     🎥 Watch Ad (+20⚡ +200💰)
   </button>
 
+  <hr>
+
+  <!-- ▶️ YOUTUBE -->
   <button onclick="openYouTube()">
     ▶ Subscribe YouTube (+300💰)
   </button>
 
-  <button onclick="openTelegramChat()">
-    💬 Join Telegram Chat (+300💰)
+  <hr>
+
+  <!-- 📢 TELEGRAM UPDATE CHANNEL -->
+  <button onclick="window.open('https://t.me/teletech_updates','_blank')">
+    📢 Join Update Channel
   </button>
 
-  <button onclick="openTelegramUpdate()">
-    📢 Join Update Channel (+300💰)
+  <button onclick="verifyTelegram('telegramChannel')">
+    ✅ Verify Channel (+300💰)
+  </button>
+
+  <hr>
+
+  <!-- 💬 TELEGRAM PUBLIC CHAT -->
+  <button onclick="window.open('https://t.me/teletech_chat','_blank')">
+    💬 Join Telegram Chat
+  </button>
+
+  <button onclick="verifyTelegram('telegramGroup')">
+    ✅ Verify Chat (+300💰)
   </button>
 
 </div>
@@ -31,7 +51,7 @@
 <p id="taskMsg"></p>
 
 <button onclick="location.href='/'">
-⬅ Back to Game
+  ⬅ Back to Game
 </button>
 
 <script src="tasks.js"></script>
