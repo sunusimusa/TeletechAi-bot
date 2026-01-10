@@ -312,3 +312,57 @@ function checkAgreement() {
 // kira shi lokacin da page ya gama load
 document.addEventListener("DOMContentLoaded", checkAgreement);
 
+// ================= WALLET =================
+
+const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
+
+async function openWallet() {
+  window.location.href = "/wallet.html";
+}
+
+async function loadWallet() {
+  const res = await fetch(`/api/wallet/${USER_ID}`);
+  const data = await res.json();
+
+  if (data.success) {
+    document.getElementById("walletBalance").innerText =
+      data.tokens + " TTECH";
+  }
+}
+
+async function sendToken() {
+  const to = document.getElementById("toAddress").value.trim();
+  const amount = parseInt(document.getElementById("sendAmount").value);
+
+  const msg = document.getElementById("walletMsg");
+
+  if (!to || !amount || amount <= 0) {
+    msg.innerText = "❌ Invalid input";
+    return;
+  }
+
+  const res = await fetch("/api/wallet/send", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: USER_ID,
+      to,
+      amount
+    })
+  });
+
+  const data = await res.json();
+
+  if (!data.success) {
+    msg.innerText = "❌ " + data.message;
+    return;
+  }
+
+  msg.innerText = "✅ Transfer successful";
+  document.getElementById("walletBalance").innerText =
+    data.tokens + " TTECH";
+
+  document.getElementById("toAddress").value = "";
+  document.getElementById("sendAmount").value = "";
+}
+
