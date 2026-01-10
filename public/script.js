@@ -287,31 +287,6 @@ function openRoadmap(){ location.href="/roadmap.html"; }
 function openLeaderboard(){ location.href="/leaderboard.html"; }
 function openFounderStats(){ location.href="/founder.html"; }
 
-/* ================= AGREEMENT ================= */
-
-function acceptAgreement() {
-  // ajiye yarjejeniya
-  localStorage.setItem("agreed", "yes");
-
-  // rufe modal
-  const modal = document.getElementById("agreementModal");
-  if (modal) {
-    modal.classList.add("hidden");
-  }
-}
-
-function checkAgreement() {
-  const agreed = localStorage.getItem("agreed");
-  const modal = document.getElementById("agreementModal");
-
-  if (!agreed && modal) {
-    modal.classList.remove("hidden");
-  }
-}
-
-// kira shi lokacin da page ya gama load
-document.addEventListener("DOMContentLoaded", checkAgreement);
-
 // ================= WALLET =================
 
 const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
@@ -366,3 +341,37 @@ async function sendToken() {
   document.getElementById("sendAmount").value = "";
 }
 
+/* ================= AGREEMENT FIX ================= */
+function hideAgreement() {
+  const modal = document.getElementById("agreementModal");
+  if (modal) {
+    modal.style.display = "none";
+    modal.style.pointerEvents = "none";
+  }
+}
+
+function showAgreement() {
+  const modal = document.getElementById("agreementModal");
+  if (modal) {
+    modal.style.display = "flex";
+    modal.style.pointerEvents = "auto";
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const agreed = localStorage.getItem("agreed");
+
+  if (agreed === "yes") {
+    hideAgreement();
+  } else {
+    showAgreement();
+  }
+
+  const btn = document.getElementById("agreeBtn");
+  if (btn) {
+    btn.onclick = () => {
+      localStorage.setItem("agreed", "yes");
+      hideAgreement();
+    };
+  }
+});
