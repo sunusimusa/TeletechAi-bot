@@ -2,50 +2,37 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Founder Stats</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+  <title>Founder Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
   <h2>👑 Founder Dashboard</h2>
 
-  <!-- BASIC INFO -->
-  <div class="energy-shop">
-    <p><strong>User ID:</strong> <span id="founderId"></span></p>
-    <p><strong>Role:</strong> FOUNDER</p>
+  <div class="founder-grid">
+    <div class="founder-card glow">
+      <h3>Total Users</h3>
+      <p class="stat" data-value="1250">0</p>
+    </div>
+
+    <div class="founder-card glow">
+      <h3>PRO Users</h3>
+      <p class="stat" data-value="320">0</p>
+    </div>
+
+    <div class="founder-card glow">
+      <h3>Total Tokens</h3>
+      <p class="stat" data-value="987654">0</p>
+    </div>
+
+    <div class="founder-card glow">
+      <h3>System Balance</h3>
+      <p class="stat" data-value="45000">0</p>
+    </div>
   </div>
 
-  <!-- GLOBAL STATS -->
-  <div class="energy-shop">
-    <h3>📊 Global Stats</h3>
-    <p>👥 Total Users: <b id="totalUsers">0</b></p>
-    <p>⭐ PRO Users: <b id="proUsers">0</b></p>
-    <p>👑 Founders: <b id="founders">0</b></p>
-    <p>🪙 Total Tokens: <b id="totalTokens">0</b></p>
-    <p>🔥 Total Energy in System: <b id="totalEnergy">0</b></p>
-  </div>
-
-  <!-- ACTIONS -->
-  <div class="energy-shop">
-    <h3>⚙ Founder Actions</h3>
-
-    <button class="gold" onclick="mintTokens()">
-      ➕ Mint 100 Tokens
-    </button>
-
-    <button class="secondary" onclick="resetSeason()">
-      🔄 Reset Referral Season
-    </button>
-  </div>
-
-  <!-- LOG -->
-  <div class="energy-shop">
-    <h3>📝 Activity Log</h3>
-    <p id="logBox">No activity yet</p>
-  </div>
-
-  <button onclick="goBack()">⬅ Back to Game</button>
+  <button class="secondary" onclick="history.back()">⬅ Back</button>
 
   <script src="founder-stats.js"></script>
 </body>
