@@ -37,10 +37,12 @@
   <p id="freeTries">Free tries: 0</p>
   <p id="energy">Energy: 0 / 0</p>
 
-  <button onclick="location.href='/
-  ads.html'">
-  📺 Watch Ad (+20 Energy)
-  </button>
+  <button id="watchAdBtn"
+  onclick="watchAdTask()">
+    📺 Watch Ad (+20⚡ +100💰)
+</button>
+
+<p id="taskMsg"></p>
 
   <!-- 🎁 DAILY -->
   <button onclick="claimDaily()">🎁 Daily Bonus</button>
