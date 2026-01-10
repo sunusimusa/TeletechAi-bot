@@ -358,7 +358,34 @@ app.post("/api/withdraw", async (req, res) => {
   }
 });
 
+// ================= LEADERBOARD =================
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const topBalance = await User.find()
+      .sort({ balance: -1 })
+      .limit(10)
+      .select("userId balance");
 
+    const topTokens = await User.find()
+      .sort({ tokens: -1 })
+      .limit(10)
+      .select("userId tokens");
+
+    const topReferrals = await User.find()
+      .sort({ referralsCount: -1 })
+      .limit(10)
+      .select("userId referralsCount");
+
+    res.json({
+      topBalance,
+      topTokens,
+      topReferrals
+    });
+  } catch (err) {
+    console.error("❌ leaderboard error:", err);
+    res.status(500).json({ error: "FAILED_TO_LOAD_LEADERBOARD" });
+  }
+});
 
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
