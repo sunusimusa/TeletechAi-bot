@@ -599,6 +599,57 @@ app.get("/api/leaderboard/referrals", async (req, res) => {
   }
 });
 
+/* ================= FOUNDER DASHBOARD STATS ================= */
+app.get("/api/founder/stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    const proUsers = await User.countDocuments({
+      proLevel: { $gte: 1 }
+    });
+
+    const founders = await User.countDocuments({
+      proLevel: { $gte: 4 }
+    });
+
+    const balancesAgg = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalBalance: { $sum: "$balance" },
+          totalTokens: { $sum: "$tokens" }
+        }
+      }
+    ]);
+
+    const referralsAgg = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalReferrals: { $sum: "$referralsCount" }
+        }
+      }
+    ]);
+
+    res.json({
+      success: true,
+      totalUsers,
+      proUsers,
+      founders,
+      totalBalance: balancesAgg[0]?.totalBalance || 0,
+      totalTokens: balancesAgg[0]?.totalTokens || 0,
+      totalReferrals: referralsAgg[0]?.totalReferrals || 0
+    });
+
+  } catch (err) {
+    console.error("Founder stats error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to load founder stats"
+    });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
