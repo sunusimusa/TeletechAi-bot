@@ -35,6 +35,20 @@ function generateWallet() {
   return "TTECH-" + Math.random().toString(36).substring(2, 10).toUpperCase();
 }
 
+async function isTelegramMember(chat, telegramId) {
+  const url =
+    `https://api.telegram.org/bot${TG_TOKEN}/getChatMember` +
+    `?chat_id=${chat}&user_id=${telegramId}`;
+
+  const res = await fetch(url);
+  const data = await res.json();
+
+  if (!data.ok) return false;
+
+  const status = data.result.status;
+  return ["member", "administrator", "creator"].includes(status);
+}
+
 /* ================= CREATE / LOAD USER ================= */
 app.post("/api/user", async (req, res) => {
   try {
