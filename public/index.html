@@ -4,9 +4,13 @@
   <meta charset="UTF-8" />
   <title>Lucky Box Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <!-- STYLES -->
   <link rel="stylesheet" href="style.css" />
+
+  <!-- PWA -->
   <link rel="manifest" href="/manifest.json">
-<meta name="theme-color" content="#ffd700">
+  <meta name="theme-color" content="#ffd700">
 </head>
 <body>
 
@@ -39,12 +43,12 @@
   <p id="freeTries">Free tries: 0</p>
   <p id="energy">Energy: 0 / 0</p>
 
-  <button onclick="location.href='
-    /tasks.html'">
-📢 Tasks & Ads
+  <!-- 📢 TASKS -->
+  <button onclick="location.href='/tasks.html'">
+    📢 Tasks & Ads
   </button>
 
-<p id="taskMsg"></p>
+  <p id="taskMsg"></p>
 
   <!-- 🎁 DAILY -->
   <button onclick="claimDaily()">🎁 Daily Bonus</button>
@@ -102,14 +106,17 @@
     </div>
   </div>
 
-  <!-- ✅ SCRIPT -->
+  <!-- 🧠 SERVICE WORKER -->
   <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("/service-worker.js")
-    .then(() => console.log("✅ App ready for install"))
-    .catch(err => console.error("❌ SW error", err));
-}
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker
+        .register("/service-worker.js")
+        .then(() => console.log("✅ App ready for install"))
+        .catch(err => console.error("❌ SW error", err));
+    }
   </script>
+
+  <!-- MAIN SCRIPT -->
   <script src="script.js"></script>
 </body>
 </html>
