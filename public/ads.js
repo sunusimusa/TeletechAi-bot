@@ -1,28 +1,41 @@
-let seconds = 10;
-const countdown = document.getElementById("countdown");
-const claimBtn = document.getElementById("claimBtn");
+const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
 
-const timer = setInterval(() => {
-  seconds--;
-  countdown.innerText = `⏳ Please wait ${seconds} seconds`;
+const adsMsg = document.getElementById("adsMsg");
+const adsInfo = document.getElementById("adsInfo");
+const btn = document.getElementById("watchAdBtn");
 
-  if (seconds <= 0) {
-    clearInterval(timer);
-    countdown.innerText = "✅ Ad completed";
-    claimBtn.classList.remove("hidden");
+btn.onclick = watchAd;
+
+async function watchAd() {
+  adsMsg.innerText = "⏳ Watching ad...";
+  btn.disabled = true;
+
+  try {
+    const res = await fetch("/api/ads/watch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      adsMsg.innerText = "❌ " + data.error.replaceAll("_", " ");
+      btn.disabled = false;
+      return;
+    }
+
+    adsMsg.innerText =
+      `✅ +${data.rewardEnergy || 20} Energy, +${data.rewardCoins || 100} Coins`;
+
+    adsInfo.innerText = `Ads left today: ${data.adsLeft}`;
+
+  } catch (err) {
+    adsMsg.innerText = "❌ Network error";
   }
-}, 1000);
 
-claimBtn.onclick = () => {
-  let energy = Number(localStorage.getItem("energy")) || 0;
-  let maxEnergy = Number(localStorage.getItem("MAX_ENERGY")) || 9999;
-
-  energy = Math.min(maxEnergy, energy + 20);
-  localStorage.setItem("energy", energy);
-
-  alert("⚡ Energy +20 added");
-  location.href = "/";
-};
+  btn.disabled = false;
+}
 
 function goBack() {
   location.href = "/";
