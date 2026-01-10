@@ -1,96 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>My Wallet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<title>My Wallet</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:Arial;background:#0e1320;color:#fff;padding:20px}
+.box{max-width:500px;margin:auto;background:#151a2e;padding:20px;border-radius:10px}
+input,button{width:100%;padding:10px;margin:8px 0;border:none;border-radius:6px}
+button{background:#ffd166;color:#000;font-weight:bold}
+.msg{margin-top:10px}
+</style>
 </head>
+<body>
 
-  <!-- ===== CONFIRM SEND MODAL ===== -->
-<div id="confirmModal" class="modal hidden">
-  <div class="modal-card">
-    <h3>🔐 Confirm Transaction</h3>
+<div class="box">
+<h2>👜 My Wallet</h2>
 
-    <p><b>From:</b> <span id="cmFrom"></span></p>
-    <p><b>To:</b> <span id="cmTo"></span></p>
-    <p><b>Amount:</b> <span id="cmAmount"></span> TOKEN</p>
-    <p><b>Gas Fee:</b> <span id="cmGas"></span> TOKEN</p>
+<p><b>Wallet Address:</b></p>
+<p id="myWallet"></p>
 
-    <hr />
+<p><b>Tokens:</b> <span id="myTokens">0</span></p>
 
-    <p class="total">
-      Total Deduct:
-      <b><span id="cmTotal"></span> TOKEN</b>
-    </p>
+<hr>
 
-    <div class="modal-actions">
-      <button class="cancel-btn" onclick="closeConfirm()">
-        ❌ Cancel
-      </button>
-      <button class="confirm-btn" onclick="confirmSend()">
-        ✅ Confirm
-      </button>
-    </div>
-  </div>
+<h3>🔁 Send Tokens</h3>
+
+<input id="toWallet" placeholder="Receiver Wallet">
+<input id="amount" type="number" placeholder="Amount">
+
+<button onclick="sendTokens()">Send</button>
+<p class="msg" id="sendMsg"></p>
+
+<hr>
+
+<h3>⬇ Withdraw</h3>
+<input id="withdrawAmount" type="number" placeholder="Amount">
+<button onclick="withdraw()">Withdraw</button>
+<p class="msg" id="withdrawMsg"></p>
+
+<a href="/">⬅ Back</a>
 </div>
-
-<body class="wallet-page">
-
-<h2>👛 My Wallet</h2>
-
-<!-- WALLET INFO -->
-<div class="wallet-box">
-  <p class="label">Wallet Address</p>
-  <div class="wallet-address" id="walletAddr">—</div>
-
-  <button onclick="copyWallet()">📋 Copy</button>
-
-  <div class="qr-box">
-    <img id="qrImg" />
-  </div>
-
-  <p class="wallet-balance">
-    🪙 Tokens: <span id="walletTokens">0</span>
-  </p>
-</div>
-
-<!-- ACTION BUTTONS -->
-<div class="wallet-actions">
-  <button class="send-btn" onclick="openSend()">📤 Send</button>
-  <button class="receive-btn" onclick="openReceive()">📥 Receive</button>
-</div>
-
-<!-- SEND FORM (HIDDEN) -->
-<div id="sendBox" class="send-box hidden">
-  <input id="toWallet" placeholder="Receiver Wallet" />
-  <input id="amount" type="number" placeholder="Amount" />
-  <button onclick="sendToken()">🚀 Send Token</button>
-</div>
-
-<!-- RECEIVE INFO -->
-<div id="receiveBox" class="receive-box hidden">
-  <p>📥 Share this wallet address to receive tokens</p>
-</div>
-
-<!-- TRANSACTION HISTORY -->
-<h2>📜 Transaction History</h2>
-
-<div id="txList" class="tx-list">
-  Loading...
-</div>
-
-  <div class="supply-box">
-  <h3>📊 Token Supply</h3>
-  <p>🪙 Total: <span id="totalSupply">—</span></p>
-  <p>🔥 Burned: <span id="burned">—</span></p>
-  <p>🏦 System: <span id="systemBal">—</span></p>
-  <p><b>🟢 Circulating: <span id="circulating">—</span></b></p>
-  </div>
-
-<button class="back-btn" onclick="goBack()">⬅️ Back</button>
 
 <script src="wallet.js"></script>
-<script src="stats.js"></script>
 </body>
 </html>
