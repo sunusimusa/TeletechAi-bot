@@ -86,3 +86,30 @@ function openTelegramUpdate() {
   window.open(TELEGRAM_UPDATE, "_blank");
   completeSocialTask("telegramUpdate");
 }
+
+function verifyTelegram(type) {
+  const telegramId = localStorage.getItem("telegramId");
+
+  if (!telegramId) {
+    alert("❌ Open app from Telegram first");
+    return;
+  }
+
+  fetch("/api/task/verify-telegram", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: localStorage.getItem("userId"),
+      telegramId,
+      type
+    })
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (data.error) {
+        alert("❌ " + data.error);
+        return;
+      }
+      alert("✅ Task verified +300 coins!");
+    });
+}
