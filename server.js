@@ -318,6 +318,46 @@ app.post("/api/token/sell", async (req, res) => {
   }
 });
 
+// ================= WITHDRAW TOKEN =================
+app.post("/api/withdraw", async (req, res) => {
+  try {
+    const { userId, wallet, amount } = req.body;
+
+    if (!userId || !wallet || !amount || amount <= 0) {
+      return res.json({ error: "INVALID_DATA" });
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    if (user.tokens < amount) {
+      return res.json({ error: "NOT_ENOUGH_TOKENS" });
+    }
+
+    // cire token
+    user.tokens -= amount;
+
+    // rubuta history
+    user.withdrawals.push({
+      amount,
+      wallet,
+      status: "pending"
+    });
+
+    await user.save();
+
+    res.json({
+      success: true,
+      tokens: user.tokens,
+      message: "Withdraw request submitted"
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 
 
 /* ================= ROOT ================= */
