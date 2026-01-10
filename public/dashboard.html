@@ -1,110 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>👑 Founder Dashboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
-  <!-- Main CSS -->
-  <link rel="stylesheet" href="style.css" />
+<meta charset="UTF-8">
+<title>Founder Dashboard</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+body{font-family:Arial;background:#0e1320;color:#fff;padding:20px}
+.box{max-width:700px;margin:auto;background:#151a2e;padding:20px;border-radius:10px}
+.stat{background:#0e1320;padding:10px;border-radius:8px;margin:10px 0}
+</style>
 </head>
-<body class="founder">
+<body>
+<div class="box">
+<h2>👑 Founder Dashboard</h2>
 
-  <!-- 🔔 AGREEMENT MODAL -->
-  <div id="agreementModal" class="agreement-modal hidden">
-    <div class="agreement-box">
-      <h3>📜 Agreement</h3>
-      <p>
-        By using this app, you agree to our
-        <a href="/privacy.html" target="_blank">Privacy Policy</a>
-        and
-        <a href="/terms.html" target="_blank">Terms of Service</a>.
-      </p>
-      <button onclick="acceptAgreement()">✅ I Agree</button>
-    </div>
-  </div>
+<div id="blocked">❌ Access denied</div>
 
-  <!-- 👑 FOUNDER BADGE -->
-  <div id="proBadge" class="pro-badge">
-    👑 FOUNDER
-  </div>
+<div id="dashboard" style="display:none">
+  <div class="stat">👥 Total Users: <span id="users">0</span></div>
+  <div class="stat">⭐ Pro Users: <span id="pro">0</span></div>
+  <div class="stat">🪙 Total Tokens: <span id="tokens">0</span></div>
+</div>
 
-  <!-- 👑 FOUNDER DASHBOARD -->
-  <div id="founderDashboard" class="founder-box">
-    <h2>👑 Founder Dashboard</h2>
+<a href="/">⬅ Back</a>
+</div>
 
-    <div class="founder-stats">
-      <p>🔥 Unlimited Energy</p>
-      <p>⚡ Ultra Fast Regen (30s)</p>
-      <p>🎁 Max Daily Rewards</p>
-      <p>👥 Referral Multiplier x2</p>
-      <p>🛡️ System Privileges</p>
-    </div>
+<script>
+const FOUNDER_ID = "SUNUSI_001";
+const userId = localStorage.getItem("userId");
 
-    <div class="founder-actions">
-      <button onclick="openFounderStats()">📊 Global Stats</button>
-      <button onclick="openReferralLeaderboard()">🏆 Referral Leaderboard</button>
-      <button onclick="openUsers()">👥 Users</button>
-      <button onclick="openSystemWallet()">🏦 System Wallet</button>
-    </div>
-  </div>
+if(userId === FOUNDER_ID){
+  document.getElementById("blocked").style.display="none";
+  document.getElementById("dashboard").style.display="block";
 
-  <!-- 🧭 NAVIGATION -->
-  <div class="nav">
-    <button onclick="openMainGame()">🎁 Back to Game</button>
-    <button onclick="openWallet()">👜 Wallet</button>
-    <button onclick="openRoadmap()">🗺️ Roadmap</button>
-  </div> 
-
-  <!-- 🧠 FOUNDER SCRIPT -->
-  <script>
-    // Telegram init
-    if (!window.Telegram?.WebApp?.initDataUnsafe?.user) {
-      alert("❌ Open from Telegram");
-      throw new Error("Not Telegram");
-    }
-
-    const tg = Telegram.WebApp;
-    tg.expand();
-
-    function acceptAgreement() {
-      localStorage.setItem("user_agreed", "yes");
-      document.getElementById("agreementModal").classList.add("hidden");
-    }
-
-
-    function openReferralLeaderboard() {
-      window.location.href = "/leaderboard.html";
-    }
-
-    function openUsers() {
-      alert("👥 Users management coming soon");
-    }
-
-    function openSystemWallet() {
-      alert("🏦 System wallet overview coming soon");
-    }
-
-    function openMainGame() {
-      window.location.href = "/index.html";
-    }
-
-    function openWallet() {
-      window.location.href = "/wallet.html";
-    }
-
-    function openRoadmap() {
-      window.location.href = "/roadmap.html";
-    }
-
-    // Agreement check
-    if (!localStorage.getItem("user_agreed")) {
-      document.getElementById("agreementModal").classList.remove("hidden");
-    }
-  </script>
-
+  // fake stats for now
+  document.getElementById("users").innerText = 1234;
+  document.getElementById("pro").innerText = 210;
+  document.getElementById("tokens").innerText = 45678;
+}
+</script>
 </body>
 </html>
