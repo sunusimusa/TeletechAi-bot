@@ -1,69 +1,62 @@
-/* ================= INIT WALLET ================= */
-const userId = localStorage.getItem("userId") || "SUNUSI_001";
+/* ================= INIT DATA ================= */
+let wallet = localStorage.getItem("wallet") || "TTECH-" + Math.random().toString(36).slice(2,8).toUpperCase();
+let balance = parseInt(localStorage.getItem("balance") || "23500");
+let tokens = parseInt(localStorage.getItem("tokens") || "28");
+let historyList = JSON.parse(localStorage.getItem("history") || "[]");
 
-function initWallet(){
-  let wallet = localStorage.getItem("wallet");
-  if(!wallet){
-    wallet = "TTECH-" + Math.random().toString(36).substring(2,8).toUpperCase();
-    localStorage.setItem("wallet", wallet);
-  }
+localStorage.setItem("wallet", wallet);
 
-  if(!localStorage.getItem("tokens")){
-    localStorage.setItem("tokens", "10"); // start tokens
-  }
+/* ================= UI ================= */
+function updateUI() {
+  document.getElementById("walletAddress").textContent = wallet;
+  document.getElementById("balance").textContent = balance;
+  document.getElementById("tokens").textContent = tokens;
 
-  document.getElementById("myWallet").innerText = wallet;
-  document.getElementById("myTokens").innerText =
-    localStorage.getItem("tokens");
+  const list = document.getElementById("history");
+  list.innerHTML = "";
+
+  historyList.slice().reverse().forEach(tx => {
+    const li = document.createElement("li");
+    li.textContent = tx;
+    list.appendChild(li);
+  });
 }
 
-initWallet();
+/* ================= COPY ================= */
+function copyWallet() {
+  navigator.clipboard.writeText(wallet);
+  alert("✅ Wallet copied");
+}
 
-/* ================= SEND TOKENS ================= */
-function sendTokens(){
-  const toWallet = document.getElementById("toWallet").value.trim();
-  const amount = Number(document.getElementById("amount").value);
-  const msg = document.getElementById("sendMsg");
+/* ================= SEND ================= */
+function sendToken() {
+  const to = document.getElementById("toWallet").value.trim();
+  const amount = parseInt(document.getElementById("sendAmount").value);
 
-  let tokens = Number(localStorage.getItem("tokens"));
-
-  if(!toWallet || amount <= 0){
-    msg.innerText = "❌ Invalid input";
-    return;
+  if (!to || !amount || amount <= 0) {
+    return showMsg("❌ Invalid data");
   }
 
-  if(tokens < amount){
-    msg.innerText = "❌ Not enough tokens";
-    return;
+  if (amount > tokens) {
+    return showMsg("❌ Not enough tokens");
   }
 
   tokens -= amount;
-  localStorage.setItem("tokens", tokens);
+  historyList.push(`Sent ${amount} TOKEN to ${to}`);
 
-  document.getElementById("myTokens").innerText = tokens;
-  msg.innerText = `✅ Sent ${amount} tokens to ${toWallet}`;
+  save();
+  updateUI();
+  showMsg("✅ Transaction sent");
 }
 
-/* ================= WITHDRAW ================= */
-function withdraw(){
-  const amount = Number(document.getElementById("withdrawAmount").value);
-  const msg = document.getElementById("withdrawMsg");
-
-  let tokens = Number(localStorage.getItem("tokens"));
-
-  if(amount <= 0){
-    msg.innerText = "❌ Invalid amount";
-    return;
-  }
-
-  if(tokens < amount){
-    msg.innerText = "❌ Not enough tokens";
-    return;
-  }
-
-  tokens -= amount;
-  localStorage.setItem("tokens", tokens);
-
-  document.getElementById("myTokens").innerText = tokens;
-  msg.innerText = "⏳ Withdrawal pending (demo mode)";
+/* ================= UTILS ================= */
+function showMsg(msg) {
+  document.getElementById("sendMsg").textContent = msg;
 }
+
+function save() {
+  localStorage.setItem("tokens", tokens);
+  localStorage.setItem("history", JSON.stringify(historyList));
+}
+
+updateUI();
