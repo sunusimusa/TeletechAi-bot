@@ -1,20 +1,13 @@
 {
-  "name": "Lucky Box Game",
+  "name": "LuckyBox Game",
   "short_name": "LuckyBox",
-  "description": "Earn coins, open boxes & upgrade to PRO",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#050300",
-  "theme_color": "#ffd700",
-  "orientation": "portrait",
+  "background_color": "#0b0f1a",
+  "theme_color": "#facc15",
   "icons": [
     {
-      "src": "/icons/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-512.png",
+      "src": "/icons/LuckyBox_Icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }
