@@ -2,43 +2,29 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Watch Ad</title>
+  <title>Watch Ads</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h2>📺 Watch Ad</h2>
-  <p>Watch this ad to earn free energy</p>
+  <h2>📺 Watch Ads</h2>
+  <p>Watch ads to earn energy & coins</p>
 
-  <!-- AD BOX -->
   <div class="wallet-box">
-    <p><strong>Advertisement</strong></p>
 
-    <!-- fake ad (demo) -->
-    <div style="
-      background:#000;
-      border-radius:14px;
-      height:180px;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      margin:12px 0;
-      color:#ffd700;
-      font-weight:700;
-    ">
-      ▶ AD PLAYING...
-    </div>
+    <p id="adsInfo">Ads left today: 5</p>
 
-    <p id="countdown">⏳ Please wait 10 seconds</p>
-
-    <button id="claimBtn" class="hidden">
-      ⚡ Claim Energy (+20)
+    <button id="watchAdBtn" class="gold">
+      ▶️ Watch Ad
     </button>
+
+    <p id="adsMsg"></p>
+
   </div>
 
-  <button onclick="goBack()" class="secondary">
+  <button class="secondary" onclick="goBack()">
     ⬅ Back to Game
   </button>
 
