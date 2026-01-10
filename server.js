@@ -347,6 +347,50 @@ app.post("/api/task/social", async (req, res) => {
   });
 });
 
+app.post("/api/task/verify-telegram", async (req, res) => {
+  try {
+    const { userId, telegramId, type } = req.body;
+
+    if (!userId || !telegramId || !type) {
+      return res.json({ error: "INVALID_DATA" });
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    // hana maimaitawa
+    if (user.tasks?.[type]) {
+      return res.json({ error: "ALREADY_COMPLETED" });
+    }
+
+    const chat =
+      type === "channel" ? TG_CHANNEL : TG_GROUP;
+
+    const isMember = await isTelegramMember(chat, telegramId);
+
+    if (!isMember) {
+      return res.json({ error: "NOT_A_MEMBER" });
+    }
+
+    // 🎁 reward
+    user.balance += 300;
+    user.tasks = user.tasks || {};
+    user.tasks[type] = true;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward: 300,
+      balance: user.balance
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
