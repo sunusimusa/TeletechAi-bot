@@ -1,17 +1,17 @@
 /* =====================================================
-   GLOBAL STATE (BROWSER ONLY)
+   GLOBAL STATE (BROWSER ONLY – CLEAN)
 ===================================================== */
-const FOUNDER_USER_ID = "SUNUSI_001"; // naka
+const FOUNDER_USER_ID = "SUNUSI_001";
+
 let userId = localStorage.getItem("userId") || FOUNDER_USER_ID;
 
 let balance = Number(localStorage.getItem("balance")) || 0;
-let tokens  = Number(localStorage.getItem("tokens"))  || 10;
-let energy  = Number(localStorage.getItem("energy"))  || 50;
+let tokens  = Number(localStorage.getItem("tokens")) || 10;
+let energy  = Number(localStorage.getItem("energy")) || 50;
 let freeTries = Number(localStorage.getItem("freeTries")) || 3;
 let referralsCount = Number(localStorage.getItem("referralsCount")) || 0;
 
 let proLevel = Number(localStorage.getItem("proLevel")) || 0;
-let isPro = proLevel > 0;
 let MAX_ENERGY = 100;
 let openingLocked = false;
 
@@ -20,7 +20,6 @@ let openingLocked = false;
 ===================================================== */
 if (userId === FOUNDER_USER_ID) {
   proLevel = 4;
-  isPro = true;
   MAX_ENERGY = 9999;
   energy = 9999;
   freeTries = 9999;
@@ -31,22 +30,44 @@ if (userId === FOUNDER_USER_ID) {
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
   ensureWallet();
-  checkAgreement();
+  agreementInit();
   applyProRules();
   updateUI();
 });
 
 /* =====================================================
-   WALLET
+   AGREEMENT (ONE ONLY – FIXED)
 ===================================================== */
-function ensureWallet(){
+function agreementInit() {
+  const modal = document.getElementById("agreementModal");
+  const btn = document.getElementById("agreeBtn");
+
+  if (!modal || !btn) return;
+
+  if (localStorage.getItem("agreed") === "yes") {
+    modal.classList.add("hidden");
+  } else {
+    modal.classList.remove("hidden");
+  }
+
+  btn.onclick = () => {
+    localStorage.setItem("agreed", "yes");
+    modal.classList.add("hidden");
+  };
+}
+
+/* =====================================================
+   WALLET (LOCAL ONLY)
+===================================================== */
+function ensureWallet() {
   let wallet = localStorage.getItem("wallet");
-  if(!wallet){
-    wallet = "TTECH-" + Math.random().toString(36).substring(2,8).toUpperCase();
+  if (!wallet) {
+    wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
     localStorage.setItem("wallet", wallet);
   }
+
   const refLink = document.getElementById("refLink");
-  if(refLink){
+  if (refLink) {
     refLink.value = location.origin + "/?ref=" + wallet;
   }
 }
@@ -54,7 +75,7 @@ function ensureWallet(){
 /* =====================================================
    PRO RULES
 ===================================================== */
-function applyProRules(){
+function applyProRules() {
   if (proLevel === 1) MAX_ENERGY = 150;
   if (proLevel === 2) MAX_ENERGY = 200;
   if (proLevel === 3) MAX_ENERGY = 300;
@@ -66,45 +87,43 @@ function applyProRules(){
 /* =====================================================
    UI UPDATE
 ===================================================== */
-function updateUI(){
+function updateUI() {
   saveState();
 
   setText("balance", `Balance: ${balance}`);
-  setText("tokens",  `Tokens: ${tokens}`);
+  setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
   setText("refCount", `👥 Referrals: ${referralsCount}`);
   setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
 
   const bar = document.getElementById("energyFill");
-  if(bar){
+  if (bar) {
     bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 
-  // PRO badge
   const proBadge = document.getElementById("proBadge");
-  if(proBadge){
-    if(proLevel >= 1){
+  if (proBadge) {
+    if (proLevel >= 1) {
       proBadge.classList.remove("hidden");
       proBadge.innerText = proLevel >= 4 ? "👑 FOUNDER" : "⭐ PRO MEMBER";
-    }else{
+    } else {
       proBadge.classList.add("hidden");
     }
   }
 
-  // Founder actions
   const founderActions = document.getElementById("founderActions");
-  if(founderActions){
-    if(proLevel >= 4) founderActions.classList.remove("hidden");
+  if (founderActions) {
+    if (proLevel >= 4) founderActions.classList.remove("hidden");
     else founderActions.classList.add("hidden");
   }
 }
 
-function setText(id, text){
+function setText(id, text) {
   const el = document.getElementById(id);
-  if(el) el.innerText = text;
+  if (el) el.innerText = text;
 }
 
-function saveState(){
+function saveState() {
   localStorage.setItem("balance", balance);
   localStorage.setItem("tokens", tokens);
   localStorage.setItem("energy", energy);
@@ -115,42 +134,41 @@ function saveState(){
 }
 
 /* =====================================================
-   SOUNDS
+   SOUNDS (SAFE)
 ===================================================== */
-function playSound(id){
+function playSound(id) {
   const s = document.getElementById(id);
-  if(s){
+  if (s) {
     s.currentTime = 0;
-    s.play().catch(()=>{});
+    s.play().catch(() => {});
   }
 }
 
 /* =====================================================
    OPEN BOX (GAME)
 ===================================================== */
-function openBox(box){
-  if(openingLocked) return;
+function openBox(box) {
+  if (openingLocked) return;
   openingLocked = true;
 
   playSound("clickSound");
 
-  if(freeTries > 0){
+  if (freeTries > 0) {
     freeTries--;
-  }else if(energy >= 10){
+  } else if (energy >= 10) {
     energy -= 10;
-  }else{
-    playSound("errorSound");
+  } else {
     alert("❌ Not enough energy");
     openingLocked = false;
     return;
   }
 
   let rewards = [0, 100, 200];
-  if(proLevel === 2) rewards = [100, 200, 500];
-  if(proLevel === 3) rewards = [200, 500, 1000];
-  if(proLevel >= 4) rewards = [500, 1000, 2000];
+  if (proLevel === 2) rewards = [100, 200, 500];
+  if (proLevel === 3) rewards = [200, 500, 1000];
+  if (proLevel >= 4) rewards = [500, 1000, 2000];
 
-  const reward = rewards[Math.floor(Math.random()*rewards.length)];
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
   balance += reward;
 
   box.classList.add("opened");
@@ -159,27 +177,29 @@ function openBox(box){
 
   updateUI();
 
-  setTimeout(()=>{
+  setTimeout(() => {
     box.classList.remove("opened");
     box.innerText = "";
     openingLocked = false;
-  },1200);
+  }, 1200);
 }
 
 /* =====================================================
    DAILY BONUS
 ===================================================== */
-function claimDaily(){
+function claimDaily() {
   const last = Number(localStorage.getItem("lastDaily")) || 0;
   const now = Date.now();
-  if(now - last < 24*60*60*1000){
+
+  if (now - last < 24 * 60 * 60 * 1000) {
     alert("⏳ Come back tomorrow");
     return;
   }
+
   let reward = 500;
-  if(proLevel === 1) reward *= 1.3;
-  if(proLevel === 2) reward *= 1.7;
-  if(proLevel >= 3) reward *= 2;
+  if (proLevel === 1) reward *= 1.3;
+  if (proLevel === 2) reward *= 1.7;
+  if (proLevel >= 3) reward *= 2;
 
   balance += Math.floor(reward);
   energy = Math.min(MAX_ENERGY, energy + 10);
@@ -190,19 +210,10 @@ function claimDaily(){
 }
 
 /* =====================================================
-   ADS (DEMO)
-===================================================== */
-function watchAd(){
-  energy = Math.min(MAX_ENERGY, energy + 20);
-  updateUI();
-  setText("adMsg", "✅ Energy +20");
-}
-
-/* =====================================================
    MARKET
 ===================================================== */
-function convertPoints(){
-  if(balance < 10000){
+function convertPoints() {
+  if (balance < 10000) {
     alert("❌ Not enough balance");
     return;
   }
@@ -211,12 +222,12 @@ function convertPoints(){
   updateUI();
 }
 
-function buyToken(){
+function buyToken() {
   convertPoints();
 }
 
-function sellToken(){
-  if(tokens < 1){
+function sellToken() {
+  if (tokens < 1) {
     alert("❌ No tokens");
     return;
   }
@@ -228,9 +239,9 @@ function sellToken(){
 /* =====================================================
    BUY ENERGY
 ===================================================== */
-function buyEnergy(amount){
+function buyEnergy(amount) {
   const cost = amount === 100 ? 500 : 2000;
-  if(balance < cost){
+  if (balance < cost) {
     alert("❌ Not enough coins");
     return;
   }
@@ -242,136 +253,34 @@ function buyEnergy(amount){
 /* =====================================================
    PRO UPGRADE
 ===================================================== */
-function upgradePro(level=1){
-  const prices = {1:5, 2:10, 3:20};
-  if(proLevel >= level){
+function upgradePro(level = 1) {
+  const prices = { 1: 5, 2: 10, 3: 20 };
+
+  if (proLevel >= level) {
     alert("Already upgraded");
     return;
   }
-  if(tokens < prices[level]){
+
+  if (tokens < prices[level]) {
     alert("❌ Not enough tokens");
     return;
   }
+
   tokens -= prices[level];
   proLevel = level;
-  isPro = true;
   applyProRules();
   updateUI();
+
   alert(`🚀 PRO Level ${level} activated`);
 }
 
 /* =====================================================
-   WALLET ACTIONS
+   NAVIGATION
 ===================================================== */
-function withdraw(){
-  const amount = Number(document.getElementById("amount").value);
-  if(tokens < amount || amount <= 0){
-    alert("❌ Invalid amount");
-    return;
-  }
-  tokens -= amount;
-  updateUI();
-  alert("⏳ Withdraw pending (demo)");
+function openWallet() {
+  location.href = "/wallet.html";
 }
 
-function copyRef(){
-  navigator.clipboard.writeText(document.getElementById("refLink").value);
-  alert("🔗 Referral copied");
+function openFounderStats() {
+  location.href = "/founder-stats.html";
 }
-
-/* =====================================================
-   NAVIGATION (STATIC)
-===================================================== */
-function openWallet(){ location.href="/wallet.html"; }
-function openRoadmap(){ location.href="/roadmap.html"; }
-function openLeaderboard(){ location.href="/leaderboard.html"; }
-function openFounderStats(){ location.href="/founder.html"; }
-
-// ================= WALLET =================
-
-const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
-
-async function openWallet() {
-  window.location.href = "/wallet.html";
-}
-
-async function loadWallet() {
-  const res = await fetch(`/api/wallet/${USER_ID}`);
-  const data = await res.json();
-
-  if (data.success) {
-    document.getElementById("walletBalance").innerText =
-      data.tokens + " TTECH";
-  }
-}
-
-async function sendToken() {
-  const to = document.getElementById("toAddress").value.trim();
-  const amount = parseInt(document.getElementById("sendAmount").value);
-
-  const msg = document.getElementById("walletMsg");
-
-  if (!to || !amount || amount <= 0) {
-    msg.innerText = "❌ Invalid input";
-    return;
-  }
-
-  const res = await fetch("/api/wallet/send", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: USER_ID,
-      to,
-      amount
-    })
-  });
-
-  const data = await res.json();
-
-  if (!data.success) {
-    msg.innerText = "❌ " + data.message;
-    return;
-  }
-
-  msg.innerText = "✅ Transfer successful";
-  document.getElementById("walletBalance").innerText =
-    data.tokens + " TTECH";
-
-  document.getElementById("toAddress").value = "";
-  document.getElementById("sendAmount").value = "";
-}
-
-/* ================= AGREEMENT FIX ================= */
-function hideAgreement() {
-  const modal = document.getElementById("agreementModal");
-  if (modal) {
-    modal.style.display = "none";
-    modal.style.pointerEvents = "none";
-  }
-}
-
-function showAgreement() {
-  const modal = document.getElementById("agreementModal");
-  if (modal) {
-    modal.style.display = "flex";
-    modal.style.pointerEvents = "auto";
-  }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-  const agreed = localStorage.getItem("agreed");
-
-  if (agreed === "yes") {
-    hideAgreement();
-  } else {
-    showAgreement();
-  }
-
-  const btn = document.getElementById("agreeBtn");
-  if (btn) {
-    btn.onclick = () => {
-      localStorage.setItem("agreed", "yes");
-      hideAgreement();
-    };
-  }
-});
