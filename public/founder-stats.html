@@ -9,44 +9,50 @@
 <body>
 
   <h2>👑 Founder Dashboard</h2>
+  <p class="pro-badge">GLOBAL STATS</p>
 
   <div class="founder-grid">
-    <div class="founder-card glow">
-      <h3>Total Users</h3>
-      <div id="totalUsers" class="stat">0</div>
-    </div>
 
     <div class="founder-card glow">
-      <h3>PRO Users</h3>
-      <div id="proUsers" class="stat">0</div>
-    </div>
-
-    <div class="founder-card glow">
-      <h3>Founders</h3>
-      <div id="founders" class="stat">0</div>
+      <h3>👥 Total Users</h3>
+      <div class="stat" id="totalUsers">0</div>
     </div>
 
     <div class="founder-card">
-      <h3>Total Balance</h3>
-      <div id="totalBalance" class="stat">0</div>
+      <h3>⭐ Pro Users</h3>
+      <div class="stat" id="proUsers">0</div>
     </div>
 
     <div class="founder-card">
-      <h3>Total Tokens</h3>
-      <div id="totalTokens" class="stat">0</div>
+      <h3>👑 Founders</h3>
+      <div class="stat" id="founders">0</div>
     </div>
 
     <div class="founder-card">
-      <h3>Total Referrals</h3>
-      <div id="totalReferrals" class="stat">0</div>
+      <h3>💰 Total Balance</h3>
+      <div class="stat" id="totalBalance">0</div>
     </div>
+
+    <div class="founder-card">
+      <h3>🪙 Total Tokens</h3>
+      <div class="stat" id="totalTokens">0</div>
+    </div>
+
+    <div class="founder-card">
+      <h3>⚡ Total Energy</h3>
+      <div class="stat" id="totalEnergy">0</div>
+    </div>
+
+    <div class="founder-card">
+      <h3>🔗 Total Referrals</h3>
+      <div class="stat" id="totalReferrals">0</div>
+    </div>
+
   </div>
 
-  <button onclick="location.href='/leaderboard.html'">
-    🏆 Referral Leaderboard
+  <button class="secondary" onclick="goBack()">
+    ⬅ Back
   </button>
-
-  <button onclick="history.back()">⬅ Back</button>
 
   <script src="founder-stats.js"></script>
 </body>
