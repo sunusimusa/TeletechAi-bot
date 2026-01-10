@@ -483,6 +483,54 @@ app.get("/api/founder/stats", async (req, res) => {
   });
 });
 
+// ================= WALLET API =================
+
+// fake DB (idan baka da DB yanzu)
+let users = {}; 
+// example structure:
+// users[userId] = { tokens: 10 }
+
+app.get("/api/wallet/:userId", (req, res) => {
+  const { userId } = req.params;
+
+  if (!users[userId]) {
+    users[userId] = { tokens: 0 };
+  }
+
+  res.json({
+    success: true,
+    tokens: users[userId].tokens
+  });
+});
+
+app.post("/api/wallet/send", (req, res) => {
+  const { userId, to, amount } = req.body;
+
+  if (!userId || !to || !amount) {
+    return res.json({ success: false, message: "Invalid data" });
+  }
+
+  if (!users[userId]) {
+    users[userId] = { tokens: 0 };
+  }
+
+  if (users[userId].tokens < amount) {
+    return res.json({ success: false, message: "Insufficient balance" });
+  }
+
+  // deduct
+  users[userId].tokens -= amount;
+
+  // credit receiver (fake)
+  if (!users[to]) users[to] = { tokens: 0 };
+  users[to].tokens += amount;
+
+  res.json({
+    success: true,
+    tokens: users[userId].tokens
+  });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
