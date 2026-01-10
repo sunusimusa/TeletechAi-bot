@@ -1,19 +1,35 @@
-// DEMO GLOBAL STATS (browser-only)
-function loadFounderStats() {
-  // zaka iya maida su real daga backend daga baya
-  const users = Number(localStorage.getItem("usersCount")) || 1;
-  const balance = Number(localStorage.getItem("balance")) || 0;
-  const tokens = Number(localStorage.getItem("tokens")) || 0;
-  const energy = Number(localStorage.getItem("energy")) || 0;
+async function loadFounderStats() {
+  try {
+    const res = await fetch("/api/founder/stats");
+    const data = await res.json();
 
-  document.getElementById("totalUsers").innerText = users;
-  document.getElementById("totalBalance").innerText = balance;
-  document.getElementById("totalTokens").innerText = tokens;
-  document.getElementById("totalEnergy").innerText = energy;
+    if (!data.success) {
+      alert("❌ Failed to load stats");
+      return;
+    }
+
+    document.getElementById("totalUsers").innerText =
+      data.users.toLocaleString();
+
+    document.getElementById("totalBalance").innerText =
+      data.balance.toLocaleString();
+
+    document.getElementById("totalTokens").innerText =
+      data.tokens.toLocaleString();
+
+    document.getElementById("totalEnergy").innerText =
+      data.energy.toLocaleString();
+
+    document.getElementById("totalReferrals").innerText =
+      data.referrals.toLocaleString();
+
+  } catch (err) {
+    alert("❌ Network error");
+  }
 }
 
 function goBack() {
-  location.href = "/";
+  window.location.href = "/";
 }
 
 document.addEventListener("DOMContentLoaded", loadFounderStats);
