@@ -5,189 +5,77 @@
   <title>Lucky Box Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- Telegram WebApp -->
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <!-- 🔊 SOUNDS -->
-  <audio id="clickSound" src="/sounds/click.mp3" preload="auto"></audio>
-  <audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
-  <audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
-  <audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
-
   <h2>🎁 Lucky Box Game</h2>
 
-  <!-- GAME BOXES -->
+  <!-- 🔊 SOUNDS -->
+  <audio id="clickSound" src="/sounds/click.mp3"></audio>
+  <audio id="winSound" src="/sounds/win.mp3"></audio>
+  <audio id="loseSound" src="/sounds/lose.mp3"></audio>
+
+  <!-- 📦 GAME BOXES -->
   <div class="boxes">
-  <div class="box"
-    onclick="openBox(this)"></div>
-  <div class="box"
-    onclick="openBox(this)"></div>
-  <div class="box"
-    onclick="openBox(this)"></div>
-  <div class="box"
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
+    <div class="box" data-box="1"></div>
+    <div class="box" data-box="2"></div>
+    <div class="box" data-box="3"></div>
+    <div class="box" data-box="4"></div>
+    <div class="box" data-box="5"></div>
+    <div class="box" data-box="6"></div>
   </div>
 
-  <button id="watchAdBtn" onclick="watchAd()">
-  📺 Watch Ad (+Energy)
-</button>
-<p id="adMsg"></p>
-  
-
+  <!-- ⚡ ENERGY BAR -->
   <div class="energy-bar">
-  <div id="energyFill"></div>
-  </div>
-  
-
-  <button onclick="openLeaderboard()">
-  🏆Leaderboard
-  </button>
-
-  <div id="proBadge" class="pro-badge hidden">
-  ⭐ PRO MEMBER
-</div>
-
-  <div class="pro-upgrade-box">
-  <button id="proLv2Btn" onclick="upgradePro(2)">
-    🚀 Upgrade to PRO Level 2 (10 TOKEN)
-  </button>
-
-  <button id="proLv3Btn" onclick="upgradePro(3)">
-    👑 Upgrade to PRO Level 3 (20 TOKEN)
-  </button>
-
-  <p id="proMsg"></p>
+    <div id="energyFill"></div>
   </div>
 
-<button id="upgradeBtn" onclick="upgradePro()">
-  🚀 Upgrade to PRO (5 TOKEN)
-</button>
-
-  <!-- STATS -->
+  <!-- 📊 STATS -->
   <p id="balance">Balance: 0</p>
-  <p id="freeTries">Free tries: 0</p>
   <p id="tokens">Tokens: 0</p>
-  <p id="refCount">👥 Referrals: 0</p>
-  <p id="energy">Energy: 120 / 200</p>
+  <p id="freeTries">Free tries: 3</p>
+  <p id="energy">Energy: 50 / 100</p>
 
-  <!-- DAILY -->
-  <button class="daily-btn" onclick="claimDaily()">🎁 Daily Bonus</button>
+  <!-- 🎁 DAILY -->
+  <button id="dailyBtn">🎁 Daily Bonus</button>
   <p id="dailyMsg"></p>
 
-  <!-- MARKET -->
-  <h3>🪙 Token Market</h3>
-  <button onclick="buyToken(1)">Buy 1 Token (10,000)</button>
-  <button onclick="sellToken(1)">Sell 1 Token</button>
-
-  <!-- CONVERT -->
-  <button class="convert-btn" onclick="convertPoints()">
-    🔁 Convert 10,000 → 1 TTECH
-  </button>
+  <!-- 🔁 CONVERT -->
+  <button id="convertBtn">🔁 Convert 10,000 → 1 TOKEN</button>
   <p id="convertMsg"></p>
 
-  <!-- ENERGY SHOP -->
-  <div class="energy-shop">
-    <h3>⚡ Buy Energy</h3>
-    <button onclick="buyEnergy(100)">⚡ 100 Energy (500 coins)</button>
-    <button onclick="buyEnergy(500)">⚡ 500 Energy (2000 coins)</button>
-  </div>
+  <!-- ⚡ BUY ENERGY -->
+  <h3>⚡ Buy Energy</h3>
+  <button data-energy="100">+100 Energy</button>
+  <button data-energy="500">+500 Energy</button>
 
-  <!-- WITHDRAW -->
-  <div class="withdraw-box">
-    <h3>Withdraw Tokens</h3>
-    <input id="wallet" placeholder="Wallet Address" />
-    <input id="amount" type="number" placeholder="Amount" />
-    <button type="button" onclick="withdraw()">Withdraw</button>
-    <p id="withdrawMsg"></p>
-  </div>
+  <!-- 🪙 TOKEN MARKET -->
+  <h3>🪙 Token Market</h3>
+  <button id="buyTokenBtn">Buy 1 Token</button>
+  <button id="sellTokenBtn">Sell 1 Token</button>
 
-  <!-- REFERRAL -->
-  <p>Your referral link:</p>
-  <input id="refLink" readonly />
-  <button type="button" onclick="copyRef()">Copy Link</button>
+  <!-- 👑 PRO -->
+  <h3>🚀 PRO Upgrade</h3>
+  <button data-pro="1">Upgrade PRO 1</button>
+  <button data-pro="2">Upgrade PRO 2</button>
+  <button data-pro="3">Upgrade PRO 3</button>
 
-  <!-- TASKS -->
-  <div class="tasks">
-  <button onclick="joinYouTube(event)">
-    📺 Join YouTube Channel</button>
-  <p id="ytMsg"></p>
-
-  <button onclick="joinGroup(event)">💬
-    Join Community</button>
-  <p id="groupMsg"></p>
-
-  <button onclick="joinChannel(event)">
-    📢 Join Channel</button>
-  <p id="channelMsg"></p>
-  </div>
-
-  <button class="wallet-btn" 
-  onclick="openWallet()">
-  👜 My Wallet
-  </button>
-
-  <div class="wallet-box">
-  <h3>👜 My Wallet</h3>
-
-  <p id="Transfer Token"></p>
-
-  <input id="toWallet" placeholder="Receiver Wallet" />
-  <input id="sendAmount" type="number" placeholder="Amount" />
-
-  <p id="sendMsg"></p>
-  </div>
-
-  <button class="back-btn"
-    onclick="openStats()">
-  📊 Token Stats
-  </button>
-
+  <!-- 👑 FOUNDER -->
   <div id="founderActions" class="hidden">
-    <button id="globalStatsBtn"
-  onclick="openFounderStats()">📊 Global 
-  Stats</button>
+    <h3>👑 Founder Dashboard</h3>
+    <button id="founderStatsBtn">View Global Stats</button>
   </div>
 
-  <button onclick="openBurns()">🔥 Burn
-    History</button>
-
-  <button class="roadmap-btn" onclick="openRoadmap()">
-  🗺️ Roadmap
-  </button>
-
-  <p class="legal-text">
-  By using this app, you agree to our
-  <a href="/privacy.html" target="_blank">Privacy Policy</a>
-  and
-  <a href="/terms.html" target="_blank">Terms of Service</a>.
-  </p>
-
-  <!-- ===== AGREEMENT MODAL ===== -->
-<div id="agreementModal" class="agree-modal">
-  <div class="agree-box">
-    <h3>📜 Agreement</h3>
-
-    <p>
-      By using this app, you agree to our
-      <a href="/privacy.html" target="_blank">Privacy Policy</a>
-      and
-      <a href="/terms.html" target="_blank">Terms of Service</a>.
-    </p>
-
-    <button onclick="acceptAgreement()">✅ I Agree</button>
+  <!-- 📜 AGREEMENT -->
+  <div id="agreementModal" class="agree-modal hidden">
+    <div class="agree-box">
+      <p>By using this app you agree to Terms & Privacy.</p>
+      <button id="agreeBtn">✅ I Agree</button>
+    </div>
   </div>
-</div>
 
-  <!-- GAME SCRIPT -->
-  <script src="app.js"></script>
+  <!-- ✅ SCRIPTS -->
   <script src="script.js"></script>
 </body>
-  </html>
+</html>
