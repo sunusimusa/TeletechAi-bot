@@ -104,7 +104,8 @@ button:active {
 
 .hidden {
   display: none !important;
-  }
+  pointer-events: none !important;
+}
 
 .agree-modal {
   pointer-events: auto;
