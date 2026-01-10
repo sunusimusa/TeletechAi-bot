@@ -209,4 +209,50 @@ function updateUI() {
     `👥 Referrals: ${referralsCount}`;
 }
 
+async function buyToken(amount = 1) {
+  const res = await fetch("/api/token/buy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: USER_ID,
+      amount
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+
+  alert(`🪙 Bought ${amount} TOKEN`);
+}
+
+async function sellToken(amount = 1) {
+  const res = await fetch("/api/token/sell", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: USER_ID,
+      amount
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+
+  alert(`💰 Sold ${amount} TOKEN`);
+}
+
 
