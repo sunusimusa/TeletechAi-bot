@@ -4,42 +4,46 @@
   <meta charset="UTF-8" />
   <title>My Wallet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="wallet.css" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h2>👛 My Wallet</h2>
+  <h2>👜 My Wallet</h2>
 
-  <div class="wallet-card">
+  <div class="wallet-box">
 
-    <p class="label">Wallet Address</p>
+    <p class="pro-badge">TTECH WALLET</p>
 
-    <div class="address-box">
-      <span id="walletAddress">---</span>
-    </div>
+    <p><strong>Balance</strong></p>
+    <h3 id="walletBalance">0 TTECH</h3>
 
-    <button class="copy-btn" onclick="copyWallet()">📋 Copy</button>
+    <hr style="opacity:.25;margin:14px 0">
 
-    <div class="qr-box">
-      <img id="qrImage" alt="QR Code" />
-    </div>
+    <p><strong>Your Wallet Address</strong></p>
+    <input id="myWallet" readonly />
 
-    <p class="token-count">
-      🪙 Tokens: <span id="walletTokens">0</span>
-    </p>
+    <button onclick="copyWallet()" class="secondary">
+      📋 Copy Address
+    </button>
 
-    <div class="actions">
-      <button class="send" onclick="openSend()">📤 Send</button>
-      <button class="receive" onclick="openReceive()">📥 Receive</button>
-    </div>
+    <hr style="opacity:.25;margin:14px 0">
+
+    <p><strong>Send Tokens</strong></p>
+
+    <input id="toAddress" placeholder="Receiver Wallet Address" />
+    <input id="sendAmount" type="number" placeholder="Amount" />
+
+    <button id="sendBtn" class="gold">
+      🚀 Send
+    </button>
+
+    <p id="walletMsg"></p>
+
   </div>
 
-  <div class="history">
-    <h3>📜 Transaction History</h3>
-    <p id="txHistory">No transactions yet</p>
-  </div>
-
-  <button class="back" onclick="history.back()">⬅ Back</button>
+  <button class="secondary" onclick="goBack()">
+    ⬅ Back to Game
+  </button>
 
   <script src="wallet.js"></script>
 </body>
