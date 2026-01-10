@@ -1,62 +1,43 @@
-/* ================= INIT DATA ================= */
-let wallet = localStorage.getItem("wallet") || "TTECH-" + Math.random().toString(36).slice(2,8).toUpperCase();
-let balance = parseInt(localStorage.getItem("balance") || "23500");
-let tokens = parseInt(localStorage.getItem("tokens") || "28");
-let historyList = JSON.parse(localStorage.getItem("history") || "[]");
+/* ================= WALLET PAGE ================= */
 
-localStorage.setItem("wallet", wallet);
+let walletBalance = parseInt(localStorage.getItem("tokens")) || 0;
 
-/* ================= UI ================= */
-function updateUI() {
-  document.getElementById("walletAddress").textContent = wallet;
-  document.getElementById("balance").textContent = balance;
-  document.getElementById("tokens").textContent = tokens;
+const balanceEl = document.getElementById("walletBalance");
+const sendBtn = document.getElementById("sendBtn");
+const msgEl = document.getElementById("walletMsg");
 
-  const list = document.getElementById("history");
-  list.innerHTML = "";
-
-  historyList.slice().reverse().forEach(tx => {
-    const li = document.createElement("li");
-    li.textContent = tx;
-    list.appendChild(li);
-  });
+function updateWalletUI() {
+  balanceEl.textContent = walletBalance + " TTECH";
 }
 
-/* ================= COPY ================= */
-function copyWallet() {
-  navigator.clipboard.writeText(wallet);
-  alert("✅ Wallet copied");
-}
+updateWalletUI();
 
-/* ================= SEND ================= */
-function sendToken() {
-  const to = document.getElementById("toWallet").value.trim();
+sendBtn.addEventListener("click", () => {
+  const to = document.getElementById("toAddress").value.trim();
   const amount = parseInt(document.getElementById("sendAmount").value);
 
   if (!to || !amount || amount <= 0) {
-    return showMsg("❌ Invalid data");
+    msgEl.textContent = "❌ Enter valid address & amount";
+    return;
   }
 
-  if (amount > tokens) {
-    return showMsg("❌ Not enough tokens");
+  if (amount > walletBalance) {
+    msgEl.textContent = "❌ Insufficient balance";
+    return;
   }
 
-  tokens -= amount;
-  historyList.push(`Sent ${amount} TOKEN to ${to}`);
+  // simulate transfer
+  walletBalance -= amount;
+  localStorage.setItem("tokens", walletBalance);
 
-  save();
-  updateUI();
-  showMsg("✅ Transaction sent");
+  updateWalletUI();
+
+  msgEl.textContent = "✅ Transfer successful";
+
+  document.getElementById("toAddress").value = "";
+  document.getElementById("sendAmount").value = "";
+});
+
+function goBack() {
+  window.location.href = "/";
 }
-
-/* ================= UTILS ================= */
-function showMsg(msg) {
-  document.getElementById("sendMsg").textContent = msg;
-}
-
-function save() {
-  localStorage.setItem("tokens", tokens);
-  localStorage.setItem("history", JSON.stringify(historyList));
-}
-
-updateUI();
