@@ -424,6 +424,39 @@ app.post("/api/open", async (req, res) => {
   }
 });
 
+app.post("/api/pro/upgrade", async (req, res) => {
+  const { userId, level } = req.body;
+  const user = await User.findOne({ userId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  if (level === 4)
+    return res.json({ error: "FOUNDER_ONLY" });
+
+  const PRICES = { 1: 5, 2: 10, 3: 20 };
+
+  if (!PRICES[level])
+    return res.json({ error: "INVALID_LEVEL" });
+
+  if (user.proLevel >= level)
+    return res.json({ error: "ALREADY_UPGRADED" });
+
+  if (user.tokens < PRICES[level])
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
+
+  user.tokens -= PRICES[level];
+  user.proLevel = level;
+  user.isPro = true;
+
+  await user.save();
+
+  res.json({
+    success: true,
+    proLevel: user.proLevel,
+    tokens: user.tokens
+  });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
