@@ -1,39 +1,49 @@
-async function loadFounderStats() {
+/* ================= CONFIG ================= */
+const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
+
+/* ================= LOAD STATS ================= */
+document.addEventListener("DOMContentLoaded", loadStats);
+
+async function loadStats() {
   try {
-    const res = await fetch("/api/founder/stats");
+    const res = await fetch(`/api/founder/stats?userId=${USER_ID}`);
     const data = await res.json();
 
     if (!data.success) {
-      alert("Failed to load stats");
+      alert("❌ Access denied");
       return;
     }
 
-    set("totalUsers", data.totalUsers);
-    set("proUsers", data.proUsers);
-    set("founders", data.founders);
-    set("totalBalance", data.totalBalance);
-    set("totalTokens", data.totalTokens);
-    set("totalReferrals", data.totalReferrals);
+    setStat("totalUsers", data.totalUsers);
+    setStat("proUsers", data.proUsers);
+    setStat("founders", data.founders);
+    setStat("totalBalance", data.totalBalance);
+    setStat("totalTokens", data.totalTokens);
+    setStat("totalEnergy", data.totalEnergy);
+    setStat("totalReferrals", data.totalReferrals);
 
     animateCards();
 
   } catch (err) {
     console.error(err);
-    alert("Server error");
+    alert("❌ Failed to load stats");
   }
 }
 
-function set(id, value) {
+/* ================= UI HELPERS ================= */
+function setStat(id, value) {
   document.getElementById(id).innerText = value;
 }
 
 function animateCards() {
-  document.querySelectorAll(".founder-card")
-    .forEach((card, i) => {
-      setTimeout(() => {
-        card.classList.add("enter");
-      }, i * 120);
-    });
+  const cards = document.querySelectorAll(".founder-card");
+  cards.forEach((card, i) => {
+    setTimeout(() => {
+      card.classList.add("enter");
+    }, i * 120);
+  });
 }
 
-document.addEventListener("DOMContentLoaded", loadFounderStats);
+function goBack() {
+  location.href = "/";
+}
