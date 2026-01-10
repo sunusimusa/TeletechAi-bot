@@ -255,4 +255,41 @@ async function sellToken(amount = 1) {
   alert(`💰 Sold ${amount} TOKEN`);
 }
 
+async function withdraw() {
+  const walletInput = document.getElementById("wallet");
+  const amountInput = document.getElementById("amount");
+
+  const wallet = walletInput.value.trim();
+  const amount = Number(amountInput.value);
+
+  if (!wallet || !amount || amount <= 0) {
+    alert("❌ Enter valid wallet & amount");
+    return;
+  }
+
+  const res = await fetch("/api/withdraw", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: USER_ID,
+      wallet,
+      amount
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  tokens = data.tokens;
+  updateUI();
+
+  walletInput.value = "";
+  amountInput.value = "";
+
+  alert("✅ Withdraw request sent (pending)");
+}
+
 
