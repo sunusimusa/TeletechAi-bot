@@ -1,28 +1,33 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Leaderboard</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
+<body>
 
-<body class="leaderboard-page">
+  <h2>🏆 Referral Leaderboard</h2>
 
-  <h2 class="lb-title">🏆 Referral
-  Leaderboard</h2>
- <p id="seasonInfo" class="lb-sub"></p>
+  <div class="energy-shop">
+    <table style="width:100%;border-collapse:collapse;">
+      <thead>
+        <tr style="color:#ffd700;">
+          <th>#</th>
+          <th>User</th>
+          <th>Referrals</th>
+        </tr>
+      </thead>
+      <tbody id="leaderboardBody">
+        <tr>
+          <td colspan="3">Loading...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
 
-  <h3 id="season">Loading season...</h3>
-
-<div id="leaderboard">
-  <p>Loading leaderboard...</p>
-</div>
-
-  <button id="backBtn" class="back-btn">
-  ⬅ Back
-  </button>
+  <button onclick="goBack()">⬅ Back</button>
 
   <script src="leaderboard.js"></script>
 </body>
