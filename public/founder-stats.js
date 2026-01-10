@@ -65,6 +65,35 @@ function resetSeason() {
   log("Referral season reset");
 }
 
+/* ================= COUNT UP ================= */
+function animateCount(el, target) {
+  let current = 0;
+  const speed = Math.max(20, target / 80);
+
+  const timer = setInterval(() => {
+    current += speed;
+    if (current >= target) {
+      current = target;
+      clearInterval(timer);
+    }
+    el.textContent = Math.floor(current).toLocaleString();
+  }, 20);
+}
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll(".stat").forEach(stat => {
+    const value = parseInt(stat.dataset.value, 10);
+    animateCount(stat, value);
+  });
+
+  // entrance animation
+  document.querySelectorAll(".founder-card").forEach((card, i) => {
+    card.style.animationDelay = `${i * 0.15}s`;
+    card.classList.add("enter");
+  });
+});
+
 /* =================================================
    NAVIGATION
 ================================================= */
