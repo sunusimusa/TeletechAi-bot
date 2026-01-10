@@ -1,42 +1,11 @@
 import mongoose from "mongoose";
 
-const TransactionSchema = new mongoose.Schema({
-  fromWallet: {
-    type: String,
-    required: true
-  },
-
-  toWallet: {
-    type: String,
-    required: true
-  },
-
-  amount: {
-    type: Number,
-    required: true
-  },
-
-  gasFee: {
-    type: Number,
-    default: 0
-  },
-
-  type: {
-    type: String,
-    enum: [
-      "SEND",
-      "RECEIVE",
-      "BURN",
-      "PRO_UPGRADE",
-      "REF_REWARD"
-    ],
-    required: true
-  },
-
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
+const txSchema = new mongoose.Schema({
+  from: String,
+  to: String,
+  amount: Number,
+  type: { type: String }, // send | receive
+  createdAt: { type: Date, default: Date.now }
 });
 
-export default mongoose.model("Transaction", TransactionSchema);
+export default mongoose.model("Transaction", txSchema);
