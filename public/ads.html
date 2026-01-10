@@ -1,47 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Watch Ad</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
+<body>
 
-<body class="ads-page">
+  <h2>📺 Watch Ad</h2>
+  <p>Watch this ad to earn free energy</p>
 
-  <h2>⚡ Free Energy</h2>
-  <p class="ads-sub">Watch this ad to get free energy</p>
+  <!-- AD BOX -->
+  <div class="wallet-box">
+    <p><strong>Advertisement</strong></p>
 
-  <div class="ad-box">
-    <p>📢 Sponsored Ad</p>
-    <div class="fake-ad">
-      <span>YOUR AD HERE</span>
+    <!-- fake ad (demo) -->
+    <div style="
+      background:#000;
+      border-radius:14px;
+      height:180px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      margin:12px 0;
+      color:#ffd700;
+      font-weight:700;
+    ">
+      ▶ AD PLAYING...
     </div>
+
+    <p id="countdown">⏳ Please wait 10 seconds</p>
+
+    <button id="claimBtn" class="hidden">
+      ⚡ Claim Energy (+20)
+    </button>
   </div>
 
-  <p id="timerText">⏳ Please wait (30s)</p>
-
-  <div class="ads-actions">
-
-  <!-- CLAIM BUTTON -->
-  <button id="claimBtn" disabled>
-    ⏳ Please wait (5 min)
+  <button onclick="goBack()" class="secondary">
+    ⬅ Back to Game
   </button>
-
-  <!-- FAKE / SPONSORED AD -->
-  <div class="fake-ad">
-    <p>📢 Sponsored Ad</p>
-    <b>YOUR AD HERE</b>
-    <small>Buy • Promote • Earn</small>
-  </div>
-
-  <!-- BACK -->
-  <button class="back-btn" onclick="goBack()">
-    ⬅️ Back to Game
-  </button>
-
-  </div>
 
   <script src="ads.js"></script>
 </body>
