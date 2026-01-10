@@ -1,33 +1,41 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-  <meta charset="UTF-8" />
-  <title>Watch Ads</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <link rel="stylesheet" href="style.css" />
+  <title>Tasks & Ads</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <h2>📺 Watch Ads</h2>
-  <p>Watch ads to earn energy & coins</p>
+<h2>📢 Tasks & Rewards</h2>
 
-  <div class="wallet-box">
+<div class="tasks">
 
-    <p id="adsInfo">Ads left today: 5</p>
+  <button onclick="watchAd()">🎥 Watch Ad (+20⚡ +200💰)</button>
 
-    <button id="watchAdBtn" class="gold">
-      ▶️ Watch Ad
-    </button>
+  <a href="https://youtube.com/@YOUR_CHANNEL"
+     target="_blank"
+     onclick="completeTask('youtube')">
+     ▶ Subscribe YouTube (+300💰)
+  </a>
 
-    <p id="adsMsg"></p>
+  <a href="https://t.me/YOUR_PUBLIC_CHAT"
+     target="_blank"
+     onclick="completeTask('telegramChat')">
+     💬 Join Telegram Chat (+300💰)
+  </a>
 
-  </div>
+  <a href="https://t.me/YOUR_UPDATE_CHANNEL"
+     target="_blank"
+     onclick="completeTask('telegramUpdate')">
+     📢 Join Update Channel (+300💰)
+  </a>
 
-  <button class="secondary" onclick="goBack()">
-    ⬅ Back to Game
-  </button>
+</div>
 
-  <script src="ads.js"></script>
+<p id="taskMsg"></p>
+
+<button onclick="location.href='/'">⬅ Back</button>
+
+<script src="ads.js"></script>
 </body>
 </html>
