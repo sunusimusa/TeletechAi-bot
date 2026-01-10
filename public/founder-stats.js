@@ -1,98 +1,73 @@
-// ================== FOUNDER DASHBOARD SCRIPT ==================
+/* =================================================
+   FOUNDER STATS (BROWSER ONLY)
+================================================= */
 
-// 🔒 Dole TELEGRAM_ID ya fito daga Telegram WebApp
-// Misali: const TELEGRAM_ID = Telegram.WebApp.initDataUnsafe.user.id;
+/* 🔐 FOUNDER CONFIG */
+const FOUNDER_USER_ID = "SUNUSI_001";
 
-async function loadFounderStats() {
-  try {
-    const res = await fetch("/api/founder/stats", {
-      headers: {
-        "x-telegram-id": TELEGRAM_ID // 👑 SECURITY
-      }
-    });
+/* 👤 CURRENT USER */
+const currentUser =
+  localStorage.getItem("userId") || FOUNDER_USER_ID;
 
-    const data = await res.json();
-
-    if (!res.ok || data.error) {
-      alert("⛔ Access denied");
-      window.location.href = "/dashboard.html";
-      return;
-    }
-
-    // ===== UPDATE CARDS =====
-    document.getElementById("totalUsers").innerText = data.totalUsers;
-    document.getElementById("proUsers").innerText = data.proUsers;
-    document.getElementById("founders").innerText = data.founders;
-    document.getElementById("totalTokens").innerText = data.totalTokens;
-    document.getElementById("systemBalance").innerText = data.systemBalance;
-    document.getElementById("totalReferrals").innerText = data.totalReferrals;
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Failed to load founder stats");
-  }
+/* 🚫 BLOCK NON-FOUNDER */
+if (currentUser !== FOUNDER_USER_ID) {
+  alert("❌ Access denied");
+  location.href = "/";
 }
 
-// ================== ANALYTICS (CHARTS) ==================
-async function loadAnalytics() {
-  try {
-    const res = await fetch("/api/founder/analytics", {
-      headers: {
-        "x-telegram-id": TELEGRAM_ID // 👑 SECURITY
-      }
-    });
+/* SHOW ID */
+document.getElementById("founderId").textContent = currentUser;
 
-    const data = await res.json();
-    if (!res.ok || data.error) throw data.error;
+/* =================================================
+   FAKE GLOBAL DATA (for now)
+   Later zaka haɗa backend
+================================================= */
+let stats = {
+  totalUsers: 248,
+  proUsers: 63,
+  founders: 1,
+  totalTokens: 12840,
+  totalEnergy: 542000
+};
 
-    // 📈 USERS GROWTH CHART
-    const userLabels = data.usersGrowth.map(u => u._id);
-    const userCounts = data.usersGrowth.map(u => u.count);
-
-    new Chart(document.getElementById("usersChart"), {
-      type: "line",
-      data: {
-        labels: userLabels,
-        datasets: [{
-          label: "New Users",
-          data: userCounts,
-          borderWidth: 2,
-          borderColor: "#4ade80",
-          tension: 0.4
-        }]
-      }
-    });
-
-    // 💰 REVENUE CHART
-    new Chart(document.getElementById("revenueChart"), {
-      type: "bar",
-      data: {
-        labels: ["Tokens", "Balance"],
-        datasets: [{
-          label: "Revenue",
-          data: [
-            data.revenue.totalTokens,
-            data.revenue.totalBalance
-          ],
-          backgroundColor: ["#60a5fa", "#facc15"]
-        }]
-      }
-    });
-
-  } catch (err) {
-    console.error(err);
-    alert("⛔ Access denied");
-    window.location.href = "/dashboard.html";
-  }
+/* =================================================
+   LOAD STATS
+================================================= */
+function loadStats() {
+  document.getElementById("totalUsers").textContent = stats.totalUsers;
+  document.getElementById("proUsers").textContent = stats.proUsers;
+  document.getElementById("founders").textContent = stats.founders;
+  document.getElementById("totalTokens").textContent = stats.totalTokens;
+  document.getElementById("totalEnergy").textContent = stats.totalEnergy;
 }
 
-// ================== NAV ==================
+loadStats();
+
+/* =================================================
+   LOGGING
+================================================= */
+function log(msg) {
+  document.getElementById("logBox").textContent =
+    new Date().toLocaleTimeString() + " → " + msg;
+}
+
+/* =================================================
+   ACTIONS
+================================================= */
+function mintTokens() {
+  stats.totalTokens += 100;
+  loadStats();
+  log("Minted +100 tokens");
+}
+
+function resetSeason() {
+  if (!confirm("Reset referral season?")) return;
+  log("Referral season reset");
+}
+
+/* =================================================
+   NAVIGATION
+================================================= */
 function goBack() {
-  window.location.href = "/dashboard.html";
+  location.href = "/";
 }
-
-// ================== INIT ==================
-document.addEventListener("DOMContentLoaded", () => {
-  loadFounderStats();
-  loadAnalytics();
-});
