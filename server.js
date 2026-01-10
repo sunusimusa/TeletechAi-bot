@@ -44,31 +44,40 @@ app.post("/api/user", async (req, res) => {
   try {
     const { userId, ref } = req.body;
 
-    if (!userId) return res.json({ error: "INVALID_USER" });
+    if (!userId) {
+      return res.json({ error: "INVALID_USER_ID" });
+    }
 
     let user = await User.findOne({ userId });
 
+    // ================= CREATE USER =================
     if (!user) {
+      const isFounder = userId === FOUNDER_USER_ID;
+
       user = await User.create({
         userId,
-        walletAddress: await generateWalletUnique(),
-        referralCode: generateCode(),
-        referredBy: ref || null,
+
         balance: 0,
-        energy: 100,
         tokens: 0,
-        freeTries: 3
+
+        energy: isFounder ? 9999 : 50,
+        freeTries: isFounder ? 9999 : 3,
+
+        proLevel: isFounder ? 4 : 0,
+        isPro: isFounder,
+        role: isFounder ? "founder" : "user"
       });
     }
 
     res.json({
       userId: user.userId,
-      walletAddress: user.walletAddress,
       balance: user.balance,
-      energy: user.energy,
       tokens: user.tokens,
+      energy: user.energy,
       freeTries: user.freeTries,
-      referralCode: user.referralCode
+      proLevel: user.proLevel,
+      isPro: user.isPro,
+      role: user.role
     });
 
   } catch (err) {
