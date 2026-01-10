@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tasks & Ads</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>📢 Tasks & Rewards</h2>
+
+<div class="tasks">
+
+  <!-- 🎥 WATCH AD -->
+  <button onclick="watchAdTask()">
+    📺 Watch Ad (+20⚡ +200💰)
+  </button>
+
+  <p id="adStatus"></p>
+
+  <hr>
+
+  <!-- ▶️ YOUTUBE -->
+  <button onclick="openYouTube()">
+    ▶ Subscribe YouTube (+300💰)
+  </button>
+
+  <button onclick="claimTask('youtube')">
+    ✅ Claim YouTube Reward
+  </button>
+
+  <hr>
+
+  <!-- 📢 TELEGRAM UPDATE CHANNEL -->
+  <button onclick="openTelegramUpdate()">
+    📢 Join Update Channel
+  </button>
+
+  <button onclick="claimTask('telegramUpdate')">
+    ✅ Claim Channel Reward
+  </button>
+
+  <hr>
+
+  <!-- 💬 TELEGRAM PUBLIC CHAT -->
+  <button onclick="openTelegramChat()">
+    💬 Join Telegram Chat
+  </button>
+
+  <button onclick="claimTask('telegramChat')">
+    ✅ Claim Chat Reward
+  </button>
+
+</div>
+
+<p id="taskMsg"></p>
+
+<button onclick="location.href='/'">
+  ⬅ Back to Game
+</button>
+
+<script src="tasks.js"></script>
+</body>
+</html>
