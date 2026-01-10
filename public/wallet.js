@@ -1,43 +1,64 @@
-/* ================= WALLET PAGE ================= */
+/* =====================================================
+   WALLET – BROWSER ONLY (CLEAN)
+===================================================== */
 
-let walletBalance = parseInt(localStorage.getItem("tokens")) || 0;
+let tokens = Number(localStorage.getItem("tokens")) || 0;
+let wallet = localStorage.getItem("wallet");
 
-const balanceEl = document.getElementById("walletBalance");
-const sendBtn = document.getElementById("sendBtn");
-const msgEl = document.getElementById("walletMsg");
-
-function updateWalletUI() {
-  balanceEl.textContent = walletBalance + " TTECH";
-}
-
-updateWalletUI();
-
-sendBtn.addEventListener("click", () => {
-  const to = document.getElementById("toAddress").value.trim();
-  const amount = parseInt(document.getElementById("sendAmount").value);
-
-  if (!to || !amount || amount <= 0) {
-    msgEl.textContent = "❌ Enter valid address & amount";
-    return;
+/* =====================================================
+   INIT
+===================================================== */
+document.addEventListener("DOMContentLoaded", () => {
+  if (!wallet) {
+    wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    localStorage.setItem("wallet", wallet);
   }
-
-  if (amount > walletBalance) {
-    msgEl.textContent = "❌ Insufficient balance";
-    return;
-  }
-
-  // simulate transfer
-  walletBalance -= amount;
-  localStorage.setItem("tokens", walletBalance);
 
   updateWalletUI();
-
-  msgEl.textContent = "✅ Transfer successful";
-
-  document.getElementById("toAddress").value = "";
-  document.getElementById("sendAmount").value = "";
 });
 
+/* =====================================================
+   UI UPDATE
+===================================================== */
+function updateWalletUI() {
+  const bal = document.getElementById("walletBalance");
+  if (bal) {
+    bal.innerText = tokens + " TTECH";
+  }
+}
+
+/* =====================================================
+   SEND TOKEN (DEMO)
+===================================================== */
+function sendToken() {
+  const to = document.getElementById("toAddress").value.trim();
+  const amount = Number(document.getElementById("sendAmount").value);
+  const msg = document.getElementById("walletMsg");
+
+  if (!to || !amount || amount <= 0) {
+    msg.innerText = "❌ Invalid input";
+    return;
+  }
+
+  if (amount > tokens) {
+    msg.innerText = "❌ Not enough tokens";
+    return;
+  }
+
+  // DEMO TRANSFER
+  tokens -= amount;
+  localStorage.setItem("tokens", tokens);
+
+  msg.innerText = `✅ Sent ${amount} TTECH`;
+  document.getElementById("toAddress").value = "";
+  document.getElementById("sendAmount").value = "";
+
+  updateWalletUI();
+}
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
 function goBack() {
   window.location.href = "/";
 }
