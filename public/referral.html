@@ -1,39 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Referral</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-body{font-family:Arial;background:#0e1320;color:#fff;padding:20px}
-.box{max-width:500px;margin:auto;background:#151a2e;padding:20px;border-radius:10px;text-align:center}
-input{width:100%;padding:10px;border-radius:6px;border:none}
-button{margin-top:10px;padding:10px;width:100%;border:none;border-radius:6px;background:#4cc9f0;color:#000}
-</style>
+  <meta charset="UTF-8" />
+  <title>Referral</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-<div class="box">
-<h2>👥 Referral Program</h2>
 
-<p>Invite friends & earn bonuses.</p>
+  <h2>👥 Referral</h2>
 
-<input id="refLink" readonly>
+  <div class="energy-shop">
+    <p>Your referral link:</p>
+    <input id="refLink" readonly style="width:100%;padding:10px;border-radius:12px;border:none;" />
+    <button onclick="copyRef()">📋 Copy</button>
 
-<button onclick="copyRef()">📋 Copy Link</button>
+    <p id="refCount">Referrals: 0</p>
+  </div>
 
-<p id="msg"></p>
-<a href="/">⬅ Back</a>
-</div>
+  <button onclick="location.href='/leaderboard.html'">
+    🏆 View Leaderboard
+  </button>
 
-<script>
-const userId = localStorage.getItem("userId") || "SUNUSI_001";
-const refLink = location.origin + "/?ref=" + userId;
-document.getElementById("refLink").value = refLink;
+  <button onclick="history.back()">⬅ Back</button>
 
-function copyRef(){
-  navigator.clipboard.writeText(refLink);
-  document.getElementById("msg").innerText="✅ Copied!";
-}
-</script>
+  <script>
+    const wallet = localStorage.getItem("wallet");
+    const referrals = Number(localStorage.getItem("referralsCount")) || 0;
+
+    document.getElementById("refLink").value =
+      location.origin + "/?ref=" + wallet;
+
+    document.getElementById("refCount").innerText =
+      "Referrals: " + referrals;
+
+    function copyRef() {
+      navigator.clipboard.writeText(
+        document.getElementById("refLink").value
+      );
+      alert("Referral copied");
+    }
+  </script>
+
 </body>
 </html>
