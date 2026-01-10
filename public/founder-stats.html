@@ -4,135 +4,40 @@
   <meta charset="UTF-8" />
   <title>Founder Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <style>
-    * {
-      box-sizing: border-box;
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-    }
-
-    body {
-      margin: 0;
-      min-height: 100vh;
-      padding: 18px;
-      text-align: center;
-
-      background:
-        radial-gradient(circle at top, rgba(255,215,0,.25), transparent 55%),
-        radial-gradient(circle at bottom, rgba(255,140,0,.18), transparent 55%),
-        linear-gradient(180deg, #120800, #050300);
-
-      color: #fff;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 10px 22px;
-      border-radius: 999px;
-      background: linear-gradient(135deg, #ffd700, #ff9800);
-      color: #000;
-      font-weight: 800;
-      margin-bottom: 18px;
-      box-shadow: 0 0 30px rgba(255,215,0,.9);
-    }
-
-    .card {
-      max-width: 400px;
-      margin: auto;
-      padding: 22px;
-      border-radius: 22px;
-
-      background: linear-gradient(145deg, #2a1a00, #140a00);
-      border: 2px solid rgba(255,215,0,.5);
-
-      box-shadow:
-        0 0 40px rgba(255,215,0,.6),
-        0 20px 50px rgba(0,0,0,.95);
-    }
-
-    h2 {
-      color: #ffd700;
-      margin-bottom: 16px;
-    }
-
-    .stat {
-      background: rgba(0,0,0,.35);
-      border-radius: 14px;
-      padding: 14px;
-      margin-bottom: 12px;
-      box-shadow: inset 0 0 12px rgba(0,0,0,.6);
-    }
-
-    .stat h3 {
-      margin: 0;
-      font-size: 14px;
-      color: #ffeb99;
-    }
-
-    .stat p {
-      margin: 6px 0 0;
-      font-size: 22px;
-      font-weight: 800;
-      color: #ffd700;
-    }
-
-    button {
-      width: 100%;
-      padding: 14px;
-      margin-top: 12px;
-      border-radius: 16px;
-      border: none;
-      font-weight: 700;
-      cursor: pointer;
-
-      background: linear-gradient(135deg, #1e293b, #0f172a);
-      color: #fff;
-
-      box-shadow:
-        0 0 18px rgba(255,193,7,.4),
-        0 12px 30px rgba(0,0,0,.85);
-    }
-
-    button:active {
-      transform: scale(.96);
-    }
-
-    .back {
-      margin-top: 18px;
-      background: linear-gradient(135deg, #ffd700, #ff9800);
-      color: #000;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <div class="badge">👑 FOUNDER</div>
+  <h2>👑 Founder Dashboard</h2>
 
-  <div class="card">
-    <h2>📊 Global Stats</h2>
-
-    <div class="stat">
+  <div class="founder-grid">
+    <div class="founder-card glow">
       <h3>👥 Total Users</h3>
-      <p id="totalUsers">0</p>
+      <div class="stat" id="totalUsers">0</div>
     </div>
 
-    <div class="stat">
+    <div class="founder-card">
       <h3>💰 Total Balance</h3>
-      <p id="totalBalance">0</p>
+      <div class="stat" id="totalBalance">0</div>
     </div>
 
-    <div class="stat">
+    <div class="founder-card">
       <h3>🪙 Total Tokens</h3>
-      <p id="totalTokens">0</p>
+      <div class="stat" id="totalTokens">0</div>
     </div>
 
-    <div class="stat">
-      <h3>🔥 Total Energy Used</h3>
-      <p id="totalEnergy">0</p>
+    <div class="founder-card">
+      <h3>⚡ Total Energy</h3>
+      <div class="stat" id="totalEnergy">0</div>
     </div>
 
-    <button class="back" onclick="goBack()">🎁 Back to Game</button>
+    <div class="founder-card">
+      <h3>👥 Referrals</h3>
+      <div class="stat" id="totalReferrals">0</div>
+    </div>
   </div>
+
+  <button onclick="goBack()">⬅ Back to Game</button>
 
   <script src="founder-stats.js"></script>
 </body>
