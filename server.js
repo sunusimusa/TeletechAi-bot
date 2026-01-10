@@ -387,6 +387,43 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
+// ================= OPEN BOX =================
+app.post("/api/open", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    // 🎟️ Free try ko energy
+    if (user.freeTries > 0) {
+      user.freeTries -= 1;
+    } else if (user.energy >= 10) {
+      user.energy -= 10;
+    } else {
+      return res.json({ error: "NO_ENERGY" });
+    }
+
+    // 🎁 Rewards
+    const rewards = [0, 100, 200, 500];
+    const reward =
+      rewards[Math.floor(Math.random() * rewards.length)];
+
+    user.balance += reward;
+    await user.save();
+
+    res.json({
+      reward,
+      balance: user.balance,
+      energy: user.energy,
+      freeTries: user.freeTries
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
