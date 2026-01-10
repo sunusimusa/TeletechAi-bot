@@ -4,46 +4,43 @@
   <meta charset="UTF-8" />
   <title>My Wallet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="wallet.css" />
 </head>
 <body>
 
-  <h2>👜 My Wallet</h2>
+  <h2>👛 My Wallet</h2>
 
-  <div class="wallet-box">
+  <div class="wallet-card">
 
-    <p><strong>Wallet Balance</strong></p>
-    <p id="walletBalance">0 TTECH</p>
+    <p class="label">Wallet Address</p>
 
-    <hr style="opacity:.2;margin:14px 0">
+    <div class="address-box">
+      <span id="walletAddress">---</span>
+    </div>
 
-    <p><strong>Send Tokens</strong></p>
+    <button class="copy-btn" onclick="copyWallet()">📋 Copy</button>
 
-    <input
-      id="toAddress"
-      placeholder="Receiver Wallet Address"
-    />
+    <div class="qr-box">
+      <img id="qrImage" alt="QR Code" />
+    </div>
 
-    <input
-      id="sendAmount"
-      type="number"
-      placeholder="Amount"
-    />
+    <p class="token-count">
+      🪙 Tokens: <span id="walletTokens">0</span>
+    </p>
 
-    <button class="gold" onclick="sendToken()">
-      🚀 Send
-    </button>
-
-    <p id="walletMsg"></p>
-
+    <div class="actions">
+      <button class="send" onclick="openSend()">📤 Send</button>
+      <button class="receive" onclick="openReceive()">📥 Receive</button>
+    </div>
   </div>
 
-  <button class="secondary" onclick="goBack()">
-    ⬅ Back to Game
-  </button>
+  <div class="history">
+    <h3>📜 Transaction History</h3>
+    <p id="txHistory">No transactions yet</p>
+  </div>
 
-  <!-- JS -->
+  <button class="back" onclick="history.back()">⬅ Back</button>
+
   <script src="wallet.js"></script>
 </body>
-      </html>
+</html>
