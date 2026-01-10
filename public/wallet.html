@@ -1,42 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>My Wallet</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
   <h2>👜 My Wallet</h2>
 
   <div class="wallet-box">
-    <p class="label">Wallet Address</p>
-    <div class="wallet-row">
-      <span id="walletAddress">TTECH-XXXXXX</span>
-      <button class="secondary" onclick="copyWallet()">📋 Copy</button>
-    </div>
 
-    <p class="balance">Balance: <b id="balance">0</b></p>
-    <p class="tokens">Tokens: <b id="tokens">0</b></p>
+    <p><strong>Wallet Balance</strong></p>
+    <p id="walletBalance">0 TTECH</p>
+
+    <hr style="opacity:.2;margin:12px 0">
+
+    <p><strong>Send Tokens</strong></p>
+
+    <input
+      id="toAddress"
+      placeholder="Receiver Wallet Address"
+      style="width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:8px;"
+    />
+
+    <input
+      id="sendAmount"
+      type="number"
+      placeholder="Amount"
+      style="width:100%;padding:10px;border-radius:10px;border:none;"
+    />
+
+    <button id="sendBtn" class="gold" style="width:100%;margin-top:10px;">
+      🚀 Send
+    </button>
+
+    <p id="walletMsg"></p>
+
   </div>
 
-  <div class="wallet-box">
-    <h3>Send Tokens</h3>
-
-    <input id="toWallet" placeholder="Receiver Wallet">
-    <input id="sendAmount" type="number" placeholder="Amount">
-
-    <button onclick="sendToken()">🚀 Send</button>
-    <p id="sendMsg"></p>
-  </div>
-
-  <div class="wallet-box">
-    <h3>📜 History</h3>
-    <ul id="history" class="history"></ul>
-  </div>
-
-  <button class="secondary" onclick="history.back()">⬅ Back</button>
+  <button onclick="goBack()" class="secondary">
+    ⬅ Back to Game
+  </button>
 
   <script src="wallet.js"></script>
 </body>
