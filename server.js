@@ -574,6 +574,31 @@ app.get("/api/founder/stats", async (req, res) => {
   }
 });
 
+/* ============================
+   REFERRAL LEADERBOARD API
+============================ */
+app.get("/api/leaderboard/referrals", async (req, res) => {
+  try {
+    const topUsers = await User.find(
+      { referrals: { $gt: 0 } },
+      { userId: 1, referrals: 1 }
+    )
+      .sort({ referrals: -1 })
+      .limit(20);
+
+    res.json({
+      success: true,
+      users: topUsers
+    });
+  } catch (err) {
+    console.error("Referral leaderboard error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to load leaderboard"
+    });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
