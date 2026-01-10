@@ -296,4 +296,85 @@ function openLeaderboard() {
   window.location.href = "/leaderboard.html";
 }
 
+let openingLocked = false;
+let soundUnlocked = false;
+
+// 🔊 Unlock sound (browser requirement)
+document.addEventListener("click", unlockSound, { once: true });
+
+function unlockSound() {
+  ["clickSound", "winSound", "loseSound", "errorSound"].forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
+    s.volume = 0;
+    s.play().then(() => {
+      s.pause();
+      s.currentTime = 0;
+      s.volume = 1;
+    }).catch(() => {});
+  });
+  soundUnlocked = true;
+}
+
+// 🔊 Play sound helper
+function playSound(id) {
+  if (!soundUnlocked) return;
+  const s = document.getElementById(id);
+  if (!s) return;
+  s.currentTime = 0;
+  s.play().catch(() => {});
+}
+
+// 📦 OPEN BOX
+async function openBox(box) {
+  if (openingLocked) return;
+  openingLocked = true;
+
+  playSound("clickSound");
+
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: USER_ID })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      playSound("errorSound");
+      alert(data.error.replaceAll("_", " "));
+      openingLocked = false;
+      return;
+    }
+
+    box.classList.add("opened");
+
+    if (data.reward > 0) {
+      box.innerText = `💰 ${data.reward}`;
+      playSound("winSound");
+    } else {
+      box.innerText = "😢";
+      playSound("loseSound");
+    }
+
+    // update UI
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+    updateUI();
+
+    setTimeout(() => {
+      box.classList.remove("opened");
+      box.innerText = "";
+      openingLocked = false;
+    }, 1200);
+
+  } catch (err) {
+    console.error(err);
+    openingLocked = false;
+    alert("❌ Network error");
+  }
+}
+
 
