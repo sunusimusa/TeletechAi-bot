@@ -202,6 +202,54 @@ app.post("/api/ads/watch", async (req, res) => {
   }
 });
 
+app.post("/api/user", async (req, res) => {
+  try {
+    const { userId, ref } = req.body;
+    if (!userId) return res.json({ error: "INVALID_USER_ID" });
+
+    let user = await User.findOne({ userId });
+
+    if (!user) {
+      user = await User.create({
+        userId,
+        balance: 0,
+        energy: 100,
+        tokens: 0,
+        freeTries: 3,
+
+        referralCode: generateCode(),
+        referredBy: ref || null,
+        referralsCount: 0
+      });
+
+      // 🎁 REFERRAL BONUS (ONCE)
+      if (ref) {
+        const refUser = await User.findOne({ referralCode: ref });
+
+        if (refUser && refUser.userId !== userId) {
+          refUser.balance += 500; // 🎁 reward
+          refUser.referralsCount += 1;
+          await refUser.save();
+        }
+      }
+    }
+
+    res.json({
+      userId: user.userId,
+      balance: user.balance,
+      energy: user.energy,
+      tokens: user.tokens,
+      freeTries: user.freeTries,
+      referralCode: user.referralCode,
+      referralsCount: user.referralsCount
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
