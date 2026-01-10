@@ -325,6 +325,28 @@ app.get("/api/founder/stats", async (req, res) => {
   }
 });
 
+app.post("/api/task/social", async (req, res) => {
+  const { userId, type } = req.body;
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  if (!user.tasks.hasOwnProperty(type))
+    return res.json({ error: "INVALID_TASK" });
+
+  if (user.tasks[type])
+    return res.json({ error: "ALREADY_DONE" });
+
+  user.tasks[type] = true;
+  user.balance += 300; // reward
+
+  await user.save();
+
+  res.json({
+    success: true,
+    balance: user.balance
+  });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
