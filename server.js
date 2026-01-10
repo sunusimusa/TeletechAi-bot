@@ -531,6 +531,49 @@ app.post("/api/wallet/send", (req, res) => {
   });
 });
 
+/* ============================
+   FOUNDER GLOBAL STATS API
+============================ */
+app.get("/api/founder/stats", async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    const totals = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalBalance: { $sum: "$balance" },
+          totalTokens: { $sum: "$tokens" },
+          totalEnergy: { $sum: "$energy" },
+          totalReferrals: { $sum: "$referrals" }
+        }
+      }
+    ]);
+
+    const data = totals[0] || {
+      totalBalance: 0,
+      totalTokens: 0,
+      totalEnergy: 0,
+      totalReferrals: 0
+    };
+
+    res.json({
+      success: true,
+      users: totalUsers,
+      balance: data.totalBalance,
+      tokens: data.totalTokens,
+      energy: data.totalEnergy,
+      referrals: data.totalReferrals
+    });
+  } catch (err) {
+    console.error("Founder stats error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Failed to load founder stats"
+    });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
