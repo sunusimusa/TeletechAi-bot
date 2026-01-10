@@ -1,47 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>My Wallet</title>
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<style>
-body{font-family:Arial;background:#0e1320;color:#fff;padding:20px}
-.box{max-width:500px;margin:auto;background:#151a2e;padding:20px;border-radius:10px}
-input,button{width:100%;padding:10px;margin:8px 0;border:none;border-radius:6px}
-button{background:#ffd166;color:#000;font-weight:bold}
-.msg{margin-top:10px}
-</style>
+  <meta charset="UTF-8">
+  <title>My Wallet</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="box">
-<h2>👜 My Wallet</h2>
+  <h2>👜 My Wallet</h2>
 
-<p><b>Wallet Address:</b></p>
-<p id="myWallet"></p>
+  <div class="wallet-box">
+    <p class="label">Wallet Address</p>
+    <div class="wallet-row">
+      <span id="walletAddress">TTECH-XXXXXX</span>
+      <button class="secondary" onclick="copyWallet()">📋 Copy</button>
+    </div>
 
-<p><b>Tokens:</b> <span id="myTokens">0</span></p>
+    <p class="balance">Balance: <b id="balance">0</b></p>
+    <p class="tokens">Tokens: <b id="tokens">0</b></p>
+  </div>
 
-<hr>
+  <div class="wallet-box">
+    <h3>Send Tokens</h3>
 
-<h3>🔁 Send Tokens</h3>
+    <input id="toWallet" placeholder="Receiver Wallet">
+    <input id="sendAmount" type="number" placeholder="Amount">
 
-<input id="toWallet" placeholder="Receiver Wallet">
-<input id="amount" type="number" placeholder="Amount">
+    <button onclick="sendToken()">🚀 Send</button>
+    <p id="sendMsg"></p>
+  </div>
 
-<button onclick="sendTokens()">Send</button>
-<p class="msg" id="sendMsg"></p>
+  <div class="wallet-box">
+    <h3>📜 History</h3>
+    <ul id="history" class="history"></ul>
+  </div>
 
-<hr>
+  <button class="secondary" onclick="history.back()">⬅ Back</button>
 
-<h3>⬇ Withdraw</h3>
-<input id="withdrawAmount" type="number" placeholder="Amount">
-<button onclick="withdraw()">Withdraw</button>
-<p class="msg" id="withdrawMsg"></p>
-
-<a href="/">⬅ Back</a>
-</div>
-
-<script src="wallet.js"></script>
+  <script src="wallet.js"></script>
 </body>
 </html>
