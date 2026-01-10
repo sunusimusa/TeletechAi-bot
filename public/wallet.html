@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>My Wallet</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -15,24 +16,22 @@
     <p><strong>Wallet Balance</strong></p>
     <p id="walletBalance">0 TTECH</p>
 
-    <hr style="opacity:.2;margin:12px 0">
+    <hr style="opacity:.2;margin:14px 0">
 
     <p><strong>Send Tokens</strong></p>
 
     <input
       id="toAddress"
       placeholder="Receiver Wallet Address"
-      style="width:100%;padding:10px;border-radius:10px;border:none;margin-bottom:8px;"
     />
 
     <input
       id="sendAmount"
       type="number"
       placeholder="Amount"
-      style="width:100%;padding:10px;border-radius:10px;border:none;"
     />
 
-    <button id="sendBtn" class="gold" style="width:100%;margin-top:10px;">
+    <button class="gold" onclick="sendToken()">
       🚀 Send
     </button>
 
@@ -40,10 +39,11 @@
 
   </div>
 
-  <button onclick="goBack()" class="secondary">
+  <button class="secondary" onclick="goBack()">
     ⬅ Back to Game
   </button>
 
+  <!-- JS -->
   <script src="wallet.js"></script>
 </body>
-</html>
+      </html>
