@@ -1,42 +1,38 @@
-const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
-
-const adsMsg = document.getElementById("adsMsg");
-const adsInfo = document.getElementById("adsInfo");
-const btn = document.getElementById("watchAdBtn");
-
-btn.onclick = watchAd;
+const userId = localStorage.getItem("userId");
+const msg = document.getElementById("taskMsg");
 
 async function watchAd() {
-  adsMsg.innerText = "⏳ Watching ad...";
-  btn.disabled = true;
+  const res = await fetch("/api/task/watch-ad", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
 
-  try {
-    const res = await fetch("/api/ads/watch", {
+  const data = await res.json();
+
+  if (data.error) {
+    msg.innerText = "❌ Already claimed";
+    return;
+  }
+
+  msg.innerText = "✅ Energy & coins added!";
+}
+
+async function completeTask(type) {
+  setTimeout(async () => {
+    const res = await fetch("/api/task/social", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId: USER_ID })
+      body: JSON.stringify({ userId, type })
     });
 
     const data = await res.json();
 
     if (data.error) {
-      adsMsg.innerText = "❌ " + data.error.replaceAll("_", " ");
-      btn.disabled = false;
+      msg.innerText = "❌ Task already completed";
       return;
     }
 
-    adsMsg.innerText =
-      `✅ +${data.rewardEnergy || 20} Energy, +${data.rewardCoins || 100} Coins`;
-
-    adsInfo.innerText = `Ads left today: ${data.adsLeft}`;
-
-  } catch (err) {
-    adsMsg.innerText = "❌ Network error";
-  }
-
-  btn.disabled = false;
-}
-
-function goBack() {
-  location.href = "/";
+    msg.innerText = "🎉 Reward added!";
+  }, 3000); // delay don ya buɗe link
 }
