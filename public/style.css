@@ -12,7 +12,7 @@ body {
   background:
     radial-gradient(circle at top, rgba(56,189,248,.35), transparent 60%),
     radial-gradient(circle at bottom, rgba(99,102,241,.35), transparent 60%),
-    linear-gradient(180deg, #0f172a, #020617);
+    linear-gradient(180deg, #16234d, #050816);
 
   color: #f8fafc;
   text-align: center;
