@@ -377,4 +377,22 @@ async function openBox(box) {
   }
 }
 
+async function upgradePro(level) {
+  const res = await fetch("/api/pro/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: USER_ID, level })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert(data.error.replaceAll("_", " "));
+    return;
+  }
+
+  alert(`🚀 PRO Level ${level} activated`);
+  loadUser();
+}
+
 
