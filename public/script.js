@@ -210,17 +210,21 @@ document.getElementById("founderStatsBtn")?.addEventListener("click", () => {
 function checkAgreement() {
   if (!localStorage.getItem("agreed")) {
     document.getElementById("agreementModal")?.classList.remove("hidden");
+  } else {
+    document.getElementById("agreementModal")?.classList.add("hidden");
   }
 }
 
-document.getElementById("agreeBtn")?.addEventListener("click", () => {
-  localStorage.setItem("agreed", "yes");
-  document.getElementById("agreementModal")?.classList.add("hidden");
-});
-
-/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  // Founder auto (example)
+  const agreeBtn = document.getElementById("agreeBtn");
+
+  agreeBtn?.addEventListener("click", () => {
+    localStorage.setItem("agreed", "yes");
+    document.getElementById("agreementModal")?.classList.add("hidden");
+    updateUI();
+  });
+
+  // Founder auto
   const FOUNDER_USER_ID = "SUNUSI_001";
   const currentUser = localStorage.getItem("userId") || FOUNDER_USER_ID;
 
