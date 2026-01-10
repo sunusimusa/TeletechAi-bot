@@ -6,6 +6,7 @@ import path from "path";
 import { fileURLToPath } from "url";
 
 import User from "./models/User.js";
+import Transaction from "./models/Transaction.js";
 
 dotenv.config();
 const app = express();
