@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Lucky Box Game</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,24 +11,19 @@
   <h2>🎁 Lucky Box Game</h2>
 
   <!-- 🔊 SOUNDS -->
-  <audio id="clickSound" src="/sounds/click.mp3"></audio>
-  <audio id="winSound" src="/sounds/win.mp3"></audio>
-  <audio id="loseSound" src="/sounds/lose.mp3"></audio>
+  <audio id="clickSound" src="/sounds/click.mp3" preload="auto"></audio>
+  <audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
+  <audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
+  <audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
 
   <!-- 📦 GAME BOXES -->
   <div class="boxes">
-  <div class="box" 
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
-  <div class="box" 
-    onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
+    <div class="box" onclick="openBox(this)"></div>
   </div>
 
   <!-- ⚡ ENERGY BAR -->
@@ -40,66 +34,66 @@
   <!-- 📊 STATS -->
   <p id="balance">Balance: 0</p>
   <p id="tokens">Tokens: 0</p>
-  <p id="freeTries">Free tries: 3</p>
-  <p id="energy">Energy: 50 / 100</p>
+  <p id="freeTries">Free tries: 0</p>
+  <p id="energy">Energy: 0 / 0</p>
 
   <!-- 🎁 DAILY -->
-  <button id="dailyBtn" class="daily-btn">
-  🎁 Daily Bonus</button>
+  <button onclick="claimDaily()">🎁 Daily Bonus</button>
 
   <!-- 🔁 CONVERT -->
-  <button id="convertBtn" 
-   class="convert-btn">
-  🔁 Convert 10,000 → 1 TTECH
+  <button onclick="convertPoints()">
+    🔁 Convert 10,000 → 1 TTECH
   </button>
 
   <!-- ⚡ BUY ENERGY -->
   <h3>⚡ Buy Energy</h3>
-  <button data-energy="100">⚡ 100 Energy 
-   (500 coins)</button>
-  <button data-energy="500">⚡ 500 Energy 
-  (2000 coins)</button>
+  <button onclick="buyEnergy(100)">⚡ 100 Energy (500 coins)</button>
+  <button onclick="buyEnergy(500)">⚡ 500 Energy (2000 coins)</button>
 
   <!-- 🪙 TOKEN MARKET -->
   <h3>🪙 Token Market</h3>
-  <button id="buyTokenBtn">Buy 1 Token 
-  (10,000)</button>
-<button id="sellTokenBtn">Sell 1 Token</button>
+  <button onclick="buyToken()">Buy 1 Token (10,000)</button>
+  <button onclick="sellToken()">Sell 1 Token</button>
 
-  <!-- 👑 PRO -->
+  <!-- 🚀 PRO -->
   <h3>🚀 PRO Upgrade</h3>
-  <button data-pro="1">🚀 Upgrade to PRO 
-  (5 TOKEN)</button>
-  <button data-pro="2">🚀 PRO Level 2 (10 
-  TOKEN)</button>
-  <button data-pro="3">👑 PRO Level 3 (20 
-  TOKEN)</button>
+  <button onclick="upgradePro(1)">🚀 Upgrade to PRO (5 TOKEN)</button>
+  <button onclick="upgradePro(2)">🚀 PRO Level 2 (10 TOKEN)</button>
+  <button onclick="upgradePro(3)">👑 PRO Level 3 (20 TOKEN)</button>
+
+  <!-- 👑 PRO BADGE -->
+  <div id="proBadge" class="pro-badge hidden"></div>
 
   <!-- 👑 FOUNDER -->
   <div id="founderActions" class="hidden">
     <h3>👑 Founder Dashboard</h3>
-    <button id="founderStatsBtn">View Global Stats</button>
+    <button onclick="openFounderStats()">View Global Stats</button>
   </div>
 
+  <!-- 🔻 BOTTOM MENU -->
   <div class="bottom-menu">
-  
-  <a href="/referral.html">Referral</a>
-    
-  <a href="/founder-stats.html">
-  <button class="gold">👑 Founder</button>
-  </a>
+    <a href="/referral.html">Referral</a>
 
- <button onclick="location.href='/
-  wallet.html'">
-   👜 My Wallet
- </button>
+    <button class="gold" onclick="openFounderStats()">👑 Founder</button>
+
+    <button onclick="openWallet()">👜 My Wallet</button>
+  </div>
+
+  <!-- 📜 LEGAL -->
+  <p class="legal-text">
+    <a href="/privacy.html">Privacy</a> ·
+    <a href="/terms.html">Terms</a>
+  </p>
 
   <!-- 📜 AGREEMENT -->
+  <div id="agreementModal" class="agree-modal hidden">
+    <div class="agree-box">
+      <p>By using this app you agree to Terms & Privacy.</p>
+      <button id="agreeBtn">✅ I Agree</button>
+    </div>
+  </div>
 
-  <a href="/privacy.html">Privacy</a>
-  <a href="/terms.html">Terms</a>
-
-  <!-- ✅ SCRIPTS -->
+  <!-- ✅ SCRIPT -->
   <script src="script.js"></script>
 </body>
 </html>
