@@ -264,3 +264,24 @@ a:hover {
       0 22px 55px rgba(0,0,0,.95);
   }
 }
+
+/* ===== FIX BOX VISIBILITY ===== */
+.boxes {
+  background: rgba(0,0,0,.35);
+  padding: 16px;
+  border-radius: 22px;
+}
+
+/* DARK BASE FOR BOX */
+.box {
+  background: linear-gradient(145deg, #1b1200, #0d0700);
+  border: 1px solid rgba(255,215,0,.25);
+}
+
+/* OPENED BOX STRONG */
+.box.opened {
+  background: linear-gradient(145deg, #ffd700, #ffb300);
+  box-shadow:
+    0 0 35px rgba(255,215,0,.9),
+    0 14px 40px rgba(0,0,0,.9);
+}
