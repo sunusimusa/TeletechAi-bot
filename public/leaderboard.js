@@ -1,63 +1,36 @@
-document.addEventListener("DOMContentLoaded", loadLeaderboard);
-
 async function loadLeaderboard() {
-  const seasonEl = document.getElementById("season");
-  const listEl = document.getElementById("leaderboard");
-
-  seasonEl.innerText = "Loading season...";
-  listEl.innerHTML = "<p>Loading leaderboard...</p>";
+  const body = document.getElementById("leaderboardBody");
 
   try {
-    const res = await fetch("/api/ref/leaderboard", {
-      method: "GET",
-      headers: {
-        "Accept": "application/json"
-      },
-      cache: "no-store" // ✅ MUHIMMI (Telegram bug fix)
-    });
-
-    if (!res.ok) {
-      throw new Error(`HTTP ${res.status}`);
-    }
-
+    const res = await fetch("/api/leaderboard/referrals");
     const data = await res.json();
-    console.log("Leaderboard:", data);
 
-    // ===== SEASON =====
-    seasonEl.innerText = data.season || "Season";
-
-    // ===== EMPTY =====
-    if (!Array.isArray(data.top) || data.top.length === 0) {
-      listEl.innerHTML =
-        "<p style='color:gray'>No referrals yet</p>";
+    if (!data.success || data.users.length === 0) {
+      body.innerHTML =
+        `<tr><td colspan="3">No referrals yet</td></tr>`;
       return;
     }
 
-    // ===== RENDER =====
-    listEl.innerHTML = "";
+    body.innerHTML = "";
 
-    data.top.forEach((u, i) => {
-      const row = document.createElement("div");
-      row.className = "rank";
-
-      row.innerHTML = `
-        <span>#${i + 1}</span>
-        <span>${u.telegramId}</span>
-        <span>👥 ${u.seasonReferrals}</span>
+    data.users.forEach((u, i) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${u.userId}</td>
+        <td>${u.referrals}</td>
       `;
-
-      listEl.appendChild(row);
+      body.appendChild(tr);
     });
 
   } catch (err) {
-    console.error("Leaderboard error:", err);
-    seasonEl.innerText = "Error";
-    listEl.innerHTML =
-      "<p style='color:red'>❌ Failed to load leaderboard</p>";
+    body.innerHTML =
+      `<tr><td colspan="3">Failed to load</td></tr>`;
   }
 }
 
-// ===== BACK BUTTON (FIXED) =====
-document.getElementById("backBtn").addEventListener("click", () => {
-  window.location.href = "/index.html";
-});
+function goBack() {
+  window.history.back();
+}
+
+document.addEventListener("DOMContentLoaded", loadLeaderboard);
