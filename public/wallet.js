@@ -1,64 +1,44 @@
-/* =====================================================
-   WALLET – BROWSER ONLY (CLEAN)
-===================================================== */
+/* ================= INIT WALLET ================= */
+const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
 
-let tokens = Number(localStorage.getItem("tokens")) || 0;
-let wallet = localStorage.getItem("wallet");
+function initWallet() {
+  let wallet = localStorage.getItem("wallet");
 
-/* =====================================================
-   INIT
-===================================================== */
-document.addEventListener("DOMContentLoaded", () => {
   if (!wallet) {
-    wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    wallet = "TTECH-" + Math.random().toString(36).substring(2, 10).toUpperCase();
     localStorage.setItem("wallet", wallet);
   }
 
-  updateWalletUI();
-});
+  const tokens = Number(localStorage.getItem("tokens")) || 0;
 
-/* =====================================================
-   UI UPDATE
-===================================================== */
-function updateWalletUI() {
-  const bal = document.getElementById("walletBalance");
-  if (bal) {
-    bal.innerText = tokens + " TTECH";
-  }
+  document.getElementById("walletAddress").innerText = wallet;
+  document.getElementById("walletTokens").innerText = tokens;
+
+  generateQR(wallet);
 }
 
-/* =====================================================
-   SEND TOKEN (DEMO)
-===================================================== */
-function sendToken() {
-  const to = document.getElementById("toAddress").value.trim();
-  const amount = Number(document.getElementById("sendAmount").value);
-  const msg = document.getElementById("walletMsg");
-
-  if (!to || !amount || amount <= 0) {
-    msg.innerText = "❌ Invalid input";
-    return;
-  }
-
-  if (amount > tokens) {
-    msg.innerText = "❌ Not enough tokens";
-    return;
-  }
-
-  // DEMO TRANSFER
-  tokens -= amount;
-  localStorage.setItem("tokens", tokens);
-
-  msg.innerText = `✅ Sent ${amount} TTECH`;
-  document.getElementById("toAddress").value = "";
-  document.getElementById("sendAmount").value = "";
-
-  updateWalletUI();
+/* ================= QR ================= */
+function generateQR(text) {
+  const img = document.getElementById("qrImage");
+  img.src =
+    "https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=" +
+    encodeURIComponent(text);
 }
 
-/* =====================================================
-   NAVIGATION
-===================================================== */
-function goBack() {
-  window.location.href = "/";
+/* ================= COPY ================= */
+function copyWallet() {
+  const text = document.getElementById("walletAddress").innerText;
+  navigator.clipboard.writeText(text);
+  alert("✅ Wallet copied");
 }
+
+/* ================= ACTIONS ================= */
+function openSend() {
+  alert("🚧 Send feature coming next (backend)");
+}
+
+function openReceive() {
+  alert("📥 Share your wallet address or QR");
+}
+
+document.addEventListener("DOMContentLoaded", initWallet);
