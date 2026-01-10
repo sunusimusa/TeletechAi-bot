@@ -4,32 +4,36 @@ async function loadFounderStats() {
     const data = await res.json();
 
     if (!data.success) {
-      alert("❌ Failed to load stats");
+      alert("Failed to load stats");
       return;
     }
 
-    document.getElementById("totalUsers").innerText =
-      data.users.toLocaleString();
+    set("totalUsers", data.totalUsers);
+    set("proUsers", data.proUsers);
+    set("founders", data.founders);
+    set("totalBalance", data.totalBalance);
+    set("totalTokens", data.totalTokens);
+    set("totalReferrals", data.totalReferrals);
 
-    document.getElementById("totalBalance").innerText =
-      data.balance.toLocaleString();
-
-    document.getElementById("totalTokens").innerText =
-      data.tokens.toLocaleString();
-
-    document.getElementById("totalEnergy").innerText =
-      data.energy.toLocaleString();
-
-    document.getElementById("totalReferrals").innerText =
-      data.referrals.toLocaleString();
+    animateCards();
 
   } catch (err) {
-    alert("❌ Network error");
+    console.error(err);
+    alert("Server error");
   }
 }
 
-function goBack() {
-  window.location.href = "/";
+function set(id, value) {
+  document.getElementById(id).innerText = value;
+}
+
+function animateCards() {
+  document.querySelectorAll(".founder-card")
+    .forEach((card, i) => {
+      setTimeout(() => {
+        card.classList.add("enter");
+      }, i * 120);
+    });
 }
 
 document.addEventListener("DOMContentLoaded", loadFounderStats);
