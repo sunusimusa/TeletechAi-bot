@@ -13,40 +13,43 @@
 <div class="tasks">
 
   <!-- 🎥 WATCH AD -->
-  <button id="watchAdBtn"
-  onclick="watchAdTask()">
-   📺 Watch Ad (+20⚡ +100💰)
-</button>
+  <button onclick="watchAdTask()">
+    📺 Watch Ad (+20⚡ +200💰)
+  </button>
 
-<p id="taskMsg"></p>
+  <p id="adStatus"></p>
 
-  
+  <hr>
 
   <!-- ▶️ YOUTUBE -->
   <button onclick="openYouTube()">
     ▶ Subscribe YouTube (+300💰)
   </button>
 
+  <button onclick="claimTask('youtube')">
+    ✅ Claim YouTube Reward
+  </button>
+
   <hr>
 
   <!-- 📢 TELEGRAM UPDATE CHANNEL -->
-  <button onclick="window.open('https://t.me/teletech_updates','_blank')">
+  <button onclick="openTelegramUpdate()">
     📢 Join Update Channel
   </button>
 
-  <button onclick="verifyTelegram('telegramChannel')">
-    ✅ Verify Channel (+300💰)
+  <button onclick="claimTask('telegramUpdate')">
+    ✅ Claim Channel Reward
   </button>
 
   <hr>
 
   <!-- 💬 TELEGRAM PUBLIC CHAT -->
-  <button onclick="window.open('https://t.me/teletech_chat','_blank')">
+  <button onclick="openTelegramChat()">
     💬 Join Telegram Chat
   </button>
 
-  <button onclick="verifyTelegram('telegramGroup')">
-    ✅ Verify Chat (+300💰)
+  <button onclick="claimTask('telegramChat')">
+    ✅ Claim Chat Reward
   </button>
 
 </div>
