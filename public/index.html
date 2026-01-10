@@ -5,6 +5,8 @@
   <title>Lucky Box Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#ffd700">
 </head>
 <body>
 
@@ -101,6 +103,13 @@
   </div>
 
   <!-- ✅ SCRIPT -->
+  <script>
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("/service-worker.js")
+    .then(() => console.log("✅ App ready for install"))
+    .catch(err => console.error("❌ SW error", err));
+}
+  </script>
   <script src="script.js"></script>
 </body>
 </html>
