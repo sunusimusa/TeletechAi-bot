@@ -287,15 +287,28 @@ function openRoadmap(){ location.href="/roadmap.html"; }
 function openLeaderboard(){ location.href="/leaderboard.html"; }
 function openFounderStats(){ location.href="/founder.html"; }
 
-/* =====================================================
-   AGREEMENT
-===================================================== */
-function checkAgreement(){
-  if(!localStorage.getItem("agreed")){
-    document.getElementById("agreementModal")?.classList.remove("hidden");
+/* ================= AGREEMENT ================= */
+
+function acceptAgreement() {
+  // ajiye yarjejeniya
+  localStorage.setItem("agreed", "yes");
+
+  // rufe modal
+  const modal = document.getElementById("agreementModal");
+  if (modal) {
+    modal.classList.add("hidden");
   }
 }
-function acceptAgreement(){
-  localStorage.setItem("agreed","yes");
-  document.getElementById("agreementModal")?.classList.add("hidden");
+
+function checkAgreement() {
+  const agreed = localStorage.getItem("agreed");
+  const modal = document.getElementById("agreementModal");
+
+  if (!agreed && modal) {
+    modal.classList.remove("hidden");
+  }
 }
+
+// kira shi lokacin da page ya gama load
+document.addEventListener("DOMContentLoaded", checkAgreement);
+
