@@ -250,6 +250,42 @@ app.post("/api/user", async (req, res) => {
   }
 });
 
+// ================= BUY TOKEN =================
+app.post("/api/token/buy", async (req, res) => {
+  try {
+    const { userId, amount } = req.body;
+    if (!userId || !amount || amount <= 0) {
+      return res.json({ error: "INVALID_DATA" });
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    const PRICE = 10000; // points per token
+    const cost = PRICE * amount;
+
+    if (user.balance < cost) {
+      return res.json({ error: "NOT_ENOUGH_POINTS" });
+    }
+
+    user.balance -= cost;
+    user.tokens += amount;
+
+    await user.save();
+
+    res.json({
+      balance: user.balance,
+      tokens: user.tokens
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
