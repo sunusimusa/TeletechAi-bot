@@ -62,6 +62,7 @@ const UserSchema = new mongoose.Schema({
   joinedChannel: { type: Boolean, default: false },
   joinedYoutube: { type: Boolean, default: false },
   joinedGroup: { type: Boolean, default: false },
+  watchAd: { type: Boolean, default: false },
 
   // ===== WITHDRAW =====
   withdrawn: { type: Number, default: 0 },
