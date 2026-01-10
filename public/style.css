@@ -102,6 +102,14 @@ button:active {
   transform: scale(.96);
 }
 
+.hidden {
+  display: none !important;
+  }
+
+.agree-modal {
+  pointer-events: auto;
+}
+
 /* ================= ENERGY ================= */
 .energy-bar {
   width: 100%;
