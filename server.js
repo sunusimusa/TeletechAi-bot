@@ -275,31 +275,54 @@ app.get("/api/leaderboard", async (req, res) => {
 
 /* ================= FOUNDER DASHBOARD ================= */
 app.get("/api/founder/stats", async (req, res) => {
-  const { userId } = req.query;
-  if (userId !== FOUNDER_USER_ID)
-    return res.status(403).json({ error: "FORBIDDEN" });
+  try {
+    const { userId } = req.query;
 
-  const totalUsers = await User.countDocuments();
-  const proUsers = await User.countDocuments({ proLevel: { $gte: 1 } });
-
-  const totals = await User.aggregate([
-    {
-      $group: {
-        _id: null,
-        balance: { $sum: "$balance" },
-        tokens: { $sum: "$tokens" },
-        referrals: { $sum: "$referralsCount" }
-      }
+    if (userId !== FOUNDER_USER_ID) {
+      return res.status(403).json({ error: "FORBIDDEN" });
     }
-  ]);
 
-  res.json({
-    totalUsers,
-    proUsers,
-    totalBalance: totals[0]?.balance || 0,
-    totalTokens: totals[0]?.tokens || 0,
-    totalReferrals: totals[0]?.referrals || 0
-  });
+    const totalUsers = await User.countDocuments();
+
+    const proUsers = await User.countDocuments({
+      proLevel: { $gte: 1 }
+    });
+
+    const founders = await User.countDocuments({
+      proLevel: { $gte: 4 }
+    });
+
+    const agg = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalBalance: { $sum: "$balance" },
+          totalTokens: { $sum: "$tokens" },
+          totalEnergy: { $sum: "$energy" },
+          totalReferrals: { $sum: "$referralsCount" }
+        }
+      }
+    ]);
+
+    const stats = agg[0] || {
+      totalBalance: 0,
+      totalTokens: 0,
+      totalEnergy: 0,
+      totalReferrals: 0
+    };
+
+    res.json({
+      success: true,
+      totalUsers,
+      proUsers,
+      founders,
+      ...stats
+    });
+
+  } catch (err) {
+    console.error("Founder stats error:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 /* ================= ROOT ================= */
