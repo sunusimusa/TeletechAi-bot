@@ -457,6 +457,23 @@ app.post("/api/pro/upgrade", async (req, res) => {
   });
 });
 
+app.get("/api/founder/stats", async (req, res) => {
+  const { userId } = req.query;
+
+  if (userId !== FOUNDER_USER_ID)
+    return res.status(403).json({ error: "FORBIDDEN" });
+
+  const totalUsers = await User.countDocuments();
+  const totalTokens = await User.aggregate([
+    { $group: { _id: null, total: { $sum: "$tokens" } } }
+  ]);
+
+  res.json({
+    totalUsers,
+    totalTokens: totalTokens[0]?.total || 0
+  });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
