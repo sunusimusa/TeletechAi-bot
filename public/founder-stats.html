@@ -2,133 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>👑 Founder Dashboard</title>
+  <title>Founder Stats</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <!-- Chart.js -->
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-  <style>
-    body {
-      background: #0f1220;
-      color: #fff;
-      font-family: Arial, sans-serif;
-      padding: 20px;
-    }
-
-    h1 {
-      text-align: center;
-      margin-bottom: 25px;
-    }
-
-    /* ===== STATS CARDS ===== */
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-      gap: 15px;
-      margin-bottom: 40px;
-    }
-
-    .card {
-      background: #181c33;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 0 10px rgba(0,0,0,0.3);
-    }
-
-    .card h2 {
-      font-size: 14px;
-      opacity: 0.8;
-      margin-bottom: 10px;
-    }
-
-    .card p {
-      font-size: 24px;
-      font-weight: bold;
-      color: #4ade80;
-    }
-
-    /* ===== CHARTS ===== */
-    .charts {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 40px;
-      margin-bottom: 30px;
-    }
-
-    canvas {
-      background: #181c33;
-      padding: 15px;
-      border-radius: 12px;
-    }
-
-    /* ===== BACK BUTTON ===== */
-    .back {
-      text-align: center;
-      margin-top: 20px;
-    }
-
-    button {
-      padding: 12px 20px;
-      border-radius: 10px;
-      border: none;
-      background: #2563eb;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h1>👑 Founder Global Dashboard</h1>
+  <h2>👑 Founder Dashboard</h2>
 
-  <!-- ===== STATS ===== -->
-  <div class="grid">
-    <div class="card">
-      <h2>Total Users</h2>
-      <p id="totalUsers">--</p>
-    </div>
-
-    <div class="card">
-      <h2>Pro Users</h2>
-      <p id="proUsers">--</p>
-    </div>
-
-    <div class="card">
-      <h2>Founders</h2>
-      <p id="founders">--</p>
-    </div>
-
-    <div class="card">
-      <h2>Total Tokens</h2>
-      <p id="totalTokens">--</p>
-    </div>
-
-    <div class="card">
-      <h2>System Balance</h2>
-      <p id="systemBalance">--</p>
-    </div>
-
-    <div class="card">
-      <h2>Total Referrals</h2>
-      <p id="totalReferrals">--</p>
-    </div>
+  <!-- BASIC INFO -->
+  <div class="energy-shop">
+    <p><strong>User ID:</strong> <span id="founderId"></span></p>
+    <p><strong>Role:</strong> FOUNDER</p>
   </div>
 
-  <!-- ===== CHARTS ===== -->
-  <div class="charts">
-    <canvas id="usersChart"></canvas>
-    <canvas id="revenueChart"></canvas>
+  <!-- GLOBAL STATS -->
+  <div class="energy-shop">
+    <h3>📊 Global Stats</h3>
+    <p>👥 Total Users: <b id="totalUsers">0</b></p>
+    <p>⭐ PRO Users: <b id="proUsers">0</b></p>
+    <p>👑 Founders: <b id="founders">0</b></p>
+    <p>🪙 Total Tokens: <b id="totalTokens">0</b></p>
+    <p>🔥 Total Energy in System: <b id="totalEnergy">0</b></p>
   </div>
 
-  <!-- ===== BACK ===== -->
-  <div class="back">
-    <button onclick="goBack()">⬅ Back</button>
+  <!-- ACTIONS -->
+  <div class="energy-shop">
+    <h3>⚙ Founder Actions</h3>
+
+    <button class="gold" onclick="mintTokens()">
+      ➕ Mint 100 Tokens
+    </button>
+
+    <button class="secondary" onclick="resetSeason()">
+      🔄 Reset Referral Season
+    </button>
   </div>
 
-  <!-- SCRIPT -->
-  <script src="/founder-stats.js"></script>
+  <!-- LOG -->
+  <div class="energy-shop">
+    <h3>📝 Activity Log</h3>
+    <p id="logBox">No activity yet</p>
+  </div>
+
+  <button onclick="goBack()">⬅ Back to Game</button>
+
+  <script src="founder-stats.js"></script>
 </body>
 </html>
