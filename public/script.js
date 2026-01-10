@@ -292,4 +292,8 @@ async function withdraw() {
   alert("✅ Withdraw request sent (pending)");
 }
 
+function openLeaderboard() {
+  window.location.href = "/leaderboard.html";
+}
+
 
