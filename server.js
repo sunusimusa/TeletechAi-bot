@@ -284,6 +284,40 @@ app.post("/api/token/buy", async (req, res) => {
   }
 });
 
+// ================= SELL TOKEN =================
+app.post("/api/token/sell", async (req, res) => {
+  try {
+    const { userId, amount } = req.body;
+    if (!userId || !amount || amount <= 0) {
+      return res.json({ error: "INVALID_DATA" });
+    }
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    if (user.tokens < amount) {
+      return res.json({ error: "NOT_ENOUGH_TOKENS" });
+    }
+
+    const SELL_PRICE = 9000; // points per token
+    const gain = SELL_PRICE * amount;
+
+    user.tokens -= amount;
+    user.balance += gain;
+
+    await user.save();
+
+    res.json({
+      balance: user.balance,
+      tokens: user.tokens
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 
 
 /* ================= ROOT ================= */
