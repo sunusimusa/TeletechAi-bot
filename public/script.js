@@ -155,4 +155,58 @@ async function watchAd() {
   }
 }
 
+// ===== GLOBAL =====
+const USER_ID =
+  localStorage.getItem("user_id") ||
+  crypto.randomUUID();
+
+localStorage.setItem("user_id", USER_ID);
+
+// 🔗 REF FROM URL
+const params = new URLSearchParams(window.location.search);
+const REF = params.get("ref");
+
+async function loadUser() {
+  const res = await fetch("/api/user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId: USER_ID,
+      ref: REF
+    })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  balance = data.balance;
+  energy = data.energy;
+  tokens = data.tokens;
+  freeTries = data.freeTries;
+  referralCode = data.referralCode;
+  referralsCount = data.referralsCount;
+
+  updateUI();
+
+  // 🔗 Referral link
+  document.getElementById("refLink").value =
+    `${location.origin}/?ref=${referralCode}`;
+}
+
+function copyRef() {
+  navigator.clipboard.writeText(
+    document.getElementById("refLink").value
+  );
+  alert("🔗 Referral link copied!");
+}
+
+function updateUI() {
+  document.getElementById("balance").innerText = `Balance: ${balance}`;
+  document.getElementById("energy").innerText = `Energy: ${energy}`;
+  document.getElementById("tokens").innerText = `Tokens: ${tokens}`;
+  document.getElementById("freeTries").innerText = `Free tries: ${freeTries}`;
+  document.getElementById("refCount").innerText =
+    `👥 Referrals: ${referralsCount}`;
+}
+
 
