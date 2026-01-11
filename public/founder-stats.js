@@ -1,26 +1,28 @@
-/* ================= CONFIG ================= */
-const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
-
 /* ================= LOAD STATS ================= */
 document.addEventListener("DOMContentLoaded", loadStats);
 
 async function loadStats() {
   try {
-    const res = await fetch(`/api/founder/stats?userId=${USER_ID}`);
+    // 🔐 Babu userId – session ne ke tantance founder
+    const res = await fetch("/api/founder/stats", {
+      credentials: "include" // MUHIMMI 👑
+    });
+
     const data = await res.json();
 
     if (!data.success) {
       alert("❌ Access denied");
+      location.href = "/founder-login.html";
       return;
     }
 
-    setStat("totalUsers", data.totalUsers);
-    setStat("proUsers", data.proUsers);
-    setStat("founders", data.founders);
-    setStat("totalBalance", data.totalBalance);
-    setStat("totalTokens", data.totalTokens);
-    setStat("totalEnergy", data.totalEnergy);
-    setStat("totalReferrals", data.totalReferrals);
+    setStat("totalUsers", data.totalUsers || 0);
+    setStat("proUsers", data.proUsers || 0);
+    setStat("founders", data.founders || 0);
+    setStat("totalBalance", data.totalBalance || 0);
+    setStat("totalTokens", data.totalTokens || 0);
+    setStat("totalEnergy", data.totalEnergy || 0);
+    setStat("totalReferrals", data.totalReferrals || 0);
 
     animateCards();
 
@@ -32,7 +34,8 @@ async function loadStats() {
 
 /* ================= UI HELPERS ================= */
 function setStat(id, value) {
-  document.getElementById(id).innerText = value;
+  const el = document.getElementById(id);
+  if (el) el.innerText = value;
 }
 
 function animateCards() {
