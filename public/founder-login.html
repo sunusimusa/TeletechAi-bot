@@ -2,67 +2,28 @@
 <html>
 <head>
   <title>Founder Login</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <style>
-    body {
-      background: #06162d;
-      color: gold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      font-family: sans-serif;
-    }
-    .box {
-      background: #0b2345;
-      padding: 30px;
-      border-radius: 16px;
-      text-align: center;
-      width: 90%;
-      max-width: 320px;
-    }
-    input {
-      width: 100%;
-      padding: 12px;
-      border-radius: 10px;
-      border: none;
-      margin: 15px 0;
-      font-size: 18px;
-      text-align: center;
-    }
-    button {
-      background: gold;
-      color: black;
-      border: none;
-      padding: 12px;
-      width: 100%;
-      border-radius: 10px;
-      font-weight: bold;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<div class="box">
-  <h2>👑 Founder Login</h2>
-  <input type="password" id="pin" placeholder="Enter PIN" />
-  <button onclick="login()">Login</button>
-  <p id="msg"></p>
-</div>
+<h2>👑 Founder Login</h2>
+
+<input id="pin" placeholder="Enter PIN"
+ style="padding:12px;width:200px;border-radius:12px;border:none">
+
+<br><br>
+
+<button onclick="login()">Login</button>
+
+<p id="msg"></p>
 
 <script>
-async function login() {
-  const pin = document.getElementById("pin").value;
+const PIN = "3232"; // naka
 
-  const res = await fetch("/api/founder-login", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ pin })
-  });
-
-  const data = await res.json();
-
-  if (data.success) {
+function login(){
+  const val = document.getElementById("pin").value;
+  if(val === PIN){
+    localStorage.setItem("founder", "yes");
     location.href = "/founder-stats.html";
   } else {
     document.getElementById("msg").innerText = "❌ Wrong PIN";
