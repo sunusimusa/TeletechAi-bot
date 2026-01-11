@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
+
   // ===== IDENTITY =====
   telegramId: {
     type: String,
@@ -8,13 +9,28 @@ const UserSchema = new mongoose.Schema({
     index: true,
     required: true
   },
+  username: {
+    type: String,
+    default: ""
+  },
 
-  {
-  telegramId: Number,
-  username: String,
-  referredBy: Number,
-  referrals: [Number]
-}
+  // ===== REFERRAL =====
+  referredBy: {
+    type: String,
+    default: null
+  },
+  referrals: {
+    type: [String],
+    default: []
+  },
+  referralsCount: {
+    type: Number,
+    default: 0
+  },
+  seasonReferrals: {
+    type: Number,
+    default: 0
+  },
 
   // ===== GAME =====
   balance: { type: Number, default: 0 },
@@ -27,18 +43,12 @@ const UserSchema = new mongoose.Schema({
   walletAddress: {
     type: String,
     unique: true,
-    index: true
+    sparse: true
   },
-
-  // ===== REFERRAL =====
-  referralCode: { type: String, index: true },
-  referredBy: { type: String, default: null },
-  referralsCount: { type: Number, default: 0 },
-  seasonReferrals: { type: Number, default: 0 },
 
   // ===== PRO =====
   isPro: { type: Boolean, default: false },
-  proLevel: { type: Number, default: 0 }, // 0–3
+  proLevel: { type: Number, default: 0 },
   proSince: { type: Number, default: null },
 
   // ===== ROLE =====
@@ -48,7 +58,7 @@ const UserSchema = new mongoose.Schema({
     default: "user"
   },
 
-  // ===== ADS / ENERGY =====
+  // ===== ADS =====
   adsWatchedToday: { type: Number, default: 0 },
   lastAd: { type: Number, default: 0 },
   lastAdClaim: { type: Number, default: 0 },
@@ -85,6 +95,7 @@ const UserSchema = new mongoose.Schema({
       createdAt: { type: Date, default: Date.now }
     }
   ]
+
 }, { timestamps: true });
 
 export default mongoose.model("User", UserSchema);
