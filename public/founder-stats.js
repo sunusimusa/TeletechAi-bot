@@ -1,18 +1,22 @@
+/* ================= FOUNDER GUARD ================= */
+const USER_ID = localStorage.getItem("userId");
+const IS_FOUNDER = localStorage.getItem("founder") === "yes";
+
+if (!USER_ID || !IS_FOUNDER) {
+  location.href = "/founder-login.html";
+}
+
 /* ================= LOAD STATS ================= */
 document.addEventListener("DOMContentLoaded", loadStats);
 
 async function loadStats() {
   try {
-    // 🔐 Babu userId – session ne ke tantance founder
-    const res = await fetch("/api/founder/stats", {
-      credentials: "include" // MUHIMMI 👑
-    });
-
+    const res = await fetch(`/api/founder/stats?userId=${USER_ID}`);
     const data = await res.json();
 
     if (!data.success) {
       alert("❌ Access denied");
-      location.href = "/founder-login.html";
+      location.href = "/";
       return;
     }
 
