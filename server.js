@@ -425,6 +425,16 @@ app.get("/founder-stats.html", (req, res, next) => {
   next();
 });
 
+app.get("/api/my-referrals", async (req, res) => {
+  const user = await User.findOne({ telegramId: req.user.telegramId });
+
+  const referrals = await User.find({
+    telegramId: { $in: user.referrals }
+  }).select("username telegramId");
+
+  res.json(referrals);
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
