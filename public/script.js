@@ -4,10 +4,11 @@
 const FOUNDER_USER_ID = "SUNUSI_001";
 
 let userId = localStorage.getItem("userId") || FOUNDER_USER_ID;
+let wallet = localStorage.getItem("wallet");
 
 let balance = Number(localStorage.getItem("balance")) || 0;
-let tokens  = Number(localStorage.getItem("tokens")) || 10;
-let energy  = Number(localStorage.getItem("energy")) || 50;
+let tokens = Number(localStorage.getItem("tokens")) || 10;
+let energy = Number(localStorage.getItem("energy")) || 50;
 let freeTries = Number(localStorage.getItem("freeTries")) || 3;
 let referralsCount = Number(localStorage.getItem("referralsCount")) || 0;
 
@@ -30,13 +31,14 @@ if (userId === FOUNDER_USER_ID) {
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
   ensureWallet();
+  handleReferralJoin();
   agreementInit();
   applyProRules();
   updateUI();
 });
 
 /* =====================================================
-   AGREEMENT (ONE ONLY – FIXED)
+   AGREEMENT
 ===================================================== */
 function agreementInit() {
   const modal = document.getElementById("agreementModal");
@@ -57,10 +59,9 @@ function agreementInit() {
 }
 
 /* =====================================================
-   WALLET (LOCAL ONLY)
+   WALLET + REFERRAL LINK
 ===================================================== */
 function ensureWallet() {
-  let wallet = localStorage.getItem("wallet");
   if (!wallet) {
     wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
     localStorage.setItem("wallet", wallet);
@@ -70,6 +71,26 @@ function ensureWallet() {
   if (refLink) {
     refLink.value = location.origin + "/?ref=" + wallet;
   }
+}
+
+/* =====================================================
+   REFERRAL SYSTEM (LOCAL ONLY)
+===================================================== */
+function handleReferralJoin() {
+  const params = new URLSearchParams(location.search);
+  const ref = params.get("ref");
+
+  if (!ref) return;
+  if (localStorage.getItem("joinedByRef")) return;
+  if (ref === wallet) return; // hana self-referral
+
+  referralsCount++;
+  localStorage.setItem("referralsCount", referralsCount);
+  localStorage.setItem("joinedByRef", "yes");
+
+  // bonus ga sabon user
+  balance += 300;
+  energy += 20;
 }
 
 /* =====================================================
@@ -100,22 +121,6 @@ function updateUI() {
   if (bar) {
     bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
-
-  const proBadge = document.getElementById("proBadge");
-  if (proBadge) {
-    if (proLevel >= 1) {
-      proBadge.classList.remove("hidden");
-      proBadge.innerText = proLevel >= 4 ? "👑 FOUNDER" : "⭐ PRO MEMBER";
-    } else {
-      proBadge.classList.add("hidden");
-    }
-  }
-
-  const founderActions = document.getElementById("founderActions");
-  if (founderActions) {
-    if (proLevel >= 4) founderActions.classList.remove("hidden");
-    else founderActions.classList.add("hidden");
-  }
 }
 
 function setText(id, text) {
@@ -134,30 +139,15 @@ function saveState() {
 }
 
 /* =====================================================
-   SOUNDS (SAFE)
-===================================================== */
-function playSound(id) {
-  const s = document.getElementById(id);
-  if (s) {
-    s.currentTime = 0;
-    s.play().catch(() => {});
-  }
-}
-
-/* =====================================================
-   OPEN BOX (GAME)
+   BOX GAME (WITH IMAGE + REWARD)
 ===================================================== */
 function openBox(box) {
-  if (openingLocked) return;
+  if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
-  playSound("clickSound");
-
-  if (freeTries > 0) {
-    freeTries--;
-  } else if (energy >= 10) {
-    energy -= 10;
-  } else {
+  if (freeTries > 0) freeTries--;
+  else if (energy >= 10) energy -= 10;
+  else {
     alert("❌ Not enough energy");
     openingLocked = false;
     return;
@@ -169,128 +159,20 @@ function openBox(box) {
   if (proLevel >= 4) rewards = [500, 1000, 2000];
 
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
-  balance += reward;
 
   box.classList.add("opened");
-  box.innerText = reward > 0 ? `💰 ${reward}` : "😢";
-  playSound(reward > 0 ? "winSound" : "loseSound");
 
+  const rewardEl = box.querySelector(".reward");
+  rewardEl.innerText = reward > 0 ? `+${reward} Coins` : "😢 No Win";
+  rewardEl.classList.remove("hidden");
+
+  balance += reward;
   updateUI();
 
   setTimeout(() => {
     box.classList.remove("opened");
-    box.innerText = "";
+    rewardEl.classList.add("hidden");
+    rewardEl.innerText = "";
     openingLocked = false;
-  }, 1200);
-}
-
-function openBox(box) {
-  if (box.classList.contains("opened")) return; // hana danna sau 2
-
-  box.classList.add("opened"); // ya ɓoye hoton box
-
-  const reward = box.querySelector(".reward"); // nemo reward
-  reward.textContent = "+100 Coins"; // saka kyauta
-  reward.classList.remove("hidden"); // nuna kyauta
-}
-
-/* =====================================================
-   DAILY BONUS
-===================================================== */
-function claimDaily() {
-  const last = Number(localStorage.getItem("lastDaily")) || 0;
-  const now = Date.now();
-
-  if (now - last < 24 * 60 * 60 * 1000) {
-    alert("⏳ Come back tomorrow");
-    return;
+  }, 1500);
   }
-
-  let reward = 500;
-  if (proLevel === 1) reward *= 1.3;
-  if (proLevel === 2) reward *= 1.7;
-  if (proLevel >= 3) reward *= 2;
-
-  balance += Math.floor(reward);
-  energy = Math.min(MAX_ENERGY, energy + 10);
-
-  localStorage.setItem("lastDaily", now);
-  updateUI();
-  alert("🎁 Daily bonus claimed!");
-}
-
-/* =====================================================
-   MARKET
-===================================================== */
-function convertPoints() {
-  if (balance < 10000) {
-    alert("❌ Not enough balance");
-    return;
-  }
-  balance -= 10000;
-  tokens += 1;
-  updateUI();
-}
-
-function buyToken() {
-  convertPoints();
-}
-
-function sellToken() {
-  if (tokens < 1) {
-    alert("❌ No tokens");
-    return;
-  }
-  tokens -= 1;
-  balance += 8000;
-  updateUI();
-}
-
-/* =====================================================
-   BUY ENERGY
-===================================================== */
-function buyEnergy(amount) {
-  const cost = amount === 100 ? 500 : 2000;
-  if (balance < cost) {
-    alert("❌ Not enough coins");
-    return;
-  }
-  balance -= cost;
-  energy = Math.min(MAX_ENERGY, energy + amount);
-  updateUI();
-}
-
-/* =====================================================
-   PRO UPGRADE
-===================================================== */
-function upgradePro(level = 1) {
-  const prices = { 1: 5, 2: 10, 3: 20 };
-
-  if (proLevel >= level) {
-    alert("Already upgraded");
-    return;
-  }
-
-  if (tokens < prices[level]) {
-    alert("❌ Not enough tokens");
-    return;
-  }
-
-  tokens -= prices[level];
-  proLevel = level;
-  applyProRules();
-  updateUI();
-
-  alert(`🚀 PRO Level ${level} activated`);
-}
-
-/* =====================================================
-   NAVIGATION
-===================================================== */
-function openWallet() {
-  location.href = "/wallet.html";
-}
-
-function openFounderStats() {
-  location.href = "/founder-stats.html";
-}
