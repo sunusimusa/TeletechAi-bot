@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Founder Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<h2>👑 Founder Login</h2>
+
+<input
+  type="password"
+  id="pin"
+  placeholder="Enter Founder PIN"
+  style="padding:12px;width:100%;border-radius:10px"
+/>
+
+<button onclick="loginFounder()" class="gold" style="margin-top:10px;width:100%">
+  🔐 Login
+</button>
+
+<p id="msg"></p>
+
+<script>
+async function loginFounder() {
+  const pin = document.getElementById("pin").value;
+
+  const res = await fetch("/api/founder-login", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ pin })
+  });
+
+  const data = await res.json();
+
+  if (data.success) {
+    location.href = "/founder-stats.html";
+  } else {
+    document.getElementById("msg").innerText = "❌ Wrong PIN";
+  }
+}
+</script>
+
+</body>
+  </html>
