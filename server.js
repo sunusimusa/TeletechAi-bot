@@ -4,7 +4,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
-import fetch from "node-fetch";
 
 import User from "./models/User.js";
 import Transaction from "./models/Transaction.js";
@@ -14,7 +13,6 @@ const app = express();
 
 /* ================= CONFIG ================= */
 const FOUNDER_USER_ID = "SUNUSI_001";
-const FOUNDER_PIN = process.env.FOUNDER_PIN || "$Sn3232@@";
 
 /* ================= PATH FIX ================= */
 const __filename = fileURLToPath(import.meta.url);
@@ -33,21 +31,7 @@ mongoose
 
 /* ================= HELPERS ================= */
 function generateWallet() {
-  return "TTECH-" + Math.random().toString(36).substring(2, 10).toUpperCase();
-}
-
-async function isTelegramMember(chat, telegramId) {
-  const url =
-    `https://api.telegram.org/bot${TG_TOKEN}/getChatMember` +
-    `?chat_id=${chat}&user_id=${telegramId}`;
-
-  const res = await fetch(url);
-  const data = await res.json();
-
-  if (!data.ok) return false;
-
-  const status = data.result.status;
-  return ["member", "administrator", "creator"].includes(status);
+  return "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
 /* ================= CREATE / LOAD USER ================= */
@@ -76,10 +60,16 @@ app.post("/api/user", async (req, res) => {
         role: isFounder ? "founder" : "user",
 
         referralsCount: 0,
-        referredBy: ref || null
+        referredBy: ref || null,
+
+        tasks: {
+          channel: false,
+          group: false,
+          youtube: false
+        }
       });
 
-      // referral reward
+      // 🎁 REFERRAL BONUS (wallet-based)
       if (ref) {
         const refUser = await User.findOne({ walletAddress: ref });
         if (refUser) {
@@ -110,106 +100,87 @@ app.post("/api/user", async (req, res) => {
 
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const user = await User.findOne({ userId });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  const { userId } = req.body;
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    if (user.freeTries > 0) user.freeTries--;
-    else if (user.energy >= 10) user.energy -= 10;
-    else return res.json({ error: "NO_ENERGY" });
+  if (user.freeTries > 0) user.freeTries--;
+  else if (user.energy >= 10) user.energy -= 10;
+  else return res.json({ error: "NO_ENERGY" });
 
-    let rewards = [0, 100, 200];
-    if (user.proLevel === 2) rewards = [100, 200, 500];
-    if (user.proLevel === 3) rewards = [200, 500, 1000];
-    if (user.proLevel >= 4) rewards = [500, 1000, 2000];
+  let rewards = [0, 100, 200];
+  if (user.proLevel === 2) rewards = [100, 200, 500];
+  if (user.proLevel === 3) rewards = [200, 500, 1000];
+  if (user.proLevel >= 4) rewards = [500, 1000, 2000];
 
-    const reward = rewards[Math.floor(Math.random() * rewards.length)];
-    user.balance += reward;
+  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+  user.balance += reward;
 
-    await user.save();
+  await user.save();
 
-    res.json({
-      reward,
-      balance: user.balance,
-      energy: user.energy,
-      freeTries: user.freeTries
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
+  res.json({
+    reward,
+    balance: user.balance,
+    energy: user.energy,
+    freeTries: user.freeTries
+  });
 });
 
 /* ================= DAILY BONUS ================= */
 app.post("/api/daily", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const user = await User.findOne({ userId });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  const { userId } = req.body;
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const DAY = 24 * 60 * 60 * 1000;
-    const now = Date.now();
+  const DAY = 24 * 60 * 60 * 1000;
+  const now = Date.now();
 
-    if (user.lastDaily && now - user.lastDaily < DAY)
-      return res.json({ error: "COME_BACK_LATER" });
+  if (user.lastDaily && now - user.lastDaily < DAY)
+    return res.json({ error: "COME_BACK_LATER" });
 
-    let reward = 500;
-    if (user.proLevel === 2) reward = 800;
-    if (user.proLevel >= 3) reward = 1200;
+  let reward = 500;
+  if (user.proLevel >= 2) reward = 800;
+  if (user.proLevel >= 3) reward = 1200;
 
-    user.balance += reward;
-    user.energy = Math.min(user.energy + 20, user.proLevel >= 4 ? 9999 : 200);
-    user.lastDaily = now;
+  user.balance += reward;
+  user.energy += 20;
+  user.lastDaily = now;
 
-    await user.save();
+  await user.save();
 
-    res.json({
-      reward,
-      balance: user.balance,
-      energy: user.energy
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
+  res.json({
+    reward,
+    balance: user.balance,
+    energy: user.energy
+  });
 });
 
 /* ================= WATCH ADS ================= */
 app.post("/api/ads/watch", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const user = await User.findOne({ userId });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  const { userId } = req.body;
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const today = new Date().toISOString().slice(0, 10);
-
-    if (user.lastAdDay !== today) {
-      user.adsWatchedToday = 0;
-      user.lastAdDay = today;
-    }
-
-    if (user.adsWatchedToday >= 5)
-      return res.json({ error: "DAILY_LIMIT" });
-
-    user.adsWatchedToday += 1;
-    user.energy += 20;
-    user.balance += 100;
-
-    await user.save();
-
-    res.json({
-      energy: user.energy,
-      balance: user.balance,
-      adsLeft: 5 - user.adsWatchedToday
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "SERVER_ERROR" });
+  const today = new Date().toISOString().slice(0, 10);
+  if (user.lastAdDay !== today) {
+    user.adsWatchedToday = 0;
+    user.lastAdDay = today;
   }
+
+  if (user.adsWatchedToday >= 5)
+    return res.json({ error: "DAILY_LIMIT" });
+
+  user.adsWatchedToday += 1;
+  user.energy += 20;
+  user.balance += 100;
+
+  await user.save();
+
+  res.json({
+    energy: user.energy,
+    balance: user.balance,
+    adsLeft: 5 - user.adsWatchedToday
+  });
 });
 
 /* ================= TOKEN MARKET ================= */
@@ -219,7 +190,8 @@ app.post("/api/token/buy", async (req, res) => {
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   const cost = amount * 10000;
-  if (user.balance < cost) return res.json({ error: "NOT_ENOUGH_BALANCE" });
+  if (user.balance < cost)
+    return res.json({ error: "NOT_ENOUGH_BALANCE" });
 
   user.balance -= cost;
   user.tokens += amount;
@@ -233,7 +205,8 @@ app.post("/api/token/sell", async (req, res) => {
   const user = await User.findOne({ userId });
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  if (user.tokens < amount) return res.json({ error: "NOT_ENOUGH_TOKENS" });
+  if (user.tokens < amount)
+    return res.json({ error: "NOT_ENOUGH_TOKENS" });
 
   user.tokens -= amount;
   user.balance += amount * 9000;
@@ -255,6 +228,7 @@ app.get("/api/wallet/:userId", async (req, res) => {
 
 app.post("/api/wallet/send", async (req, res) => {
   const { userId, to, amount } = req.body;
+
   const sender = await User.findOne({ userId });
   const receiver = await User.findOne({ walletAddress: to });
 
@@ -291,182 +265,31 @@ app.get("/api/leaderboard", async (req, res) => {
 
 /* ================= FOUNDER DASHBOARD ================= */
 app.get("/api/founder/stats", async (req, res) => {
-  try {
-    const { userId } = req.query;
+  const { userId } = req.query;
+  if (userId !== FOUNDER_USER_ID)
+    return res.status(403).json({ error: "FORBIDDEN" });
 
-    if (userId !== FOUNDER_USER_ID) {
-      return res.status(403).json({ error: "FORBIDDEN" });
-    }
+  const totalUsers = await User.countDocuments();
 
-    const totalUsers = await User.countDocuments();
-
-    const proUsers = await User.countDocuments({
-      proLevel: { $gte: 1 }
-    });
-
-    const founders = await User.countDocuments({
-      proLevel: { $gte: 4 }
-    });
-
-    const agg = await User.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalBalance: { $sum: "$balance" },
-          totalTokens: { $sum: "$tokens" },
-          totalEnergy: { $sum: "$energy" },
-          totalReferrals: { $sum: "$referralsCount" }
-        }
+  const agg = await User.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalBalance: { $sum: "$balance" },
+        totalTokens: { $sum: "$tokens" },
+        totalEnergy: { $sum: "$energy" },
+        totalReferrals: { $sum: "$referralsCount" }
       }
-    ]);
+    }
+  ]);
 
-    const stats = agg[0] || {
-      totalBalance: 0,
-      totalTokens: 0,
-      totalEnergy: 0,
-      totalReferrals: 0
-    };
-
-    res.json({
-      success: true,
-      totalUsers,
-      proUsers,
-      founders,
-      ...stats
-    });
-
-  } catch (err) {
-    console.error("Founder stats error:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
-app.post("/api/task/social", async (req, res) => {
-  const { userId, type } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  if (!user.tasks.hasOwnProperty(type))
-    return res.json({ error: "INVALID_TASK" });
-
-  if (user.tasks[type])
-    return res.json({ error: "ALREADY_DONE" });
-
-  user.tasks[type] = true;
-  user.balance += 300; // reward
-
-  await user.save();
+  const stats = agg[0] || {};
 
   res.json({
     success: true,
-    balance: user.balance
+    totalUsers,
+    ...stats
   });
-});
-
-app.post("/api/task/verify-telegram", async (req, res) => {
-  try {
-    const { userId, telegramId, type } = req.body;
-
-    if (!userId || !telegramId || !type) {
-      return res.json({ error: "INVALID_DATA" });
-    }
-
-    const user = await User.findOne({ userId });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-    // hana maimaitawa
-    if (user.tasks?.[type]) {
-      return res.json({ error: "ALREADY_COMPLETED" });
-    }
-
-    const chat =
-      type === "channel" ? TG_CHANNEL : TG_GROUP;
-
-    const isMember = await isTelegramMember(chat, telegramId);
-
-    if (!isMember) {
-      return res.json({ error: "NOT_A_MEMBER" });
-    }
-
-    // 🎁 reward
-    user.balance += 300;
-    user.tasks = user.tasks || {};
-    user.tasks[type] = true;
-
-    await user.save();
-
-    res.json({
-      success: true,
-      reward: 300,
-      balance: user.balance
-    });
-
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
-app.post("/api/founder-login", (req, res) => {
-  const { pin } = req.body;
-
-  if (pin === FOUNDER_PIN) {
-    req.session.isFounder = true;
-    return res.json({ success: true });
-  }
-
-  res.json({ success: false });
-});
-
-app.get("/founder-stats.html", (req, res, next) => {
-  if (!req.session.isFounder) {
-    return res.redirect("/founder-login.html");
-  }
-  next();
-});
-
-app.get("/api/my-referrals", async (req, res) => {
-  const user = await User.findOne({ telegramId: req.user.telegramId });
-
-  const referrals = await User.find({
-    telegramId: { $in: user.referrals }
-  }).select("username telegramId");
-
-  res.json(referrals);
-});
-
-app.post("/api/register", async (req, res) => {
-  const { telegramId, username, ref } = req.body;
-
-  // 1️⃣ check if user already exists
-  let user = await User.findOne({ telegramId });
-  if (user) {
-    return res.json(user);
-  }
-
-  // 2️⃣ create new user
-  const newUser = new User({
-    telegramId,
-    username,
-    balance: 0,
-    energy: 100,
-    referrals: []
-  });
-
-  // 3️⃣ REFERRAL LOGIC (ANAN NE 👇)
-  if (ref) {
-    const referrer = await User.findOne({ telegramId: ref });
-
-    if (referrer && referrer.telegramId !== telegramId) {
-      referrer.referrals.push(telegramId);
-      await referrer.save();
-    }
-  }
-
-  // 4️⃣ save new user
-  await newUser.save();
-
-  res.json(newUser);
 });
 
 /* ================= ROOT ================= */
