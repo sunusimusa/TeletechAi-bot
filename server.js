@@ -7,6 +7,7 @@ import { fileURLToPath } from "url";
 
 import User from "./models/User.js";
 import Transaction from "./models/Transaction.js";
+import session from "express-session";
 
 dotenv.config();
 const app = express();
@@ -22,6 +23,12 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+app.use(session({
+  secret: "FOUNDERS_ONLY",
+  resave: false,
+  saveUninitialized: true
+}));
 
 /* ================= DATABASE ================= */
 mongoose
