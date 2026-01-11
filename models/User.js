@@ -32,6 +32,13 @@ const UserSchema = new mongoose.Schema({
     default: 0
   },
 
+  {
+  "telegramId": 123456789,
+  "username": "sunusi",
+  "referralCode": "SUN12345",
+  "referredBy": null
+}
+
   // ===== GAME =====
   balance: { type: Number, default: 0 },
   energy: { type: Number, default: 100 },
