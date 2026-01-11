@@ -266,21 +266,9 @@ app.get("/api/leaderboard", async (req, res) => {
 /* ================= FOUNDER DASHBOARD ================= */
 app.get("/api/founder/stats", async (req, res) => {
   try {
-    const { userId } = req.query;
-
-    if (userId !== FOUNDER_USER_ID) {
-      return res.json({ success: false });
-    }
-
     const totalUsers = await User.countDocuments();
-
-    const proUsers = await User.countDocuments({
-      proLevel: { $gte: 1 }
-    });
-
-    const founders = await User.countDocuments({
-      proLevel: { $gte: 4 }
-    });
+    const proUsers = await User.countDocuments({ proLevel: { $gte: 1 } });
+    const founders = await User.countDocuments({ proLevel: { $gte: 4 } });
 
     const agg = await User.aggregate([
       {
@@ -294,22 +282,22 @@ app.get("/api/founder/stats", async (req, res) => {
       }
     ]);
 
-    const stats = agg[0] || {};
+    const stats = agg[0] || {
+      totalBalance: 0,
+      totalTokens: 0,
+      totalEnergy: 0,
+      totalReferrals: 0
+    };
 
     res.json({
-      success: true,
       totalUsers,
       proUsers,
       founders,
-      totalBalance: stats.totalBalance || 0,
-      totalTokens: stats.totalTokens || 0,
-      totalEnergy: stats.totalEnergy || 0,
-      totalReferrals: stats.totalReferrals || 0
+      ...stats
     });
 
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ success: false });
+    res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
