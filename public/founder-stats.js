@@ -1,9 +1,9 @@
-/* ================= FOUNDER GUARD ================= */
+/* ================= FOUNDER GUARD (SIMPLE) ================= */
 const USER_ID = localStorage.getItem("userId");
-const IS_FOUNDER = localStorage.getItem("founder") === "yes";
 
-if (!USER_ID || !IS_FOUNDER) {
-  location.href = "/founder-login.html";
+if (USER_ID !== "SUNUSI_001") {
+  alert("❌ Access denied");
+  location.href = "/";
 }
 
 /* ================= LOAD STATS ================= */
@@ -11,14 +11,8 @@ document.addEventListener("DOMContentLoaded", loadStats);
 
 async function loadStats() {
   try {
-    const res = await fetch(`/api/founder/stats?userId=${USER_ID}`);
+    const res = await fetch("/api/founder/stats");
     const data = await res.json();
-
-    if (!data.success) {
-      alert("❌ Access denied");
-      location.href = "/";
-      return;
-    }
 
     setStat("totalUsers", data.totalUsers || 0);
     setStat("proUsers", data.proUsers || 0);
