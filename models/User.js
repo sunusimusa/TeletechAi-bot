@@ -9,6 +9,13 @@ const UserSchema = new mongoose.Schema({
     required: true
   },
 
+  {
+  telegramId: Number,
+  username: String,
+  referredBy: Number,
+  referrals: [Number]
+}
+
   // ===== GAME =====
   balance: { type: Number, default: 0 },
   energy: { type: Number, default: 100 },
