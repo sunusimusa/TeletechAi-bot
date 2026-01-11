@@ -8,15 +8,13 @@ body {
   margin: 0;
   padding: 16px;
   min-height: 100vh;
+  text-align: center;
+  color: #fff;
 
-  /* 👑 CLEAN FOUNDER BACKGROUND */
   background:
     radial-gradient(circle at top, rgba(255,215,0,.22), transparent 60%),
     radial-gradient(circle at bottom, rgba(255,140,0,.15), transparent 60%),
     linear-gradient(180deg, #140900, #050300);
-
-  color: #fff;
-  text-align: center;
 }
 
 /* ================= HEADINGS ================= */
@@ -31,7 +29,7 @@ h2, h3 {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  max-width: 340px;
+  max-width: 360px;
   margin: 18px auto;
   padding: 16px;
   border-radius: 22px;
@@ -39,9 +37,11 @@ h2, h3 {
 }
 
 .box {
-  height: 90px;
+  width: 100px;
+  height: 100px;
   border-radius: 18px;
   cursor: pointer;
+  position: relative;
 
   display: flex;
   align-items: center;
@@ -49,29 +49,55 @@ h2, h3 {
 
   background: linear-gradient(145deg, #2a1a00, #120800);
   border: 2px solid rgba(255,215,0,.35);
-  color: #ffd700;
-  font-size: 22px;
-
   box-shadow: 0 10px 28px rgba(0,0,0,.85);
-  transition: transform .15s ease, box-shadow .15s ease;
-}
 
-.box:hover {
-  box-shadow:
-    0 0 22px rgba(255,215,0,.6),
-    0 14px 35px rgba(0,0,0,.95);
+  transition: transform .2s ease, box-shadow .2s ease;
 }
 
 .box:active {
   transform: scale(.95);
 }
 
+.box-img {
+  width: 80%;
+  transition: .3s ease;
+}
+
+/* OPENED EFFECT */
+.box.opened .box-img {
+  opacity: 0;
+  transform: scale(.7);
+}
+
 .box.opened {
   background: linear-gradient(145deg, #ffd700, #ffb300);
-  color: #000;
-  box-shadow:
-    0 0 35px rgba(255,215,0,.9),
-    0 14px 40px rgba(0,0,0,.95);
+}
+
+/* BOX TYPES */
+.box.silver.opened {
+  box-shadow: 0 0 25px #cfd8dc;
+}
+
+.box.gold.opened {
+  box-shadow: 0 0 35px gold;
+}
+
+.box.diamond.opened {
+  box-shadow: 0 0 45px cyan, 0 0 80px #00ffff;
+}
+
+/* ================= REWARD ================= */
+.reward {
+  position: absolute;
+  font-weight: 800;
+  font-size: 16px;
+  color: gold;
+  animation: pop .6s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(.6); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 /* ================= BUTTONS ================= */
@@ -82,16 +108,10 @@ button {
   border-radius: 16px;
   padding: 12px 18px;
   margin: 8px 0;
-
   font-size: 14px;
   font-weight: 700;
   cursor: pointer;
-
-  box-shadow:
-    0 0 26px rgba(255,215,0,.7),
-    0 12px 30px rgba(0,0,0,.85);
-
-  transition: transform .15s ease, box-shadow .15s ease;
+  box-shadow: 0 0 26px rgba(255,215,0,.7), 0 12px 30px rgba(0,0,0,.85);
 }
 
 button:active {
@@ -169,50 +189,17 @@ a {
   padding: 24px;
   border-radius: 20px;
   max-width: 320px;
-  box-shadow:
-    0 0 35px rgba(255,215,0,.7),
-    0 20px 50px rgba(0,0,0,.95);
+  box-shadow: 0 0 35px rgba(255,215,0,.7), 0 20px 50px rgba(0,0,0,.95);
 }
 
-/* ================= HELPERS ================= */
-.hidden {
-  display: none !important;
-    }
-
-* {
-  box-sizing: border-box;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-}
-
-body {
-  margin: 0;
-  padding: 18px;
-  min-height: 100vh;
-  text-align: center;
-  color: #fff;
-
-  background:
-    radial-gradient(circle at top, rgba(0,150,255,.15), transparent 60%),
-    linear-gradient(180deg, #0b1220, #020617);
-}
-
-h2 {
-  margin-bottom: 16px;
-}
-
+/* ================= WALLET ================= */
 .wallet-card {
   background: #0f172a;
   border-radius: 22px;
   padding: 18px;
   max-width: 380px;
   margin: auto;
-
   box-shadow: 0 20px 50px rgba(0,0,0,.6);
-}
-
-.label {
-  opacity: .7;
-  margin-bottom: 6px;
 }
 
 .address-box {
@@ -221,124 +208,9 @@ h2 {
   border-radius: 14px;
   word-break: break-all;
   font-size: 13px;
-  margin-bottom: 10px;
 }
 
-.copy-btn {
-  background: #1e293b;
-  border: none;
-  color: #fff;
-  padding: 10px 16px;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-.qr-box {
-  margin: 16px 0;
-}
-
-.qr-box img {
-  width: 180px;
-  height: 180px;
-  background: #fff;
-  padding: 8px;
-  border-radius: 14px;
-}
-
-.token-count {
-  margin-top: 10px;
-  font-weight: 600;
-}
-
-.actions {
-  display: flex;
-  gap: 12px;
-  margin-top: 16px;
-}
-
-.actions button {
-  flex: 1;
-  border: none;
-  border-radius: 14px;
-  padding: 12px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.actions .send {
-  background: #ef4444;
-  color: #fff;
-}
-
-.actions .receive {
-  background: #22c55e;
-  color: #000;
-}
-
-.history {
-  margin-top: 24px;
-  opacity: .8;
-}
-
-.back {
-  margin-top: 20px;
-  background: #1e293b;
-  border: none;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 12px;
-}
-
-.box {
-  width: 100px;
-  height: 100px;
-  background: #000;
-  border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  position: relative;
-}
-
-.box-img {
-  width: 80%;
-  transition: 0.3s ease;
-}
-
-.box.opened .box-img {
-  opacity: 0;
-  transform: scale(0.8);
-}
-
-.reward {
-  position: absolute;
-  color: gold;
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.hidden {
-  display: none;
-}
-
-.roadmap-page {
-  background: #0e0e0e;
-  color: #fff;
-  padding: 20px;
-  font-family: sans-serif;
-}
-
-.roadmap-title {
-  text-align: center;
-  margin-bottom: 5px;
-}
-
-.roadmap-sub {
-  text-align: center;
-  opacity: 0.7;
-  margin-bottom: 20px;
-}
-
+/* ================= ROADMAP ================= */
 .roadmap {
   display: flex;
   flex-direction: column;
@@ -351,48 +223,20 @@ h2 {
   background: #1c1c1c;
 }
 
-.step span {
-  font-weight: bold;
-}
-
-.step small {
-  font-size: 12px;
-  opacity: 0.8;
-}
-
 .step.completed {
   border-left: 6px solid #00c853;
-  background: #173b2c;
 }
 
 .step.active {
   border-left: 6px solid #ffb300;
-  background: #3a2f10;
 }
 
 .step.locked {
   border-left: 6px solid #555;
-  opacity: 0.6;
+  opacity: .6;
 }
 
-.back-btn {
-  margin-top: 25px;
-  width: 100%;
-  padding: 12px;
-  border: none;
-  border-radius: 10px;
-  background: gold;
-  font-weight: bold;
-}
-
-.box.silver.opened {
-  box-shadow: 0 0 25px #cfd8dc;
-}
-
-.box.gold.opened {
-  box-shadow: 0 0 30px gold;
-}
-
-.box.diamond.opened {
-  box-shadow: 0 0 40px cyan, 0 0 70px #00ffff;
-}
+/* ================= HELPERS ================= */
+.hidden {
+  display: none !important;
+  }
