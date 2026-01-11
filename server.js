@@ -7,7 +7,6 @@ import { fileURLToPath } from "url";
 
 import User from "./models/User.js";
 import Transaction from "./models/Transaction.js";
-import session from "express-session";
 
 dotenv.config();
 const app = express();
@@ -23,12 +22,6 @@ const __dirname = path.dirname(__filename);
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
-
-app.use(session({
-  secret: "FOUNDERS_ONLY",
-  resave: false,
-  saveUninitialized: true
-}));
 
 /* ================= DATABASE ================= */
 mongoose
@@ -273,9 +266,10 @@ app.get("/api/leaderboard", async (req, res) => {
 /* ================= FOUNDER DASHBOARD ================= */
 app.get("/api/founder/stats", async (req, res) => {
   try {
-    // 🔒 TSARO: Founder kawai
-    if (!req.session || !req.session.isFounder) {
-      return res.status(403).json({ error: "FORBIDDEN" });
+    const { userId } = req.query;
+
+    if (userId !== FOUNDER_USER_ID) {
+      return res.json({ success: false });
     }
 
     const totalUsers = await User.countDocuments();
@@ -300,14 +294,8 @@ app.get("/api/founder/stats", async (req, res) => {
       }
     ]);
 
-    const stats = agg.length > 0 ? agg[0] : {
-      totalBalance: 0,
-      totalTokens: 0,
-      totalEnergy: 0,
-      totalReferrals: 0
-    };
+    const stats = agg[0] || {};
 
-    // ✅ Koyaushe values suna dawowa
     res.json({
       success: true,
       totalUsers,
@@ -320,8 +308,8 @@ app.get("/api/founder/stats", async (req, res) => {
     });
 
   } catch (err) {
-    console.error("Founder stats error:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
+    console.error(err);
+    res.status(500).json({ success: false });
   }
 });
 
