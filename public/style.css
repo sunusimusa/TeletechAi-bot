@@ -384,3 +384,15 @@ h2 {
   background: gold;
   font-weight: bold;
 }
+
+.box.silver.opened {
+  box-shadow: 0 0 25px #cfd8dc;
+}
+
+.box.gold.opened {
+  box-shadow: 0 0 30px gold;
+}
+
+.box.diamond.opened {
+  box-shadow: 0 0 40px cyan, 0 0 70px #00ffff;
+}
