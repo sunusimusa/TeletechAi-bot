@@ -184,6 +184,16 @@ function openBox(box) {
   }, 1200);
 }
 
+function openBox(box) {
+  if (box.classList.contains("opened")) return; // hana danna sau 2
+
+  box.classList.add("opened"); // ya ɓoye hoton box
+
+  const reward = box.querySelector(".reward"); // nemo reward
+  reward.textContent = "+100 Coins"; // saka kyauta
+  reward.classList.remove("hidden"); // nuna kyauta
+}
+
 /* =====================================================
    DAILY BONUS
 ===================================================== */
