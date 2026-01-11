@@ -145,7 +145,14 @@ function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
-  // COST
+  // 🔒 Diamond PRO only (optional)
+  if (type === "diamond" && proLevel < 1) {
+    alert("🔒 Diamond box is for PRO users only");
+    openingLocked = false;
+    return;
+  }
+
+  // 🎟️ COST
   if (freeTries > 0) freeTries--;
   else if (energy >= 10) energy -= 10;
   else {
@@ -154,29 +161,24 @@ function openBox(box, type) {
     return;
   }
 
-  // REWARD TABLE
-  let rewards;
+  // 🎁 REWARD TABLE
+  let rewards = [];
 
-  if (type === "silver") {
-    rewards = [0, 50, 100, 150];
+  if (type === "silver") rewards = [0, 50, 100, 150];
+  if (type === "gold") rewards = [100, 200, 500];
+  if (type === "diamond") rewards = [300, 500, 1000, 2000];
+
+  if (!rewards.length) {
+    openingLocked = false;
+    return;
   }
 
-  if (type === "gold") {
-    rewards = [100, 200, 500];
-  }
-
-  if (type === "diamond") {
-    rewards = [300, 500, 1000, 2000];
-  }
-
-  // PRO BOOST
-  if (proLevel >= 3) {
-    rewards.push(5000); // jackpot
-  }
+  // 🚀 PRO BOOST
+  if (proLevel >= 3) rewards.push(5000);
 
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
-  // ANIMATION
+  // ✨ ANIMATION
   box.classList.add("opened");
 
   const rewardEl = box.querySelector(".reward");
