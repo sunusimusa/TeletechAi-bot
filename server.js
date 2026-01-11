@@ -14,6 +14,7 @@ const app = express();
 
 /* ================= CONFIG ================= */
 const FOUNDER_USER_ID = "SUNUSI_001";
+const FOUNDER_PIN = process.env.FOUNDER_PIN || "$Sn3232@@";
 
 /* ================= PATH FIX ================= */
 const __filename = fileURLToPath(import.meta.url);
@@ -404,6 +405,24 @@ app.post("/api/task/verify-telegram", async (req, res) => {
     console.error(err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
+});
+
+app.post("/api/founder-login", (req, res) => {
+  const { pin } = req.body;
+
+  if (pin === FOUNDER_PIN) {
+    req.session.isFounder = true;
+    return res.json({ success: true });
+  }
+
+  res.json({ success: false });
+});
+
+app.get("/founder-stats.html", (req, res, next) => {
+  if (!req.session.isFounder) {
+    return res.redirect("/founder-login.html");
+  }
+  next();
 });
 
 /* ================= ROOT ================= */
