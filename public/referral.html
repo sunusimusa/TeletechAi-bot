@@ -2,45 +2,80 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Referral</title>
+  <title>My Referrals</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <h2>👥 Referral</h2>
+<h2>👥 My Referrals</h2>
 
-  <div class="energy-shop">
-    <p>Your referral link:</p>
-    <input id="refLink" readonly style="width:100%;padding:10px;border-radius:12px;border:none;" />
-    <button onclick="copyRef()">📋 Copy</button>
+<div class="energy-shop">
+  <p>Your referral link:</p>
 
-    <p id="refCount">Referrals: 0</p>
-  </div>
+  <input
+    id="refLink"
+    readonly
+    style="width:100%;padding:10px;border-radius:12px;border:none;"
+  />
 
-  <button onclick="location.href='/leaderboard.html'">
-    🏆 View Leaderboard
-  </button>
+  <button onclick="copyRef()">📋 Copy</button>
 
-  <button onclick="history.back()">⬅ Back</button>
+  <p id="refCount">Referrals: 0</p>
+</div>
 
-  <script>
-    const wallet = localStorage.getItem("wallet");
-    const referrals = Number(localStorage.getItem("referralsCount")) || 0;
+<hr>
 
+<h3>📜 People you invited</h3>
+<ul id="refList"></ul>
+
+<button onclick="history.back()">⬅ Back</button>
+
+<script>
+/* 🔗 Load referral link + count + list */
+async function loadReferrals() {
+  try {
+    const res = await fetch("/api/my-referrals");
+    const data = await res.json();
+
+    // referral link
     document.getElementById("refLink").value =
-      location.origin + "/?ref=" + wallet;
+      location.origin + "/?ref=" + data.myId;
 
+    // referral count
     document.getElementById("refCount").innerText =
-      "Referrals: " + referrals;
+      "Referrals: " + data.referrals.length;
 
-    function copyRef() {
-      navigator.clipboard.writeText(
-        document.getElementById("refLink").value
-      );
-      alert("Referral copied");
+    // referral list
+    const list = document.getElementById("refList");
+    list.innerHTML = "";
+
+    if (data.referrals.length === 0) {
+      list.innerHTML = "<li>No referrals yet</li>";
+      return;
     }
-  </script>
+
+    data.referrals.forEach(u => {
+      const li = document.createElement("li");
+      li.textContent = u.username || "User " + u.telegramId;
+      list.appendChild(li);
+    });
+
+  } catch (e) {
+    document.getElementById("refList").innerHTML =
+      "<li>Error loading referrals</li>";
+  }
+}
+
+function copyRef() {
+  navigator.clipboard.writeText(
+    document.getElementById("refLink").value
+  );
+  alert("Referral link copied ✅");
+}
+
+loadReferrals();
+</script>
 
 </body>
 </html>
