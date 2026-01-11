@@ -1,13 +1,21 @@
 {
-  "name": "LuckyBox Game",
+  "name": "Lucky Box Game",
   "short_name": "LuckyBox",
+  "description": "Play, open boxes and earn virtual rewards",
   "start_url": "/",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#0b0f1a",
-  "theme_color": "#facc15",
+  "background_color": "#140900",
+  "theme_color": "#ffd700",
+  "orientation": "portrait",
   "icons": [
     {
-      "src": "/icons/LuckyBox_Icon.png",
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png"
     }
