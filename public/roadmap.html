@@ -2,53 +2,51 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Roadmap</title>
+  <title>LuckyBox Roadmap</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="stylesheet" href="style.css">
 </head>
 
 <body class="roadmap-page">
 
-<h2 class="roadmap-title">🗺️ Project Roadmap</h2>
-<p class="roadmap-sub">Building step by step 🚀</p>
+  <h2 class="roadmap-title">🗺️ LuckyBox Roadmap</h2>
+  <p class="roadmap-sub">Project development progress</p>
 
-<p id="progress" class="roadmap-progress"></p>
+  <div class="roadmap">
 
-<div id="roadmapContainer"></div>
+    <div class="step completed">
+      <span>Phase 1</span>
+      <p>Game UI & Design</p>
+      <small>Completed</small>
+    </div>
 
-<button class="back-btn" onclick="history.back()">⬅️ Back</button>
+    <div class="step completed">
+      <span>Phase 2</span>
+      <p>Box Opening Logic</p>
+      <small>Completed</small>
+    </div>
 
-<script>
-async function loadRoadmap() {
-  const res = await fetch("/api/roadmap");
-  const data = await res.json();
+    <div class="step active">
+      <span>Phase 3</span>
+      <p>Ads System (Watch Ads)</p>
+      <small>In Progress</small>
+    </div>
 
-  const container = document.getElementById("roadmapContainer");
-  container.innerHTML = "";
+    <div class="step locked">
+      <span>Phase 4</span>
+      <p>Withdraw & Wallet</p>
+      <small>Locked</small>
+    </div>
 
-  const completed = data.filter(p => p.status === "completed").length;
-  const percent = Math.round((completed / data.length) * 100);
-  document.getElementById("progress").innerText =
-    `Completion: ${percent}%`;
+    <div class="step locked">
+      <span>Phase 5</span>
+      <p>Play Store Launch</p>
+      <small>Locked</small>
+    </div>
 
-  data.forEach((phase, index) => {
-    const card = document.createElement("div");
-    card.className = `roadmap-card ${phase.status}`;
-    card.style.animationDelay = `${index * 1.8}s`; // 🔥 SLOW & CLEAN
+  </div>
 
-    card.innerHTML = `
-      <h3>${phase.phase} – ${phase.title}</h3>
-      <ul>
-        ${phase.items.map(i => `<li>${i}</li>`).join("")}
-      </ul>
-    `;
-
-    container.appendChild(card);
-  });
-}
-
-loadRoadmap();
-</script>
+  <button class="back-btn" onclick="location.href='/'">⬅ Back to Game</button>
 
 </body>
 </html>
