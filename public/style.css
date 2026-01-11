@@ -320,3 +320,67 @@ h2 {
 .hidden {
   display: none;
 }
+
+.roadmap-page {
+  background: #0e0e0e;
+  color: #fff;
+  padding: 20px;
+  font-family: sans-serif;
+}
+
+.roadmap-title {
+  text-align: center;
+  margin-bottom: 5px;
+}
+
+.roadmap-sub {
+  text-align: center;
+  opacity: 0.7;
+  margin-bottom: 20px;
+}
+
+.roadmap {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.step {
+  padding: 14px;
+  border-radius: 12px;
+  background: #1c1c1c;
+}
+
+.step span {
+  font-weight: bold;
+}
+
+.step small {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.step.completed {
+  border-left: 6px solid #00c853;
+  background: #173b2c;
+}
+
+.step.active {
+  border-left: 6px solid #ffb300;
+  background: #3a2f10;
+}
+
+.step.locked {
+  border-left: 6px solid #555;
+  opacity: 0.6;
+}
+
+.back-btn {
+  margin-top: 25px;
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background: gold;
+  font-weight: bold;
+}
