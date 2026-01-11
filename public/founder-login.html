@@ -3,27 +3,55 @@
 <head>
   <title>Founder Login</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+      background: #06162d;
+      color: gold;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      font-family: sans-serif;
+    }
+    .box {
+      background: #0b2345;
+      padding: 30px;
+      border-radius: 16px;
+      text-align: center;
+      width: 90%;
+      max-width: 320px;
+    }
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      margin: 15px 0;
+      font-size: 18px;
+      text-align: center;
+    }
+    button {
+      background: gold;
+      color: black;
+      border: none;
+      padding: 12px;
+      width: 100%;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+  </style>
 </head>
 <body>
 
-<h2>👑 Founder Login</h2>
-
-<input
-  type="password"
-  id="pin"
-  placeholder="Enter Founder PIN"
-  style="padding:12px;width:100%;border-radius:10px"
-/>
-
-<button onclick="loginFounder()" class="gold" style="margin-top:10px;width:100%">
-  🔐 Login
-</button>
-
-<p id="msg"></p>
+<div class="box">
+  <h2>👑 Founder Login</h2>
+  <input type="password" id="pin" placeholder="Enter PIN" />
+  <button onclick="login()">Login</button>
+  <p id="msg"></p>
+</div>
 
 <script>
-async function loginFounder() {
+async function login() {
   const pin = document.getElementById("pin").value;
 
   const res = await fetch("/api/founder-login", {
@@ -43,4 +71,4 @@ async function loginFounder() {
 </script>
 
 </body>
-  </html>
+</html>
