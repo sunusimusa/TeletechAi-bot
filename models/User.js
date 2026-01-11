@@ -37,7 +37,7 @@ const UserSchema = new mongoose.Schema({
   "username": "sunusi",
   "referralCode": "SUN12345",
   "referredBy": null
-}
+},
 
   // ===== GAME =====
   balance: { type: Number, default: 0 },
