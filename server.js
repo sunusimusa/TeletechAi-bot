@@ -435,6 +435,40 @@ app.get("/api/my-referrals", async (req, res) => {
   res.json(referrals);
 });
 
+app.post("/api/register", async (req, res) => {
+  const { telegramId, username, ref } = req.body;
+
+  // 1️⃣ check if user already exists
+  let user = await User.findOne({ telegramId });
+  if (user) {
+    return res.json(user);
+  }
+
+  // 2️⃣ create new user
+  const newUser = new User({
+    telegramId,
+    username,
+    balance: 0,
+    energy: 100,
+    referrals: []
+  });
+
+  // 3️⃣ REFERRAL LOGIC (ANAN NE 👇)
+  if (ref) {
+    const referrer = await User.findOne({ telegramId: ref });
+
+    if (referrer && referrer.telegramId !== telegramId) {
+      referrer.referrals.push(telegramId);
+      await referrer.save();
+    }
+  }
+
+  // 4️⃣ save new user
+  await newUser.save();
+
+  res.json(newUser);
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
