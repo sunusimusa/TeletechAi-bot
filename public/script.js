@@ -141,10 +141,11 @@ function saveState() {
 /* =====================================================
    BOX GAME (WITH IMAGE + REWARD)
 ===================================================== */
-function openBox(box) {
+function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
+  // COST
   if (freeTries > 0) freeTries--;
   else if (energy >= 10) energy -= 10;
   else {
@@ -153,17 +154,33 @@ function openBox(box) {
     return;
   }
 
-  let rewards = [0, 100, 200];
-  if (proLevel === 2) rewards = [100, 200, 500];
-  if (proLevel === 3) rewards = [200, 500, 1000];
-  if (proLevel >= 4) rewards = [500, 1000, 2000];
+  // REWARD TABLE
+  let rewards;
+
+  if (type === "silver") {
+    rewards = [0, 50, 100, 150];
+  }
+
+  if (type === "gold") {
+    rewards = [100, 200, 500];
+  }
+
+  if (type === "diamond") {
+    rewards = [300, 500, 1000, 2000];
+  }
+
+  // PRO BOOST
+  if (proLevel >= 3) {
+    rewards.push(5000); // jackpot
+  }
 
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
+  // ANIMATION
   box.classList.add("opened");
 
   const rewardEl = box.querySelector(".reward");
-  rewardEl.innerText = reward > 0 ? `+${reward} Coins` : "😢 No Win";
+  rewardEl.innerText = reward > 0 ? `💰 +${reward}` : "😢 Empty";
   rewardEl.classList.remove("hidden");
 
   balance += reward;
@@ -174,5 +191,5 @@ function openBox(box) {
     rewardEl.classList.add("hidden");
     rewardEl.innerText = "";
     openingLocked = false;
-  }, 1500);
-  }
+  }, 1600);
+}
