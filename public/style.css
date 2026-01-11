@@ -288,3 +288,35 @@ h2 {
   padding: 10px 18px;
   border-radius: 12px;
 }
+
+.box {
+  width: 100px;
+  height: 100px;
+  background: #000;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.box-img {
+  width: 80%;
+  transition: 0.3s ease;
+}
+
+.box.opened .box-img {
+  opacity: 0;
+  transform: scale(0.8);
+}
+
+.reward {
+  position: absolute;
+  color: gold;
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.hidden {
+  display: none;
+}
