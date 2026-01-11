@@ -240,3 +240,47 @@ a {
 .hidden {
   display: none !important;
   }
+
+/* ================= 3D FLIP ================= */
+.box {
+  perspective: 1000px;
+}
+
+.box-inner {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  transform-style: preserve-3d;
+  transition: transform .8s ease;
+}
+
+.box.opened .box-inner {
+  transform: rotateY(180deg);
+}
+
+.box-front,
+.box-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.box-front {
+  background: transparent;
+}
+
+.box-back {
+  background: linear-gradient(145deg, #ffd700, #ffb300);
+  transform: rotateY(180deg);
+  border-radius: 18px;
+}
+
+/* reward style */
+.box-back .reward {
+  font-size: 18px;
+  font-weight: 800;
+  color: #000;
+}
