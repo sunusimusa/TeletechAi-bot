@@ -5,59 +5,38 @@
 // 👑 Founder ID (KAI KADAI)
 const FOUNDER_USER_ID = "SUNUSI_001";
 
-// 👤 USER ID
+// 👤 USER ID (BA A TAƁA SA FOUNDER DEFAULT)
 let userId = localStorage.getItem("userId");
 if (!userId) {
   userId = "USER_" + Math.random().toString(36).substring(2, 10);
   localStorage.setItem("userId", userId);
 }
 
+// WALLET
 let wallet = localStorage.getItem("wallet");
 
+// GAME STATE (CACHE)
 let balance = Number(localStorage.getItem("balance")) || 0;
-let tokens = Number(localStorage.getItem("tokens"));
-if (tokens === null || isNaN(tokens)) tokens = 0;
+let tokens = Number(localStorage.getItem("tokens")) || 0;
 let energy = Number(localStorage.getItem("energy")) || 50;
 let freeTries = Number(localStorage.getItem("freeTries")) || 3;
 let referralsCount = Number(localStorage.getItem("referralsCount")) || 0;
-
 let proLevel = Number(localStorage.getItem("proLevel")) || 0;
 
-// 🔐 LIMITS
+// LIMITS
 let MAX_ENERGY = 100;
 let MAX_FREE_TRIES = 3;
 
 let openingLocked = false;
 
 /* =====================================================
-   ROLE SETUP (FOUNDER vs USER)
-===================================================== */
-if (userId === FOUNDER_USER_ID) {
-  // 👑 FOUNDER
-  proLevel = 4;
-  MAX_ENERGY = 9999;
-  MAX_FREE_TRIES = 9999;
-  energy = 9999;
-   tokens = 999; // founder tokens
-  freeTries = 9999;
-  localStorage.setItem("founder", "yes");
-} else {
-  // 👤 NORMAL USER
-  MAX_ENERGY = 100;
-  MAX_FREE_TRIES = 3;
-  energy = Math.min(energy, MAX_ENERGY);
-  freeTries = Math.min(freeTries, MAX_FREE_TRIES);
-}
-
-/* =====================================================
    INIT
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
   ensureWallet();
-  handleReferralJoin();
   agreementInit();
-  applyProRules();
-  updateUI();
+  handleReferralJoin();
+  syncUserFromServer(); // 👈 GASKIYA DAGA BACKEND
 });
 
 /* =====================================================
@@ -81,11 +60,13 @@ function agreementInit() {
 }
 
 /* =====================================================
-   WALLET + REFERRAL
+   WALLET + REFERRAL LINK
 ===================================================== */
 function ensureWallet() {
   if (!wallet) {
-    wallet = "TTECH-" + Math.random().toString(36).substring(2, 10).toUpperCase();
+    wallet =
+      "TTECH-" +
+      Math.random().toString(36).substring(2, 10).toUpperCase();
     localStorage.setItem("wallet", wallet);
   }
 
@@ -96,7 +77,7 @@ function ensureWallet() {
 }
 
 /* =====================================================
-   REFERRAL SYSTEM
+   REFERRAL (FIRST VISIT ONLY)
 ===================================================== */
 function handleReferralJoin() {
   const params = new URLSearchParams(location.search);
@@ -110,19 +91,61 @@ function handleReferralJoin() {
   energy = Math.min(energy + 20, MAX_ENERGY);
 
   localStorage.setItem("joinedByRef", "yes");
+  saveState();
+}
+
+/* =====================================================
+   SYNC FROM SERVER (SOURCE OF TRUTH)
+===================================================== */
+async function syncUserFromServer() {
+  try {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
+
+    const data = await res.json();
+    if (data.error) return;
+
+    balance = data.balance;
+    tokens = data.tokens;
+    energy = data.energy;
+    freeTries = data.freeTries;
+    proLevel = data.proLevel;
+
+    wallet = data.wallet;
+    localStorage.setItem("wallet", wallet);
+
+    if (data.role === "founder") {
+      localStorage.setItem("founder", "yes");
+      MAX_ENERGY = 9999;
+      MAX_FREE_TRIES = 9999;
+    } else {
+      localStorage.removeItem("founder");
+      MAX_ENERGY = 100;
+      MAX_FREE_TRIES = 3;
+    }
+
+    applyProRules();
+    updateUI();
+  } catch (err) {
+    console.error("❌ Sync failed", err);
+  }
 }
 
 /* =====================================================
    PRO RULES (BA YA SHAFAR FOUNDER)
 ===================================================== */
 function applyProRules() {
-  if (userId === FOUNDER_USER_ID) return;
+  if (localStorage.getItem("founder") === "yes") return;
 
   if (proLevel === 1) MAX_ENERGY = 150;
   if (proLevel === 2) MAX_ENERGY = 200;
   if (proLevel === 3) MAX_ENERGY = 300;
 
   energy = Math.min(energy, MAX_ENERGY);
+  freeTries = Math.min(freeTries, MAX_FREE_TRIES);
 }
 
 /* =====================================================
@@ -139,7 +162,8 @@ function updateUI() {
 
   const bar = document.getElementById("energyFill");
   if (bar) {
-    bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
+    bar.style.width =
+      Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 }
 
@@ -159,7 +183,7 @@ function saveState() {
 }
 
 /* =====================================================
-   BOX GAME
+   BOX GAME (WITH IMAGE)
 ===================================================== */
 function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
@@ -174,18 +198,20 @@ function openBox(box, type) {
     return;
   }
 
-  // 🎁 REWARDS
+  // REWARDS
   let rewards = [0, 50, 100];
   if (type === "gold") rewards = [100, 200, 500];
   if (type === "diamond") rewards = [300, 500, 1000, 2000];
   if (proLevel >= 3) rewards.push(5000);
 
-  const reward = rewards[Math.floor(Math.random() * rewards.length)];
+  const reward =
+    rewards[Math.floor(Math.random() * rewards.length)];
   balance += reward;
 
-  box.classList.add("opened");
   const rewardEl = box.querySelector(".reward");
-  rewardEl.textContent = reward > 0 ? `💰 +${reward}` : "😢 Empty";
+  box.classList.add("opened");
+  rewardEl.textContent =
+    reward > 0 ? `💰 +${reward}` : "😢 Empty";
   rewardEl.classList.remove("hidden");
 
   updateUI();
@@ -196,4 +222,15 @@ function openBox(box, type) {
     rewardEl.textContent = "";
     openingLocked = false;
   }, 1800);
-                                     }
+}
+
+/* =====================================================
+   NAVIGATION
+===================================================== */
+function openWallet() {
+  location.href = "/wallet.html";
+}
+
+function openFounderStats() {
+  location.href = "/founder-stats.html";
+   }
