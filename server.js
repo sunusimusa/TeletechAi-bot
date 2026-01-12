@@ -301,6 +301,25 @@ app.get("/api/founder/stats", async (req, res) => {
   }
 });
 
+app.get("/api/my-referrals", async (req, res) => {
+  try {
+    const { wallet } = req.query;
+    if (!wallet) return res.json([]);
+
+    const user = await User.findOne({ walletAddress: wallet });
+    if (!user) return res.json([]);
+
+    const referrals = await User.find({
+      referredBy: wallet
+    }).select("userId walletAddress");
+
+    res.json(referrals);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json([]);
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
