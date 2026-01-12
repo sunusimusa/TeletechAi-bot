@@ -147,21 +147,23 @@ async function openBox(box, type) {
     });
 
     const data = await res.json();
+
     if (data.error) {
       alert("❌ " + data.error);
       openingLocked = false;
       return;
     }
 
-    // update from server
+    // 🔄 update from server
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
 
     const rewardEl = box.querySelector(".reward");
     box.classList.add("opened");
+
     rewardEl.textContent =
-      data.reward > 0 ? `💰 +${data.reward}` : "😢 Empty";
+      data.reward > 0 ? `+${data.reward}` : "Empty";
     rewardEl.classList.remove("hidden");
 
     updateUI();
@@ -172,6 +174,7 @@ async function openBox(box, type) {
       rewardEl.textContent = "";
       openingLocked = false;
     }, 1500);
+
   } catch (e) {
     console.error(e);
     openingLocked = false;
