@@ -27,9 +27,9 @@ h2, h3 {
 /* ================= BOXES ================= */
 .boxes {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(3, 1fr); /* 3 a kowane layi */
   gap: 14px;
-  max-width: 360px;
+  max-width: 340px; /* 🔧 rage kadan domin 6 su zauna daidai */
   margin: 18px auto;
   padding: 16px;
   border-radius: 22px;
