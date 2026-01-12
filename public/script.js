@@ -5,7 +5,7 @@
 // 👑 Founder ID (KAI KADAI)
 const FOUNDER_USER_ID = "SUNUSI_001";
 
-// 👤 USER ID (KADA A SAKA FOUNDER DEFAULT)
+// 👤 USER ID
 let userId = localStorage.getItem("userId");
 if (!userId) {
   userId = "USER_" + Math.random().toString(36).substring(2, 10);
@@ -21,18 +21,30 @@ let freeTries = Number(localStorage.getItem("freeTries")) || 3;
 let referralsCount = Number(localStorage.getItem("referralsCount")) || 0;
 
 let proLevel = Number(localStorage.getItem("proLevel")) || 0;
+
+// 🔐 LIMITS
 let MAX_ENERGY = 100;
+let MAX_FREE_TRIES = 3;
+
 let openingLocked = false;
 
 /* =====================================================
-   FOUNDER AUTO (KAI KADAI)
+   ROLE SETUP (FOUNDER vs USER)
 ===================================================== */
 if (userId === FOUNDER_USER_ID) {
+  // 👑 FOUNDER
   proLevel = 4;
   MAX_ENERGY = 9999;
+  MAX_FREE_TRIES = 9999;
   energy = 9999;
   freeTries = 9999;
   localStorage.setItem("founder", "yes");
+} else {
+  // 👤 NORMAL USER
+  MAX_ENERGY = 100;
+  MAX_FREE_TRIES = 3;
+  energy = Math.min(energy, MAX_ENERGY);
+  freeTries = Math.min(freeTries, MAX_FREE_TRIES);
 }
 
 /* =====================================================
@@ -67,7 +79,7 @@ function agreementInit() {
 }
 
 /* =====================================================
-   WALLET + REFERRAL LINK
+   WALLET + REFERRAL
 ===================================================== */
 function ensureWallet() {
   if (!wallet) {
@@ -82,7 +94,7 @@ function ensureWallet() {
 }
 
 /* =====================================================
-   REFERRAL SYSTEM (LOCAL – SAFE)
+   REFERRAL SYSTEM
 ===================================================== */
 function handleReferralJoin() {
   const params = new URLSearchParams(location.search);
@@ -90,24 +102,23 @@ function handleReferralJoin() {
 
   if (!ref) return;
   if (localStorage.getItem("joinedByRef") === "yes") return;
-  if (ref === wallet) return; // ❌ self referral
+  if (ref === wallet) return;
 
-  // 🎁 bonus ga sabon user
   balance += 300;
   energy = Math.min(energy + 20, MAX_ENERGY);
 
   localStorage.setItem("joinedByRef", "yes");
-  updateUI();
 }
 
 /* =====================================================
-   PRO RULES
+   PRO RULES (BA YA SHAFAR FOUNDER)
 ===================================================== */
 function applyProRules() {
+  if (userId === FOUNDER_USER_ID) return;
+
   if (proLevel === 1) MAX_ENERGY = 150;
   if (proLevel === 2) MAX_ENERGY = 200;
   if (proLevel === 3) MAX_ENERGY = 300;
-  if (proLevel >= 4) MAX_ENERGY = 9999;
 
   energy = Math.min(energy, MAX_ENERGY);
 }
@@ -146,7 +157,7 @@ function saveState() {
 }
 
 /* =====================================================
-   BOX GAME (IMAGE + REWARD)
+   BOX GAME
 ===================================================== */
 function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
@@ -161,7 +172,7 @@ function openBox(box, type) {
     return;
   }
 
-  // 🎁 REWARD TABLE
+  // 🎁 REWARDS
   let rewards = [0, 50, 100];
   if (type === "gold") rewards = [100, 200, 500];
   if (type === "diamond") rewards = [300, 500, 1000, 2000];
@@ -170,7 +181,6 @@ function openBox(box, type) {
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
   balance += reward;
 
-  // 🎞️ ANIMATION
   box.classList.add("opened");
   const rewardEl = box.querySelector(".reward");
   rewardEl.textContent = reward > 0 ? `💰 +${reward}` : "😢 Empty";
@@ -184,37 +194,4 @@ function openBox(box, type) {
     rewardEl.textContent = "";
     openingLocked = false;
   }, 1800);
-}
-
-function applyUserLimits() {
-  const userId = localStorage.getItem("userId");
-
-  let maxEnergy, maxFreeTries;
-
-  if (userId === FOUNDER_USER_ID) {
-    // 👑 FOUNDER
-    maxEnergy = 9999;
-    maxFreeTries = 9999;
-  } else {
-    // 👤 NORMAL USER
-    maxEnergy = 100;
-    maxFreeTries = 3;
-  }
-
-  // adana limits
-  localStorage.setItem("maxEnergy", maxEnergy);
-  localStorage.setItem("maxFreeTries", maxFreeTries);
-
-  // gyara current values idan sun wuce limit
-  let energy = Number(localStorage.getItem("energy")) || maxEnergy;
-  let freeTries = Number(localStorage.getItem("freeTries")) || maxFreeTries;
-
-  if (energy > maxEnergy) energy = maxEnergy;
-  if (freeTries > maxFreeTries) freeTries = maxFreeTries;
-
-  localStorage.setItem("energy", energy);
-  localStorage.setItem("freeTries", freeTries);
-
-  // sabunta UI
-  updateStatsUI();
-}
+                                     }
