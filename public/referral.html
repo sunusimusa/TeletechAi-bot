@@ -31,33 +31,28 @@
 
 <button onclick="history.back()">⬅ Back</button>
 
+<ul id="refList"></ul>
+
 <script>
-/* 🔗 Load referral link + count + list */
 async function loadReferrals() {
+  const wallet = localStorage.getItem("wallet");
+  if (!wallet) return;
+
   try {
-    const res = await fetch("/api/my-referrals");
+    const res = await fetch(`/api/my-referrals?wallet=${wallet}`);
     const data = await res.json();
 
-    // referral link
-    document.getElementById("refLink").value =
-      location.origin + "/?ref=" + data.myId;
-
-    // referral count
-    document.getElementById("refCount").innerText =
-      "Referrals: " + data.referrals.length;
-
-    // referral list
     const list = document.getElementById("refList");
     list.innerHTML = "";
 
-    if (data.referrals.length === 0) {
+    if (!data || data.length === 0) {
       list.innerHTML = "<li>No referrals yet</li>";
       return;
     }
 
-    data.referrals.forEach(u => {
+    data.forEach((u, i) => {
       const li = document.createElement("li");
-      li.textContent = u.username || "User " + u.telegramId;
+      li.textContent = `#${i + 1} User: ${u.userId || "User"}`;
       list.appendChild(li);
     });
 
@@ -67,15 +62,7 @@ async function loadReferrals() {
   }
 }
 
-function copyRef() {
-  navigator.clipboard.writeText(
-    document.getElementById("refLink").value
-  );
-  alert("Referral link copied ✅");
-}
-
 loadReferrals();
 </script>
-
 </body>
 </html>
