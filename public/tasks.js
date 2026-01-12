@@ -113,3 +113,41 @@ function verifyTelegram(type) {
       alert("✅ Task verified +300 coins!");
     });
 }
+
+let adTimer = null;
+
+function watchAd() {
+  const btn = document.getElementById("watchAdBtn");
+  const status = document.getElementById("adStatus");
+
+  let timeLeft = 30;
+
+  btn.disabled = true;
+  btn.innerText = "Watching...";
+  status.classList.remove("hidden");
+  status.innerText = `⏳ Watching ad... ${timeLeft}s`;
+
+  adTimer = setInterval(() => {
+    timeLeft--;
+
+    status.innerText = `⏳ Watching ad... ${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(adTimer);
+
+      // 🎁 REWARD
+      energy += 20;
+      balance += 200;
+
+      updateUI();
+
+      status.innerText = "✅ Ad completed! Reward added";
+      btn.innerText = "📺 Watch Ad (+20 ⚡ +200 💰)";
+      btn.disabled = false;
+
+      setTimeout(() => {
+        status.classList.add("hidden");
+      }, 2000);
+    }
+  }, 1000);
+}
