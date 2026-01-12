@@ -1,9 +1,17 @@
 /* =====================================================
-   GLOBAL STATE (BROWSER ONLY – CLEAN)
+   GLOBAL STATE (BROWSER ONLY – CLEAN & SAFE)
 ===================================================== */
+
+// 👑 Founder ID (KAI KADAI)
 const FOUNDER_USER_ID = "SUNUSI_001";
 
-let userId = localStorage.getItem("userId") || FOUNDER_USER_ID;
+// 👤 USER ID (KADA A SAKA FOUNDER DEFAULT)
+let userId = localStorage.getItem("userId");
+if (!userId) {
+  userId = "USER_" + Math.random().toString(36).substring(2, 10);
+  localStorage.setItem("userId", userId);
+}
+
 let wallet = localStorage.getItem("wallet");
 
 let balance = Number(localStorage.getItem("balance")) || 0;
@@ -17,13 +25,14 @@ let MAX_ENERGY = 100;
 let openingLocked = false;
 
 /* =====================================================
-   FOUNDER AUTO
+   FOUNDER AUTO (KAI KADAI)
 ===================================================== */
 if (userId === FOUNDER_USER_ID) {
   proLevel = 4;
   MAX_ENERGY = 9999;
   energy = 9999;
   freeTries = 9999;
+  localStorage.setItem("founder", "yes");
 }
 
 /* =====================================================
@@ -43,7 +52,6 @@ document.addEventListener("DOMContentLoaded", () => {
 function agreementInit() {
   const modal = document.getElementById("agreementModal");
   const btn = document.getElementById("agreeBtn");
-
   if (!modal || !btn) return;
 
   if (localStorage.getItem("agreed") === "yes") {
@@ -63,7 +71,7 @@ function agreementInit() {
 ===================================================== */
 function ensureWallet() {
   if (!wallet) {
-    wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+    wallet = "TTECH-" + Math.random().toString(36).substring(2, 10).toUpperCase();
     localStorage.setItem("wallet", wallet);
   }
 
@@ -74,25 +82,23 @@ function ensureWallet() {
 }
 
 /* =====================================================
-   REFERRAL SYSTEM (LOCAL ONLY)
+   REFERRAL SYSTEM (LOCAL – SAFE)
 ===================================================== */
 function handleReferralJoin() {
   const params = new URLSearchParams(location.search);
   const ref = params.get("ref");
 
   if (!ref) return;
-  if (localStorage.getItem("joinedByRef")) return;
-  if (ref === wallet) return; // hana self-referral
+  if (localStorage.getItem("joinedByRef") === "yes") return;
+  if (ref === wallet) return; // ❌ self referral
 
-  referralsCount++;
-  localStorage.setItem("referralsCount", referralsCount);
-  localStorage.setItem("joinedByRef", "yes");
-
-  // bonus ga sabon user
+  // 🎁 bonus ga sabon user
   balance += 300;
-  energy += 20;
-}
+  energy = Math.min(energy + 20, MAX_ENERGY);
 
+  localStorage.setItem("joinedByRef", "yes");
+  updateUI();
+}
 
 /* =====================================================
    PRO RULES
@@ -140,7 +146,7 @@ function saveState() {
 }
 
 /* =====================================================
-   BOX GAME (WITH IMAGE + REWARD)
+   BOX GAME (IMAGE + REWARD)
 ===================================================== */
 function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
@@ -155,7 +161,7 @@ function openBox(box, type) {
     return;
   }
 
-  // REWARD TABLE
+  // 🎁 REWARD TABLE
   let rewards = [0, 50, 100];
   if (type === "gold") rewards = [100, 200, 500];
   if (type === "diamond") rewards = [300, 500, 1000, 2000];
@@ -164,9 +170,8 @@ function openBox(box, type) {
   const reward = rewards[Math.floor(Math.random() * rewards.length)];
   balance += reward;
 
-  // FLIP
+  // 🎞️ ANIMATION
   box.classList.add("opened");
-
   const rewardEl = box.querySelector(".reward");
   rewardEl.textContent = reward > 0 ? `💰 +${reward}` : "😢 Empty";
   rewardEl.classList.remove("hidden");
