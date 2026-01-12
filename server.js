@@ -43,73 +43,56 @@ app.post("/api/user", async (req, res) => {
     }
 
     let user = await User.findOne({ userId });
+    const isFounder = userId === FOUNDER_USER_ID;
 
-    /* ================= CREATE USER ================= */
+    /* ===== CREATE USER ===== */
     if (!user) {
-      const wallet =
-        "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-
-      const isFounder = userId === FOUNDER_USER_ID;
-
       user = await User.create({
         userId,
-        walletAddress: wallet,
-
-        // 🎮 GAME DEFAULTS
-        balance: 0,
-        tokens: 0,
-        energy: isFounder ? 9999 : 50,
-        freeTries: isFounder ? 9999 : 3,
-
-        // 👑 ROLE
-        proLevel: isFounder ? 4 : 0,
+        walletAddress: generateWallet(),
         role: isFounder ? "founder" : "user",
-
-        // 🔗 REFERRAL
-        referrals: [],
-        referralsCount: 0,
-        referredBy: null
+        proLevel: isFounder ? 4 : 0,
+        isPro: isFounder,
+        energy: isFounder ? 9999 : 100,
+        freeTries: isFounder ? 9999 : 3
       });
 
-      /* ========== REFERRAL LOGIC (ONCE) ========== */
-if (ref && !isFounder && !user.joinedByRef) {
-  const referrer = await User.findOne({ walletAddress: ref });
+      /* ===== REFERRAL LOGIC (ONCE) ===== */
+      if (ref && !isFounder && !user.joinedByRef) {
+        const referrer = await User.findOne({
+          walletAddress: ref
+        });
 
-  // tabbatar ba self-referral ba
-  if (referrer && referrer.userId !== userId) {
-    // link referral
-    user.referredBy = referrer.walletAddress;
-    user.joinedByRef = true;
+        if (referrer && referrer.userId !== userId) {
+          user.referredBy = referrer.walletAddress;
+          user.joinedByRef = true;
 
-    // update referrer
-    referrer.referrals.push(userId);
-    referrer.referralsCount += 1;
-    referrer.balance += 500;
+          referrer.referrals.push(userId);
+          referrer.referralsCount += 1;
+          referrer.balance += 500;
 
-    await referrer.save();
-    await user.save();
-  }
-}
+          await referrer.save();
+          await user.save();
+        }
+      }
+    }
 
-    /* ================= RESPONSE ================= */
-    res.json({
+    /* ===== RESPONSE ===== */
+    return res.json({
       success: true,
       userId: user.userId,
       wallet: user.walletAddress,
-
       balance: user.balance,
       energy: user.energy,
       freeTries: user.freeTries,
       tokens: user.tokens,
-
       referralsCount: user.referralsCount,
-      role: user.role,
-      proLevel: user.proLevel
+      role: user.role
     });
 
   } catch (err) {
-    console.error("API /user error:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
+    console.error("API /user ERROR:", err);
+    return res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
