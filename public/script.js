@@ -1,31 +1,27 @@
 /* =====================================================
-   GLOBAL STATE (BROWSER ONLY – CLEAN & SAFE)
+   GLOBAL STATE (CLEAN – ONE SOURCE)
 ===================================================== */
 
 // 👑 Founder ID (KAI KADAI)
 const FOUNDER_USER_ID = "SUNUSI_001";
 
-// 👤 USER ID (BA A TAƁA SA FOUNDER DEFAULT)
+// 👤 USER ID (BA A SA FOUNDER DEFAULT)
 let userId = localStorage.getItem("userId");
 if (!userId) {
   userId = "USER_" + Math.random().toString(36).substring(2, 10);
   localStorage.setItem("userId", userId);
 }
 
-// WALLET
+// WALLET (DISPLAY ONLY)
 let wallet = localStorage.getItem("wallet");
 
-// GAME STATE (CACHE)
-let balance = Number(localStorage.getItem("balance")) || 0;
-let tokens = Number(localStorage.getItem("tokens")) || 0;
-let energy = Number(localStorage.getItem("energy")) || 50;
-let freeTries = Number(localStorage.getItem("freeTries")) || 3;
-let referralsCount = Number(localStorage.getItem("referralsCount")) || 0;
-let proLevel = Number(localStorage.getItem("proLevel")) || 0;
-
-// LIMITS
+// GAME STATE (DAGA SERVER)
+let balance = 0;
+let tokens = 0;
+let energy = 0;
+let freeTries = 0;
+let proLevel = 0;
 let MAX_ENERGY = 100;
-let MAX_FREE_TRIES = 3;
 
 let openingLocked = false;
 
@@ -33,10 +29,9 @@ let openingLocked = false;
    INIT
 ===================================================== */
 document.addEventListener("DOMContentLoaded", () => {
-  ensureWallet();
   agreementInit();
-  handleReferralJoin();
-  syncUserFromServer(); // 👈 GASKIYA DAGA BACKEND
+  ensureWallet();
+  syncUserFromServer(); // 👈 gaskiya daga backend
 });
 
 /* =====================================================
@@ -60,7 +55,7 @@ function agreementInit() {
 }
 
 /* =====================================================
-   WALLET + REFERRAL LINK
+   WALLET (FRONTEND DISPLAY)
 ===================================================== */
 function ensureWallet() {
   if (!wallet) {
@@ -77,25 +72,7 @@ function ensureWallet() {
 }
 
 /* =====================================================
-   REFERRAL (FIRST VISIT ONLY)
-===================================================== */
-function handleReferralJoin() {
-  const params = new URLSearchParams(location.search);
-  const ref = params.get("ref");
-
-  if (!ref) return;
-  if (localStorage.getItem("joinedByRef") === "yes") return;
-  if (ref === wallet) return;
-
-  balance += 300;
-  energy = Math.min(energy + 20, MAX_ENERGY);
-
-  localStorage.setItem("joinedByRef", "yes");
-  saveState();
-}
-
-/* =====================================================
-   SYNC FROM SERVER (SOURCE OF TRUTH)
+   SYNC USER FROM SERVER (SOURCE OF TRUTH)
 ===================================================== */
 async function syncUserFromServer() {
   try {
@@ -106,8 +83,12 @@ async function syncUserFromServer() {
     });
 
     const data = await res.json();
-    if (data.error) return;
+    if (data.error) {
+      alert("❌ Failed to load user");
+      return;
+    }
 
+    // 🔁 UPDATE STATE FROM SERVER
     balance = data.balance;
     tokens = data.tokens;
     energy = data.energy;
@@ -117,25 +98,25 @@ async function syncUserFromServer() {
     wallet = data.wallet;
     localStorage.setItem("wallet", wallet);
 
+    // 👑 ROLE
     if (data.role === "founder") {
       localStorage.setItem("founder", "yes");
       MAX_ENERGY = 9999;
-      MAX_FREE_TRIES = 9999;
     } else {
       localStorage.removeItem("founder");
       MAX_ENERGY = 100;
-      MAX_FREE_TRIES = 3;
     }
 
     applyProRules();
     updateUI();
+
   } catch (err) {
     console.error("❌ Sync failed", err);
   }
 }
 
 /* =====================================================
-   PRO RULES (BA YA SHAFAR FOUNDER)
+   PRO RULES
 ===================================================== */
 function applyProRules() {
   if (localStorage.getItem("founder") === "yes") return;
@@ -145,19 +126,15 @@ function applyProRules() {
   if (proLevel === 3) MAX_ENERGY = 300;
 
   energy = Math.min(energy, MAX_ENERGY);
-  freeTries = Math.min(freeTries, MAX_FREE_TRIES);
 }
 
 /* =====================================================
    UI UPDATE
 ===================================================== */
 function updateUI() {
-  saveState();
-
   setText("balance", `Balance: ${balance}`);
   setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
-  setText("refCount", `👥 Referrals: ${referralsCount}`);
   setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
 
   const bar = document.getElementById("energyFill");
@@ -172,18 +149,8 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
-function saveState() {
-  localStorage.setItem("balance", balance);
-  localStorage.setItem("tokens", tokens);
-  localStorage.setItem("energy", energy);
-  localStorage.setItem("freeTries", freeTries);
-  localStorage.setItem("proLevel", proLevel);
-  localStorage.setItem("referralsCount", referralsCount);
-  localStorage.setItem("userId", userId);
-}
-
 /* =====================================================
-   BOX GAME (WITH IMAGE)
+   BOX GAME (SERVER CONTROLLED)
 ===================================================== */
 async function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
@@ -204,7 +171,7 @@ async function openBox(box, type) {
       return;
     }
 
-    // UPDATE FROM SERVER
+    // 🔁 UPDATE FROM SERVER
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
@@ -222,10 +189,10 @@ async function openBox(box, type) {
       rewardEl.classList.add("hidden");
       rewardEl.textContent = "";
       openingLocked = false;
-    }, 1800);
+    }, 1600);
 
-  } catch (e) {
-    console.error(e);
+  } catch (err) {
+    console.error(err);
     openingLocked = false;
   }
 }
@@ -239,4 +206,4 @@ function openWallet() {
 
 function openFounderStats() {
   location.href = "/founder-stats.html";
-   }
+}
