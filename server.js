@@ -72,29 +72,24 @@ app.post("/api/user", async (req, res) => {
       });
 
       /* ========== REFERRAL LOGIC (ONCE) ========== */
-      if (ref && !isFounder) {
-        const referrer = await User.findOne({
-          walletAddress: ref
-        });
+if (ref && !isFounder && !user.joinedByRef) {
+  const referrer = await User.findOne({ walletAddress: ref });
 
-        if (referrer && referrer.userId !== userId) {
-          // link who invited this user
-          user.referredBy = referrer.walletAddress;
-          await user.save();
+  // tabbatar ba self-referral ba
+  if (referrer && referrer.userId !== userId) {
+    // link referral
+    user.referredBy = referrer.walletAddress;
+    user.joinedByRef = true;
 
-          // reward referrer
-          referrer.balance += 500;
-          referrer.referralsCount += 1;
+    // update referrer
+    referrer.referrals.push(userId);
+    referrer.referralsCount += 1;
+    referrer.balance += 500;
 
-          // save list of invited users
-          if (!referrer.referrals.includes(userId)) {
-            referrer.referrals.push(userId);
-          }
-
-          await referrer.save();
-        }
-      }
-    }
+    await referrer.save();
+    await user.save();
+  }
+}
 
     /* ================= RESPONSE ================= */
     res.json({
@@ -341,16 +336,23 @@ app.get("/api/founder/stats", async (req, res) => {
 app.get("/api/my-referrals", async (req, res) => {
   try {
     const { userId } = req.query;
-    const user = await User.findOne({ userId });
+    if (!userId) return res.json([]);
 
-    if (!user) return res.json([]);
+    const user = await User.findOne({ userId });
+    if (!user || !user.referrals || user.referrals.length === 0) {
+      return res.json([]);
+    }
 
     const referrals = await User.find({
       userId: { $in: user.referrals }
-    }).select("userId createdAt");
+    })
+      .select("userId createdAt")
+      .sort({ createdAt: -1 });
 
     res.json(referrals);
-  } catch (e) {
+
+  } catch (err) {
+    console.error("MY REFERRALS ERROR:", err);
     res.status(500).json([]);
   }
 });
