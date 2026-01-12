@@ -100,30 +100,47 @@ app.post("/api/user", async (req, res) => {
 
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  try {
+    const { userId, type } = req.body;
 
-  if (user.freeTries > 0) user.freeTries--;
-  else if (user.energy >= 10) user.energy -= 10;
-  else return res.json({ error: "NO_ENERGY" });
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.json({ error: "USER_NOT_FOUND" });
+    }
 
-  let rewards = [0, 100, 200];
-  if (user.proLevel === 2) rewards = [100, 200, 500];
-  if (user.proLevel === 3) rewards = [200, 500, 1000];
-  if (user.proLevel >= 4) rewards = [500, 1000, 2000];
+    // COST
+    if (user.freeTries > 0) {
+      user.freeTries -= 1;
+    } else if (user.energy >= 10) {
+      user.energy -= 10;
+    } else {
+      return res.json({ error: "NO_ENERGY" });
+    }
 
-  const reward = rewards[Math.floor(Math.random() * rewards.length)];
-  user.balance += reward;
+    // REWARD TABLE
+    let rewards = [0, 50, 100];
+    if (type === "gold") rewards = [100, 200, 500];
+    if (type === "diamond") rewards = [300, 500, 1000, 2000];
+    if (user.proLevel >= 3) rewards.push(5000);
 
-  await user.save();
+    const reward =
+      rewards[Math.floor(Math.random() * rewards.length)];
 
-  res.json({
-    reward,
-    balance: user.balance,
-    energy: user.energy,
-    freeTries: user.freeTries
-  });
+    user.balance += reward;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward,
+      balance: user.balance,
+      energy: user.energy,
+      freeTries: user.freeTries
+    });
+  } catch (err) {
+    console.error("OPEN BOX ERROR", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 /* ================= DAILY BONUS ================= */
