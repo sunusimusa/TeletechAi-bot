@@ -38,58 +38,51 @@ function generateWallet() {
 app.post("/api/user", async (req, res) => {
   try {
     const { userId, ref } = req.body;
-    if (!userId) return res.json({ error: "INVALID_USER_ID" });
+    if (!userId) return res.json({ error: "INVALID_USER" });
 
     let user = await User.findOne({ userId });
 
+    // CREATE USER
     if (!user) {
-      const isFounder = userId === FOUNDER_USER_ID;
+      const wallet =
+        "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
       user = await User.create({
         userId,
-        walletAddress: generateWallet(),
-
-        balance: 0,
-        tokens: 0,
-
-        energy: isFounder ? 9999 : 50,
-        freeTries: isFounder ? 9999 : 3,
-
-        proLevel: isFounder ? 4 : 0,
-        isPro: isFounder,
-        role: isFounder ? "founder" : "user",
-
-        referralsCount: 0,
-        referredBy: ref || null,
-
-        tasks: {
-          channel: false,
-          group: false,
-          youtube: false
-        }
+        walletAddress: wallet
       });
 
-      // 🎁 REFERRAL BONUS (wallet-based)
+      // ✅ REFERRAL LOGIC (ONCE)
       if (ref) {
-        const refUser = await User.findOne({ walletAddress: ref });
-        if (refUser) {
-          refUser.balance += 500;
-          refUser.referralsCount += 1;
-          await refUser.save();
+        const referrer = await User.findOne({
+          walletAddress: ref
+        });
+
+        if (referrer && referrer.userId !== userId) {
+          // link
+          user.referredBy = referrer.walletAddress;
+
+          // reward
+          referrer.balance += 500;
+          referrer.referralsCount += 1;
+          referrer.referrals.push(userId);
+
+          await referrer.save();
+          await user.save();
         }
       }
     }
 
     res.json({
+      success: true,
       userId: user.userId,
       wallet: user.walletAddress,
       balance: user.balance,
-      tokens: user.tokens,
       energy: user.energy,
       freeTries: user.freeTries,
-      proLevel: user.proLevel,
-      role: user.role,
-      referralsCount: user.referralsCount
+      tokens: user.tokens,
+      referralsCount: user.referralsCount,
+      role: user.role
     });
 
   } catch (err) {
