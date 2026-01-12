@@ -185,3 +185,36 @@ function openBox(box, type) {
     openingLocked = false;
   }, 1800);
 }
+
+function applyUserLimits() {
+  const userId = localStorage.getItem("userId");
+
+  let maxEnergy, maxFreeTries;
+
+  if (userId === FOUNDER_USER_ID) {
+    // 👑 FOUNDER
+    maxEnergy = 9999;
+    maxFreeTries = 9999;
+  } else {
+    // 👤 NORMAL USER
+    maxEnergy = 100;
+    maxFreeTries = 3;
+  }
+
+  // adana limits
+  localStorage.setItem("maxEnergy", maxEnergy);
+  localStorage.setItem("maxFreeTries", maxFreeTries);
+
+  // gyara current values idan sun wuce limit
+  let energy = Number(localStorage.getItem("energy")) || maxEnergy;
+  let freeTries = Number(localStorage.getItem("freeTries")) || maxFreeTries;
+
+  if (energy > maxEnergy) energy = maxEnergy;
+  if (freeTries > maxFreeTries) freeTries = maxFreeTries;
+
+  localStorage.setItem("energy", energy);
+  localStorage.setItem("freeTries", freeTries);
+
+  // sabunta UI
+  updateStatsUI();
+}
