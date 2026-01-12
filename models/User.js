@@ -2,8 +2,8 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema({
 
-  // ===== IDENTITY =====
-  telegramId: {
+  /* ===== IDENTITY ===== */
+  userId: {
     type: String,
     unique: true,
     index: true,
@@ -14,75 +14,42 @@ const UserSchema = new mongoose.Schema({
     default: ""
   },
 
-  // ===== REFERRAL =====
-  referredBy: {
-    type: String,
-    default: null
-  },
-  referrals: {
-    type: [String],
-    default: []
-  },
-  referralsCount: {
-    type: Number,
-    default: 0
-  },
-  seasonReferrals: {
-    type: Number,
-    default: 0
-  },
-
-  // ===== GAME =====
-  balance: { type: Number, default: 0 },
-  energy: { type: Number, default: 100 },
-  lastEnergy: { type: Number, default: () => Date.now() },
-  freeTries: { type: Number, default: 3 },
-  tokens: { type: Number, default: 0 },
-
-  // ===== WALLET =====
+  /* ===== WALLET ===== */
   walletAddress: {
     type: String,
     unique: true,
     sparse: true
   },
 
-  // ===== PRO =====
-  isPro: { type: Boolean, default: false },
-  proLevel: { type: Number, default: 0 },
-  proSince: { type: Number, default: null },
+  /* ===== REFERRAL ===== */
+  referredBy: { type: String, default: null },
+  referrals: { type: [String], default: [] },
+  referralsCount: { type: Number, default: 0 },
+  joinedByRef: { type: Boolean, default: false },
 
-  // ===== ROLE =====
+  /* ===== GAME ===== */
+  balance: { type: Number, default: 0 },
+  energy: { type: Number, default: 50 },
+  freeTries: { type: Number, default: 3 },
+  tokens: { type: Number, default: 0 },
+
+  /* ===== PRO / ROLE ===== */
+  proLevel: { type: Number, default: 0 }, // 0–3 user, 4 founder
   role: {
     type: String,
     enum: ["user", "founder"],
     default: "user"
   },
 
-  // ===== ADS =====
+  /* ===== ADS ===== */
   adsWatchedToday: { type: Number, default: 0 },
-  lastAd: { type: Number, default: 0 },
-  lastAdClaim: { type: Number, default: 0 },
+  lastAdDay: { type: String, default: "" },
 
-  // ===== TRANSFERS =====
-  sentTokens: { type: Number, default: 0 },
-  receivedTokens: { type: Number, default: 0 },
-  sentToday: { type: Number, default: 0 },
-  lastSentDay: { type: String, default: "" },
-  lastTransferAt: { type: Number, default: 0 },
-  lastTransferDay: { type: String, default: "" },
-
-  // ===== DAILY =====
+  /* ===== DAILY ===== */
   dailyStreak: { type: Number, default: 0 },
   lastDaily: { type: Number, default: 0 },
 
-  // ===== TASKS =====
-  joinedChannel: { type: Boolean, default: false },
-  joinedYoutube: { type: Boolean, default: false },
-  joinedGroup: { type: Boolean, default: false },
-  watchAd: { type: Boolean, default: false },
-
-  // ===== WITHDRAW =====
-  withdrawn: { type: Number, default: 0 },
+  /* ===== WITHDRAW ===== */
   withdrawals: [
     {
       amount: Number,
@@ -94,7 +61,18 @@ const UserSchema = new mongoose.Schema({
       },
       createdAt: { type: Date, default: Date.now }
     }
-  ]
+  ],
+
+  /* ===== META ===== */
+  createdFrom: {
+    type: String,
+    enum: ["web", "playstore", "telegram"],
+    default: "web"
+  },
+  lastLogin: {
+    type: Date,
+    default: Date.now
+  }
 
 }, { timestamps: true });
 
