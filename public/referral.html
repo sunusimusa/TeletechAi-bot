@@ -31,11 +31,25 @@
 
 <button onclick="history.back()">⬅ Back</button>
 
-<ul id="refList"></ul>
-
 <script>
+const wallet = localStorage.getItem("wallet");
+
+// 🔗 SET REF LINK
+if (wallet) {
+  document.getElementById("refLink").value =
+    location.origin + "/?ref=" + wallet;
+}
+
+// 📋 COPY
+function copyRef() {
+  navigator.clipboard.writeText(
+    document.getElementById("refLink").value
+  );
+  alert("Referral link copied");
+}
+
+// 👥 LOAD REFERRALS
 async function loadReferrals() {
-  const wallet = localStorage.getItem("wallet");
   if (!wallet) return;
 
   try {
@@ -43,16 +57,21 @@ async function loadReferrals() {
     const data = await res.json();
 
     const list = document.getElementById("refList");
+    const count = document.getElementById("refCount");
+
     list.innerHTML = "";
 
     if (!data || data.length === 0) {
       list.innerHTML = "<li>No referrals yet</li>";
+      count.innerText = "Referrals: 0";
       return;
     }
 
+    count.innerText = "Referrals: " + data.length;
+
     data.forEach((u, i) => {
       const li = document.createElement("li");
-      li.textContent = `#${i + 1} User: ${u.userId || "User"}`;
+      li.textContent = `#${i + 1} User ID: ${u.userId}`;
       list.appendChild(li);
     });
 
@@ -64,5 +83,6 @@ async function loadReferrals() {
 
 loadReferrals();
 </script>
+
 </body>
 </html>
