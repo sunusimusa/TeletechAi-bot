@@ -185,43 +185,49 @@ function saveState() {
 /* =====================================================
    BOX GAME (WITH IMAGE)
 ===================================================== */
-function openBox(box, type) {
+async function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
-  // COST
-  if (freeTries > 0) freeTries--;
-  else if (energy >= 10) energy -= 10;
-  else {
-    alert("❌ Not enough energy");
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, type })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("❌ " + data.error);
+      openingLocked = false;
+      return;
+    }
+
+    // UPDATE FROM SERVER
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+
+    const rewardEl = box.querySelector(".reward");
+    box.classList.add("opened");
+    rewardEl.textContent =
+      data.reward > 0 ? `💰 +${data.reward}` : "😢 Empty";
+    rewardEl.classList.remove("hidden");
+
+    updateUI();
+
+    setTimeout(() => {
+      box.classList.remove("opened");
+      rewardEl.classList.add("hidden");
+      rewardEl.textContent = "";
+      openingLocked = false;
+    }, 1800);
+
+  } catch (e) {
+    console.error(e);
     openingLocked = false;
-    return;
   }
-
-  // REWARDS
-  let rewards = [0, 50, 100];
-  if (type === "gold") rewards = [100, 200, 500];
-  if (type === "diamond") rewards = [300, 500, 1000, 2000];
-  if (proLevel >= 3) rewards.push(5000);
-
-  const reward =
-    rewards[Math.floor(Math.random() * rewards.length)];
-  balance += reward;
-
-  const rewardEl = box.querySelector(".reward");
-  box.classList.add("opened");
-  rewardEl.textContent =
-    reward > 0 ? `💰 +${reward}` : "😢 Empty";
-  rewardEl.classList.remove("hidden");
-
-  updateUI();
-
-  setTimeout(() => {
-    box.classList.remove("opened");
-    rewardEl.classList.add("hidden");
-    rewardEl.textContent = "";
-    openingLocked = false;
-  }, 1800);
 }
 
 /* =====================================================
