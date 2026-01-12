@@ -32,52 +32,52 @@
 <button onclick="history.back()">⬅ Back</button>
 
 <script>
-const wallet = localStorage.getItem("wallet");
+const USER_ID = localStorage.getItem("userId");
+const WALLET = localStorage.getItem("wallet");
 
-// 🔗 SET REF LINK
-if (wallet) {
+// set referral link
+if (WALLET) {
   document.getElementById("refLink").value =
-    location.origin + "/?ref=" + wallet;
+    location.origin + "/?ref=" + WALLET;
 }
 
-// 📋 COPY
+// copy referral link
 function copyRef() {
-  navigator.clipboard.writeText(
-    document.getElementById("refLink").value
-  );
-  alert("Referral link copied");
+  const input = document.getElementById("refLink");
+  input.select();
+  input.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(input.value);
+  alert("✅ Referral link copied");
 }
 
-// 👥 LOAD REFERRALS
+// load referrals from backend
 async function loadReferrals() {
-  if (!wallet) return;
+  if (!USER_ID) return;
 
   try {
-    const res = await fetch(`/api/my-referrals?wallet=${wallet}`);
+    const res = await fetch(`/api/my-referrals?userId=${USER_ID}`);
     const data = await res.json();
 
     const list = document.getElementById("refList");
     const count = document.getElementById("refCount");
 
+    count.innerText = "Referrals: " + data.length;
     list.innerHTML = "";
 
     if (!data || data.length === 0) {
       list.innerHTML = "<li>No referrals yet</li>";
-      count.innerText = "Referrals: 0";
       return;
     }
 
-    count.innerText = "Referrals: " + data.length;
-
     data.forEach((u, i) => {
       const li = document.createElement("li");
-      li.textContent = `#${i + 1} User ID: ${u.userId}`;
+      li.textContent = `#${i + 1} ${u.userId}`;
       list.appendChild(li);
     });
 
-  } catch (e) {
+  } catch (err) {
     document.getElementById("refList").innerHTML =
-      "<li>Error loading referrals</li>";
+      "<li>❌ Error loading referrals</li>";
   }
 }
 
