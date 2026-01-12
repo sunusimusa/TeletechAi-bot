@@ -40,40 +40,56 @@ app.post("/api/user", async (req, res) => {
     const { userId, ref } = req.body;
     if (!userId) return res.json({ error: "INVALID_USER" });
 
+    const isFounder = userId === FOUNDER_USER_ID;
+
     let user = await User.findOne({ userId });
 
     /* ================= CREATE USER ================= */
     if (!user) {
+      const wallet =
+        "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+
       user = await User.create({
         userId,
-        walletAddress: generateWallet(),
-        role: userId === FOUNDER_USER_ID ? "founder" : "user"
+        walletAddress: wallet,
+
+        role: isFounder ? "founder" : "user",
+        proLevel: isFounder ? 4 : 0,
+
+        energy: isFounder ? 9999 : 100,
+        freeTries: isFounder ? 9999 : 3,
+        balance: 0,
+        tokens: 0,
+
+        referrals: [],
+        referralsCount: 0,
+        referredBy: null
       });
+
+      /* ========== REFERRAL (ONLY ONCE, NON-FOUNDER) ========== */
+      if (ref && !isFounder) {
+        const referrer = await User.findOne({ walletAddress: ref });
+
+        if (referrer && referrer.userId !== userId) {
+          user.referredBy = referrer.walletAddress;
+
+          referrer.referrals.push(userId);
+          referrer.referralsCount += 1;
+          referrer.balance += 500;
+
+          await referrer.save();
+          await user.save();
+        }
+      }
     }
 
-    /* ================= REFERRAL (ONCE ONLY) ================= */
-    if (
-      ref &&                              // akwai referral
-      !user.joinedByRef &&                // bai taba shiga ba
-      user.walletAddress !== ref          // ba self-ref ba
-    ) {
-      const referrer = await User.findOne({
-        walletAddress: ref
-      });
-
-      if (referrer && referrer.userId !== user.userId) {
-        // 🔗 link
-        user.referredBy = referrer.walletAddress;
-        user.joinedByRef = true;
-
-        // 🎁 rewards
-        referrer.balance += 500;
-        referrer.referralsCount += 1;
-        referrer.referrals.push(user.userId);
-
-        await referrer.save();
-        await user.save();
-      }
+    /* ================= ENSURE FOUNDER STAYS FOUNDER ================= */
+    if (isFounder && user.role !== "founder") {
+      user.role = "founder";
+      user.proLevel = 4;
+      user.energy = 9999;
+      user.freeTries = 9999;
+      await user.save();
     }
 
     /* ================= RESPONSE ================= */
