@@ -15,7 +15,8 @@ if (!userId) {
 let wallet = localStorage.getItem("wallet");
 
 let balance = Number(localStorage.getItem("balance")) || 0;
-let tokens = Number(localStorage.getItem("tokens")) || 10;
+let tokens = Number(localStorage.getItem("tokens"));
+if (tokens === null || isNaN(tokens)) tokens = 0;
 let energy = Number(localStorage.getItem("energy")) || 50;
 let freeTries = Number(localStorage.getItem("freeTries")) || 3;
 let referralsCount = Number(localStorage.getItem("referralsCount")) || 0;
@@ -37,6 +38,7 @@ if (userId === FOUNDER_USER_ID) {
   MAX_ENERGY = 9999;
   MAX_FREE_TRIES = 9999;
   energy = 9999;
+   tokens = 999; // founder tokens
   freeTries = 9999;
   localStorage.setItem("founder", "yes");
 } else {
