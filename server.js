@@ -188,30 +188,72 @@ app.post("/api/daily", async (req, res) => {
 
 /* ================= WATCH ADS ================= */
 app.post("/api/ads/watch", async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (user.lastAdDay !== today) {
-    user.adsWatchedToday = 0;
-    user.lastAdDay = today;
+    const today = new Date().toISOString().slice(0, 10);
+
+    // reset daily counter
+    if (user.lastAdDay !== today) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = today;
+    }
+
+    if (user.adsWatchedToday >= 5) {
+      return res.json({ error: "DAILY_LIMIT" });
+    }
+
+    // mark ad as watched (claimable)
+    user.watchAd = true;
+    await user.save();
+
+    res.json({ success: true });
+
+  } catch (e) {
+    res.status(500).json({ error: "SERVER_ERROR" });
   }
+});
 
-  if (user.adsWatchedToday >= 5)
-    return res.json({ error: "DAILY_LIMIT" });
+app.post("/api/ads/claim", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  user.adsWatchedToday += 1;
-  user.energy += 20;
-  user.balance += 100;
+    if (!user.watchAd) {
+      return res.json({ error: "WATCH_FIRST" });
+    }
 
-  await user.save();
+    const today = new Date().toISOString().slice(0, 10);
+    if (user.lastAdDay !== today) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = today;
+    }
 
-  res.json({
-    energy: user.energy,
-    balance: user.balance,
-    adsLeft: 5 - user.adsWatchedToday
-  });
+    if (user.adsWatchedToday >= 5) {
+      return res.json({ error: "DAILY_LIMIT" });
+    }
+
+    // REWARD
+    user.adsWatchedToday += 1;
+    user.energy += 20;
+    user.balance += 200;
+    user.watchAd = false;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy,
+      balance: user.balance,
+      adsLeft: 5 - user.adsWatchedToday
+    });
+
+  } catch (e) {
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
 });
 
 /* ================= TOKEN MARKET ================= */
