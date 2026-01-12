@@ -38,47 +38,46 @@ function generateWallet() {
 app.post("/api/user", async (req, res) => {
   try {
     const { userId, ref } = req.body;
-    if (!userId) {
-      return res.json({ error: "INVALID_USER" });
-    }
+    if (!userId) return res.json({ error: "INVALID_USER" });
 
     let user = await User.findOne({ userId });
-    const isFounder = userId === FOUNDER_USER_ID;
 
-    /* ===== CREATE USER ===== */
+    /* ================= CREATE USER ================= */
     if (!user) {
       user = await User.create({
         userId,
         walletAddress: generateWallet(),
-        role: isFounder ? "founder" : "user",
-        proLevel: isFounder ? 4 : 0,
-        isPro: isFounder,
-        energy: isFounder ? 9999 : 100,
-        freeTries: isFounder ? 9999 : 3
+        role: userId === FOUNDER_USER_ID ? "founder" : "user"
+      });
+    }
+
+    /* ================= REFERRAL (ONCE ONLY) ================= */
+    if (
+      ref &&                              // akwai referral
+      !user.joinedByRef &&                // bai taba shiga ba
+      user.walletAddress !== ref          // ba self-ref ba
+    ) {
+      const referrer = await User.findOne({
+        walletAddress: ref
       });
 
-      /* ===== REFERRAL LOGIC (ONCE) ===== */
-      if (ref && !isFounder && !user.joinedByRef) {
-        const referrer = await User.findOne({
-          walletAddress: ref
-        });
+      if (referrer && referrer.userId !== user.userId) {
+        // 🔗 link
+        user.referredBy = referrer.walletAddress;
+        user.joinedByRef = true;
 
-        if (referrer && referrer.userId !== userId) {
-          user.referredBy = referrer.walletAddress;
-          user.joinedByRef = true;
+        // 🎁 rewards
+        referrer.balance += 500;
+        referrer.referralsCount += 1;
+        referrer.referrals.push(user.userId);
 
-          referrer.referrals.push(userId);
-          referrer.referralsCount += 1;
-          referrer.balance += 500;
-
-          await referrer.save();
-          await user.save();
-        }
+        await referrer.save();
+        await user.save();
       }
     }
 
-    /* ===== RESPONSE ===== */
-    return res.json({
+    /* ================= RESPONSE ================= */
+    res.json({
       success: true,
       userId: user.userId,
       wallet: user.walletAddress,
@@ -87,12 +86,13 @@ app.post("/api/user", async (req, res) => {
       freeTries: user.freeTries,
       tokens: user.tokens,
       referralsCount: user.referralsCount,
+      proLevel: user.proLevel,
       role: user.role
     });
 
   } catch (err) {
-    console.error("API /user ERROR:", err);
-    return res.status(500).json({ error: "SERVER_ERROR" });
+    console.error("USER API ERROR:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
