@@ -23,65 +23,62 @@ const msg = document.getElementById("taskMsg");
    WATCH AD TASK
 ================================ */
 let adTimer = null;
+let adTimeLeft = 30;
 
-function watchAd() {
+async function watchAd() {
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
 
-  let timeLeft = 30;
+  if (!btn || !status) return;
 
   btn.disabled = true;
   btn.innerText = "Watching...";
   status.classList.remove("hidden");
-  status.innerText = `⏳ Watching ad... ${timeLeft}s`;
 
-  adTimer = setInterval(() => {
-    timeLeft--;
-    status.innerText = `⏳ Watching ad... ${timeLeft}s`;
+  adTimeLeft = 30;
+  status.innerText = `⏳ Watching ad... ${adTimeLeft}s`;
 
-    if (timeLeft <= 0) {
+  adTimer = setInterval(async () => {
+    adTimeLeft--;
+
+    status.innerText = `⏳ Watching ad... ${adTimeLeft}s`;
+
+    if (adTimeLeft <= 0) {
       clearInterval(adTimer);
 
-      // 🎁 REWARD
-      energy += 20;
-      balance += 200;
+      // 📡 CLAIM FROM SERVER
+      try {
+        const res = await fetch("/api/ads/watch", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: localStorage.getItem("userId")
+          })
+        });
 
-      updateUI();
+        const data = await res.json();
 
-      status.innerText = "✅ Ad completed! Reward added";
-      btn.innerText = "📺 Watch Ad (+20 ⚡ +200 💰)";
+        if (data.error) {
+          status.innerText = "❌ Ad limit reached";
+        } else {
+          status.innerText = "✅ +20 ⚡ +100 💰 added!";
+          balance = data.balance;
+          energy = data.energy;
+          updateUI();
+        }
+
+      } catch (e) {
+        status.innerText = "❌ Network error";
+      }
+
       btn.disabled = false;
+      btn.innerText = "📺 Watch Ad (+20 ⚡ +100 💰)";
 
       setTimeout(() => {
         status.classList.add("hidden");
-      }, 2000);
+      }, 2500);
     }
   }, 1000);
-}
-
-/* ===============================
-   SOCIAL TASK (YT / TG)
-================================ */
-async function completeSocialTask(type) {
-  msg.innerText = "⏳ Verifying task...";
-
-  // delay don ya bude link sosai
-  setTimeout(async () => {
-    const res = await fetch("/api/task/social", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, type })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      msg.innerText = "❌ Task already done";
-      return;
-    }
-
-    msg.innerText = "🎉 +300 Coins added!";
-  }, 3000);
 }
 
 /* ===============================
