@@ -13,11 +13,8 @@
 <div class="energy-shop">
   <p>Your referral link:</p>
 
-  <input
-    id="refLink"
-    readonly
-    style="width:100%;padding:10px;border-radius:12px;border:none;"
-  />
+  <input id="refLink" readonly
+    style="width:100%;padding:10px;border-radius:12px;border:none;" />
 
   <button onclick="copyRef()">📋 Copy</button>
 
@@ -33,52 +30,43 @@
 
 <script>
 const USER_ID = localStorage.getItem("userId");
-const WALLET = localStorage.getItem("wallet");
+const wallet = localStorage.getItem("wallet");
 
-// set referral link
-if (WALLET) {
-  document.getElementById("refLink").value =
-    location.origin + "/?ref=" + WALLET;
-}
+document.getElementById("refLink").value =
+  location.origin + "/?ref=" + wallet;
 
-// copy referral link
 function copyRef() {
-  const input = document.getElementById("refLink");
-  input.select();
-  input.setSelectionRange(0, 99999);
-  navigator.clipboard.writeText(input.value);
-  alert("✅ Referral link copied");
+  navigator.clipboard.writeText(
+    document.getElementById("refLink").value
+  );
+  alert("Referral link copied!");
 }
 
-// load referrals from backend
 async function loadReferrals() {
-  if (!USER_ID) return;
+  const res = await fetch(`/api/my-referrals?userId=${USER_ID}`);
+  const data = await res.json();
 
-  try {
-    const res = await fetch(`/api/my-referrals?userId=${USER_ID}`);
-    const data = await res.json();
+  const list = document.getElementById("refList");
+  const count = document.getElementById("refCount");
 
-    const list = document.getElementById("refList");
-    const count = document.getElementById("refCount");
+  list.innerHTML = "";
+  count.innerText = "Referrals: " + data.length;
 
-    count.innerText = "Referrals: " + data.length;
-    list.innerHTML = "";
-
-    if (!data || data.length === 0) {
-      list.innerHTML = "<li>No referrals yet</li>";
-      return;
-    }
-
-    data.forEach((u, i) => {
-      const li = document.createElement("li");
-      li.textContent = `#${i + 1} ${u.userId}`;
-      list.appendChild(li);
-    });
-
-  } catch (err) {
-    document.getElementById("refList").innerHTML =
-      "<li>❌ Error loading referrals</li>";
+  if (data.length === 0) {
+    list.innerHTML = "<li>No referrals yet</li>";
+    return;
   }
+
+  data.forEach((u, i) => {
+    const li = document.createElement("li");
+    const date = new Date(u.createdAt).toLocaleDateString();
+
+    li.innerHTML = `
+      <strong>#${i + 1}</strong> ${u.userId}
+      <br><small>Joined: ${date}</small>
+    `;
+    list.appendChild(li);
+  });
 }
 
 loadReferrals();
