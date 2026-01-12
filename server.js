@@ -313,19 +313,17 @@ app.get("/api/founder/stats", async (req, res) => {
 
 app.get("/api/my-referrals", async (req, res) => {
   try {
-    const { wallet } = req.query;
-    if (!wallet) return res.json([]);
+    const { userId } = req.query;
+    const user = await User.findOne({ userId });
 
-    const user = await User.findOne({ walletAddress: wallet });
     if (!user) return res.json([]);
 
     const referrals = await User.find({
-      referredBy: wallet
-    }).select("userId walletAddress");
+      userId: { $in: user.referrals }
+    }).select("userId createdAt");
 
     res.json(referrals);
-  } catch (err) {
-    console.error(err);
+  } catch (e) {
     res.status(500).json([]);
   }
 });
