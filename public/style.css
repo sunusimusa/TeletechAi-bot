@@ -241,54 +241,62 @@ a {
   display: none !important;
   }
 
-/* ================= 3D FLIP ================= */
+.boxes {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  max-width: 360px;
+  margin: 20px auto;
+  padding: 16px;
+  border-radius: 20px;
+  background: rgba(0,0,0,.35);
+}
+
 .box {
-  perspective: 1000px;
-}
-
-.box-inner {
-  width: 100%;
-  height: 100%;
+  height: 90px;
+  border-radius: 16px;
+  cursor: pointer;
   position: relative;
-  transform-style: preserve-3d;
-  transition: transform .8s ease;
-}
 
-.box.opened .box-inner {
-  transform: rotateY(180deg);
-}
-
-.box-front,
-.box-back {
-  position: absolute;
-  inset: 0;
-  backface-visibility: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-}
 
-.box-front {
-  background: transparent;
-}
+  background: linear-gradient(145deg, #2a1a00, #120800);
+  border: 2px solid rgba(255,215,0,.4);
 
-.box-back {
-  background: linear-gradient(145deg, #ffd700, #ffb300);
-  transform: rotateY(180deg);
-  border-radius: 18px;
-}
-
-/* reward style */
-.box-back .reward {
-  font-size: 18px;
   font-weight: 800;
+  font-size: 16px;
+  color: #ffd700;
+
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.box:active {
+  transform: scale(0.96);
+}
+
+/* box types */
+.box.silver { color: #e0e0e0; }
+.box.gold { color: #ffd700; }
+.box.diamond { color: #7ffcff; }
+
+/* opened */
+.box.opened {
+  background: linear-gradient(145deg, #ffd700, #ffb300);
   color: #000;
 }
 
-#adStatus {
-  margin-top: 12px;
-  font-weight: bold;
-  color: gold;
+.reward {
+  position: absolute;
+  font-size: 18px;
+  font-weight: 900;
+  animation: pop .4s ease;
+}
+
+@keyframes pop {
+  from { transform: scale(.7); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
 }
 
 .hidden {
