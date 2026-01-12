@@ -284,3 +284,13 @@ a {
   font-weight: 800;
   color: #000;
 }
+
+#adStatus {
+  margin-top: 12px;
+  font-weight: bold;
+  color: gold;
+}
+
+.hidden {
+  display: none;
+}
