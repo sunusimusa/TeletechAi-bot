@@ -1,42 +1,41 @@
 /* =====================================================
-   GLOBAL STATE (CLEAN – ONE SOURCE)
+   CLEAN FINAL FRONTEND (SERVER = SOURCE OF TRUTH)
 ===================================================== */
 
-// 👑 Founder ID (KAI KADAI)
+/* ================= CONFIG ================= */
 const FOUNDER_USER_ID = "SUNUSI_001";
 
-// 👤 USER ID (BA A SA FOUNDER DEFAULT)
+/* ================= USER ID ================= */
 let userId = localStorage.getItem("userId");
 if (!userId) {
-  userId = "USER_" + Math.random().toString(36).substring(2, 10);
+  userId =
+    "USER_" +
+    Date.now() +
+    "_" +
+    Math.random().toString(36).substring(2, 6);
   localStorage.setItem("userId", userId);
 }
 
-// WALLET (DISPLAY ONLY)
-let wallet = localStorage.getItem("wallet");
-
-// GAME STATE (DAGA SERVER)
+/* ================= STATE (FROM SERVER) ================= */
+let wallet = "";
 let balance = 0;
-let tokens = 0;
 let energy = 0;
+let tokens = 0;
 let freeTries = 0;
 let proLevel = 0;
-let MAX_ENERGY = 100;
+let referralsCount = 0;
 
+let MAX_ENERGY = 100;
+let MAX_FREE_TRIES = 3;
 let openingLocked = false;
 
-/* =====================================================
-   INIT
-===================================================== */
-document.addEventListener("DOMContentLoaded", () => {
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", async () => {
   agreementInit();
-  ensureWallet();
-  syncUserFromServer(); // 👈 gaskiya daga backend
+  await syncUserFromServer();
 });
 
-/* =====================================================
-   AGREEMENT
-===================================================== */
+/* ================= AGREEMENT ================= */
 function agreementInit() {
   const modal = document.getElementById("agreementModal");
   const btn = document.getElementById("agreeBtn");
@@ -54,88 +53,58 @@ function agreementInit() {
   };
 }
 
-/* =====================================================
-   WALLET (FRONTEND DISPLAY)
-===================================================== */
-function ensureWallet() {
-  if (!wallet) {
-    wallet =
-      "TTECH-" +
-      Math.random().toString(36).substring(2, 10).toUpperCase();
-    localStorage.setItem("wallet", wallet);
-  }
-
-  const refLink = document.getElementById("refLink");
-  if (refLink) {
-    refLink.value = location.origin + "/?ref=" + wallet;
-  }
-}
-
-/* =====================================================
-   SYNC USER FROM SERVER (SOURCE OF TRUTH)
-===================================================== */
+/* ================= SYNC USER ================= */
 async function syncUserFromServer() {
   try {
+    const params = new URLSearchParams(location.search);
+    const ref = params.get("ref"); // referral wallet (optional)
+
     const res = await fetch("/api/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId })
+      body: JSON.stringify({ userId, ref })
     });
 
     const data = await res.json();
     if (data.error) {
-      alert("❌ Failed to load user");
+      console.error("User sync error:", data.error);
       return;
     }
 
-    // 🔁 UPDATE STATE FROM SERVER
+    // SERVER = TRUTH
+    wallet = data.wallet;
     balance = data.balance;
-    tokens = data.tokens;
     energy = data.energy;
+    tokens = data.tokens;
     freeTries = data.freeTries;
     proLevel = data.proLevel;
+    referralsCount = data.referralsCount || 0;
 
-    wallet = data.wallet;
-    localStorage.setItem("wallet", wallet);
-
-    // 👑 ROLE
-    if (data.role === "founder") {
-      localStorage.setItem("founder", "yes");
+    if (data.role === "founder" || userId === FOUNDER_USER_ID) {
       MAX_ENERGY = 9999;
+      MAX_FREE_TRIES = 9999;
     } else {
-      localStorage.removeItem("founder");
       MAX_ENERGY = 100;
+      MAX_FREE_TRIES = 3;
+      if (proLevel === 1) MAX_ENERGY = 150;
+      if (proLevel === 2) MAX_ENERGY = 200;
+      if (proLevel === 3) MAX_ENERGY = 300;
     }
 
-    applyProRules();
     updateUI();
-
-  } catch (err) {
-    console.error("❌ Sync failed", err);
+    fillReferralLink();
+  } catch (e) {
+    console.error("Sync failed", e);
   }
 }
 
-/* =====================================================
-   PRO RULES
-===================================================== */
-function applyProRules() {
-  if (localStorage.getItem("founder") === "yes") return;
-
-  if (proLevel === 1) MAX_ENERGY = 150;
-  if (proLevel === 2) MAX_ENERGY = 200;
-  if (proLevel === 3) MAX_ENERGY = 300;
-
-  energy = Math.min(energy, MAX_ENERGY);
-}
-
-/* =====================================================
-   UI UPDATE
-===================================================== */
+/* ================= UI ================= */
 function updateUI() {
   setText("balance", `Balance: ${balance}`);
   setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
   setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
+  setText("refCount", `👥 Referrals: ${referralsCount}`);
 
   const bar = document.getElementById("energyFill");
   if (bar) {
@@ -149,9 +118,23 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
-/* =====================================================
-   BOX GAME (SERVER CONTROLLED)
-===================================================== */
+/* ================= REFERRAL ================= */
+function fillReferralLink() {
+  const refLink = document.getElementById("refLink");
+  if (refLink && wallet) {
+    refLink.value = location.origin + "/?ref=" + wallet;
+  }
+}
+
+function copyRef() {
+  const input = document.getElementById("refLink");
+  if (!input) return;
+  input.select();
+  document.execCommand("copy");
+  alert("✅ Referral link copied");
+}
+
+/* ================= OPEN BOX ================= */
 async function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
@@ -164,14 +147,13 @@ async function openBox(box, type) {
     });
 
     const data = await res.json();
-
     if (data.error) {
       alert("❌ " + data.error);
       openingLocked = false;
       return;
     }
 
-    // 🔁 UPDATE FROM SERVER
+    // update from server
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
@@ -189,17 +171,66 @@ async function openBox(box, type) {
       rewardEl.classList.add("hidden");
       rewardEl.textContent = "";
       openingLocked = false;
-    }, 1600);
-
-  } catch (err) {
-    console.error(err);
+    }, 1500);
+  } catch (e) {
+    console.error(e);
     openingLocked = false;
   }
 }
 
-/* =====================================================
-   NAVIGATION
-===================================================== */
+/* ================= ADS ================= */
+let adTimer = null;
+
+async function watchAd() {
+  const btn = document.getElementById("watchAdBtn");
+  const status = document.getElementById("adStatus");
+
+  if (!btn || !status) return;
+
+  btn.disabled = true;
+  let timeLeft = 30;
+  status.classList.remove("hidden");
+  status.innerText = `⏳ Watching ad... ${timeLeft}s`;
+
+  adTimer = setInterval(() => {
+    timeLeft--;
+    status.innerText = `⏳ Watching ad... ${timeLeft}s`;
+
+    if (timeLeft <= 0) {
+      clearInterval(adTimer);
+      claimAdReward(btn, status);
+    }
+  }, 1000);
+}
+
+async function claimAdReward(btn, status) {
+  try {
+    const res = await fetch("/api/ads/watch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      status.innerText = "❌ " + data.error;
+    } else {
+      energy = data.energy;
+      balance = data.balance;
+      updateUI();
+      status.innerText = "✅ Reward added!";
+    }
+  } catch (e) {
+    status.innerText = "❌ Error";
+  }
+
+  setTimeout(() => {
+    status.classList.add("hidden");
+    btn.disabled = false;
+  }, 2000);
+}
+
+/* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
 }
