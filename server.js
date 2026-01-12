@@ -38,55 +38,82 @@ function generateWallet() {
 app.post("/api/user", async (req, res) => {
   try {
     const { userId, ref } = req.body;
-    if (!userId) return res.json({ error: "INVALID_USER" });
+    if (!userId) {
+      return res.json({ error: "INVALID_USER" });
+    }
 
     let user = await User.findOne({ userId });
 
-    // CREATE USER
+    /* ================= CREATE USER ================= */
     if (!user) {
       const wallet =
         "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 
+      const isFounder = userId === FOUNDER_USER_ID;
+
       user = await User.create({
         userId,
-        walletAddress: wallet
+        walletAddress: wallet,
+
+        // 🎮 GAME DEFAULTS
+        balance: 0,
+        tokens: 0,
+        energy: isFounder ? 9999 : 50,
+        freeTries: isFounder ? 9999 : 3,
+
+        // 👑 ROLE
+        proLevel: isFounder ? 4 : 0,
+        role: isFounder ? "founder" : "user",
+
+        // 🔗 REFERRAL
+        referrals: [],
+        referralsCount: 0,
+        referredBy: null
       });
 
-      // ✅ REFERRAL LOGIC (ONCE)
-      if (ref) {
+      /* ========== REFERRAL LOGIC (ONCE) ========== */
+      if (ref && !isFounder) {
         const referrer = await User.findOne({
           walletAddress: ref
         });
 
         if (referrer && referrer.userId !== userId) {
-          // link
+          // link who invited this user
           user.referredBy = referrer.walletAddress;
+          await user.save();
 
-          // reward
+          // reward referrer
           referrer.balance += 500;
           referrer.referralsCount += 1;
-          referrer.referrals.push(userId);
+
+          // save list of invited users
+          if (!referrer.referrals.includes(userId)) {
+            referrer.referrals.push(userId);
+          }
 
           await referrer.save();
-          await user.save();
         }
       }
     }
 
+    /* ================= RESPONSE ================= */
     res.json({
       success: true,
       userId: user.userId,
       wallet: user.walletAddress,
+
       balance: user.balance,
       energy: user.energy,
       freeTries: user.freeTries,
       tokens: user.tokens,
+
       referralsCount: user.referralsCount,
-      role: user.role
+      role: user.role,
+      proLevel: user.proLevel
     });
 
   } catch (err) {
-    console.error(err);
+    console.error("API /user error:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
