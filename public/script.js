@@ -1,9 +1,7 @@
 /* =====================================================
-   CLEAN FINAL FRONTEND (SERVER = SOURCE OF TRUTH)
+   CLEAN FINAL FRONTEND
+   SERVER = SOURCE OF TRUTH
 ===================================================== */
-
-/* ================= CONFIG ================= */
-const FOUNDER_USER_ID = "SUNUSI_001";
 
 /* ================= USER ID ================= */
 let userId = localStorage.getItem("userId");
@@ -26,7 +24,6 @@ let proLevel = 0;
 let referralsCount = 0;
 
 let MAX_ENERGY = 100;
-let MAX_FREE_TRIES = 3;
 let openingLocked = false;
 
 /* ================= INIT ================= */
@@ -35,30 +32,25 @@ document.addEventListener("DOMContentLoaded", async () => {
   await syncUserFromServer();
 });
 
+/* ================= SOUND ================= */
 function playSound(id) {
   const sound = document.getElementById(id);
   if (!sound) return;
-
   sound.currentTime = 0;
   sound.play().catch(() => {});
 }
 
-// 🔓 UNLOCK AUDIO (Android / WebView fix)
-document.addEventListener("click", () => {
-  ["clickSound", "winSound", "loseSound", "errorSound"].forEach(id => {
-    const s = document.getElementById(id);
-    if (s) {
-      s.volume = 1;
-      s.play().then(() => s.pause()).catch(() => {});
-    }
-  });
-}, { once: true });
-
-function linkTelegram() {
-  const botUsername = "YOUR_BOT_USERNAME"; // misali LuckyBoxBot
-  const url = `https://t.me/${botUsername}?start=${userId}`;
-  window.open(url, "_blank");
-}
+// 🔓 unlock audio (Android / Play Store)
+document.addEventListener(
+  "click",
+  () => {
+    ["clickSound", "winSound", "loseSound", "errorSound"].forEach(id => {
+      const s = document.getElementById(id);
+      if (s) s.play().then(() => s.pause()).catch(() => {});
+    });
+  },
+  { once: true }
+);
 
 /* ================= AGREEMENT ================= */
 function agreementInit() {
@@ -82,7 +74,7 @@ function agreementInit() {
 async function syncUserFromServer() {
   try {
     const params = new URLSearchParams(location.search);
-    const ref = params.get("ref"); // referral wallet (optional)
+    const ref = params.get("ref");
 
     const res = await fetch("/api/user", {
       method: "POST",
@@ -91,12 +83,8 @@ async function syncUserFromServer() {
     });
 
     const data = await res.json();
-    if (data.error) {
-      console.error("User sync error:", data.error);
-      return;
-    }
+    if (!data.success) return;
 
-    // SERVER = TRUTH
     wallet = data.wallet;
     balance = data.balance;
     energy = data.energy;
@@ -105,16 +93,11 @@ async function syncUserFromServer() {
     proLevel = data.proLevel;
     referralsCount = data.referralsCount || 0;
 
-    if (data.role === "founder" || userId === FOUNDER_USER_ID) {
-      MAX_ENERGY = 9999;
-      MAX_FREE_TRIES = 9999;
-    } else {
-      MAX_ENERGY = 100;
-      MAX_FREE_TRIES = 3;
-      if (proLevel === 1) MAX_ENERGY = 150;
-      if (proLevel === 2) MAX_ENERGY = 200;
-      if (proLevel === 3) MAX_ENERGY = 300;
-    }
+    // limits from role / pro
+    MAX_ENERGY = data.role === "founder" ? 9999 : 100;
+    if (proLevel === 1) MAX_ENERGY = 150;
+    if (proLevel === 2) MAX_ENERGY = 200;
+    if (proLevel === 3) MAX_ENERGY = 300;
 
     updateUI();
     fillReferralLink();
@@ -164,7 +147,7 @@ async function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
-  playSound("clickSound"); // 👈 danna box
+  playSound("clickSound");
 
   try {
     const res = await fetch("/api/open", {
@@ -174,7 +157,6 @@ async function openBox(box, type) {
     });
 
     const data = await res.json();
-
     if (data.error) {
       playSound("errorSound");
       alert("❌ " + data.error);
@@ -182,7 +164,6 @@ async function openBox(box, type) {
       return;
     }
 
-    // 🔄 update from server
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
@@ -191,10 +172,10 @@ async function openBox(box, type) {
     box.classList.add("opened");
 
     if (data.reward > 0) {
-      playSound("winSound");   // 🎉 win
+      playSound("winSound");
       rewardEl.textContent = `+${data.reward}`;
     } else {
-      playSound("loseSound");  // 😢 empty
+      playSound("loseSound");
       rewardEl.textContent = "Empty";
     }
 
@@ -207,34 +188,28 @@ async function openBox(box, type) {
       rewardEl.textContent = "";
       openingLocked = false;
     }, 1500);
-
   } catch (e) {
-    console.error(e);
     playSound("errorSound");
     openingLocked = false;
   }
 }
 
 /* ================= ADS ================= */
-let adTimer = null;
-
 async function watchAd() {
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
-
   if (!btn || !status) return;
 
   btn.disabled = true;
-  let timeLeft = 30;
+  let t = 30;
   status.classList.remove("hidden");
-  status.innerText = `⏳ Watching ad... ${timeLeft}s`;
+  status.innerText = `⏳ Watching ad... ${t}s`;
 
-  adTimer = setInterval(() => {
-    timeLeft--;
-    status.innerText = `⏳ Watching ad... ${timeLeft}s`;
-
-    if (timeLeft <= 0) {
-      clearInterval(adTimer);
+  const timer = setInterval(() => {
+    t--;
+    status.innerText = `⏳ Watching ad... ${t}s`;
+    if (t <= 0) {
+      clearInterval(timer);
       claimAdReward(btn, status);
     }
   }, 1000);
@@ -249,15 +224,15 @@ async function claimAdReward(btn, status) {
     });
 
     const data = await res.json();
-    if (data.error) {
-      status.innerText = "❌ " + data.error;
-    } else {
+    if (!data.error) {
       energy = data.energy;
       balance = data.balance;
       updateUI();
       status.innerText = "✅ Reward added!";
+    } else {
+      status.innerText = "❌ " + data.error;
     }
-  } catch (e) {
+  } catch {
     status.innerText = "❌ Error";
   }
 
@@ -266,81 +241,6 @@ async function claimAdReward(btn, status) {
     btn.disabled = false;
   }, 2000);
 }
-
-async function buyEnergy(amount) {
-  try {
-    const res = await fetch("/api/energy/buy", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, amount })
-    });
-
-    const data = await res.json();
-    if (data.error) return alert("❌ " + data.error);
-
-    energy = data.energy;
-    balance = data.balance;
-    updateUI();
-  } catch (e) {
-    alert("Network error");
-  }
-}
-
-async function convertPoints() {
-  if (balance < 10000) return alert("❌ Not enough balance");
-
-  const res = await fetch("/api/token/buy", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, amount: 1 })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert("❌ " + data.error);
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-}
-
-function buyToken() {
-  convertPoints();
-}
-
-async function sellToken() {
-  const res = await fetch("/api/token/sell", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, amount: 1 })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert("❌ " + data.error);
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-}
-
-async function upgradePro(level) {
-  const cost = level === 1 ? 5 : level === 2 ? 10 : 20;
-
-  if (tokens < cost) return alert("❌ Not enough tokens");
-
-  const res = await fetch("/api/pro/upgrade", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, level })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  proLevel = data.proLevel;
-  energy = data.energy;
-  updateUI();
-}
-
 
 /* ================= NAV ================= */
 function openWallet() {
