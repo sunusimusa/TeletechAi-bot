@@ -89,6 +89,35 @@ window.addEventListener("online", handleOffline);
 window.addEventListener("offline", handleOffline);
 handleOffline();
 
+function isOffline() {
+  return !navigator.onLine;
+}
+
+window.addEventListener("offline", showOffline);
+window.addEventListener("online", hideOffline);
+
+function showOffline() {
+  const msg = document.getElementById("offlineMsg");
+  if (msg) msg.classList.remove("hidden");
+
+  disableGame(true);
+}
+
+function hideOffline() {
+  const msg = document.getElementById("offlineMsg");
+  if (msg) msg.classList.add("hidden");
+
+  disableGame(false);
+}
+
+function disableGame(state) {
+  document.querySelectorAll("button").forEach(btn => {
+    if (!btn.dataset.allowOffline) {
+      btn.disabled = state;
+    }
+  });
+}
+
 /* ================= SYNC USER ================= */
 async function syncUserFromServer() {
   try {
