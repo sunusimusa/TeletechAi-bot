@@ -435,16 +435,6 @@ app.post("/api/pro/upgrade", async (req, res) => {
   res.json({ proLevel: user.proLevel, energy: user.energy });
 });
 
-app.post("/api/telegram/link", async (req, res) => {
-  const { userId, telegramId } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  user.telegramId = telegramId;
-  await user.save();
-  res.json({ success: true });
-});
-
 app.post("/api/telegram/balance", async (req, res) => {
   const { telegramId } = req.body;
   const user = await User.findOne({ telegramId });
@@ -471,6 +461,25 @@ app.post("/api/telegram/daily", async (req, res) => {
   await user.save();
 
   res.json({ reward: 300 });
+});
+
+app.post("/api/telegram/link", async (req, res) => {
+  const { userId, telegramId } = req.body;
+
+  if (!userId || !telegramId)
+    return res.json({ error: "INVALID" });
+
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  // prevent hijacking
+  if (user.telegramId && user.telegramId !== telegramId)
+    return res.json({ error: "ALREADY_LINKED" });
+
+  user.telegramId = telegramId;
+  await user.save();
+
+  res.json({ success: true });
 });
 
 /* ================= ROOT ================= */
