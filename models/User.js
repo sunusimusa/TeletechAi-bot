@@ -9,6 +9,11 @@ const UserSchema = new mongoose.Schema({
     index: true,
     required: true
   },
+  telegramId: {
+    type: String,
+    unique: true,
+    sparse: true
+  },
   username: {
     type: String,
     default: ""
@@ -29,13 +34,13 @@ const UserSchema = new mongoose.Schema({
 
   /* ===== GAME ===== */
   balance: { type: Number, default: 0 },
-  energy: { type: Number, default: 50 },
+  energy: { type: Number, default: 100 },
   freeTries: { type: Number, default: 3 },
   tokens: { type: Number, default: 0 },
   lastOpenAt: { type: Number, default: 0 },
 
   /* ===== PRO / ROLE ===== */
-  proLevel: { type: Number, default: 0 }, // 0–3 user, 4 founder
+  proLevel: { type: Number, default: 0 },
   role: {
     type: String,
     enum: ["user", "founder"],
@@ -70,19 +75,11 @@ const UserSchema = new mongoose.Schema({
     enum: ["web", "playstore", "telegram"],
     default: "web"
   },
-  lastLogin: {
-    type: Date,
-    default: Date.now
-  }
+  lastLogin: { type: Date, default: Date.now },
+  lastSyncAt: { type: Number, default: 0 },
 
-  isOnline: {
-  type: Boolean,
-  default: false
-},
-lastSeen: {
-  type: Number,
-  default: 0
-},
+  isOnline: { type: Boolean, default: false },
+  lastSeen: { type: Number, default: 0 }
 
 }, { timestamps: true });
 
