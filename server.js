@@ -41,10 +41,9 @@ app.post("/api/user", async (req, res) => {
     if (!userId) return res.json({ error: "INVALID_USER" });
 
     const isFounder = userId === FOUNDER_USER_ID;
-
     let user = await User.findOne({ userId });
 
-    /* ================= CREATE USER ================= */
+    /* ========== CREATE USER ========== */
     if (!user) {
       const wallet =
         "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
@@ -52,47 +51,56 @@ app.post("/api/user", async (req, res) => {
       user = await User.create({
         userId,
         walletAddress: wallet,
-
         role: isFounder ? "founder" : "user",
         proLevel: isFounder ? 4 : 0,
-
         energy: isFounder ? 9999 : 100,
         freeTries: isFounder ? 9999 : 3,
         balance: 0,
-        tokens: 0,
-
-        referrals: [],
-        referralsCount: 0,
-        referredBy: null
+        tokens: 0
       });
 
-      /* ========== REFERRAL (ONLY ONCE, NON-FOUNDER) ========== */
+      // referral (once, normal users only)
       if (ref && !isFounder) {
         const referrer = await User.findOne({ walletAddress: ref });
-
         if (referrer && referrer.userId !== userId) {
           user.referredBy = referrer.walletAddress;
-
           referrer.referrals.push(userId);
           referrer.referralsCount += 1;
           referrer.balance += 500;
-
           await referrer.save();
           await user.save();
         }
       }
     }
 
-    /* ================= ENSURE FOUNDER STAYS FOUNDER ================= */
-    if (isFounder && user.role !== "founder") {
-      user.role = "founder";
-      user.proLevel = 4;
-      user.energy = 9999;
-      user.freeTries = 9999;
-      await user.save();
+    /* ========== 🔥 FOUNDER FIX (IMPORTANT) ========== */
+    if (isFounder) {
+      let changed = false;
+
+      if (user.role !== "founder") {
+        user.role = "founder";
+        changed = true;
+      }
+
+      if (user.proLevel < 4) {
+        user.proLevel = 4;
+        changed = true;
+      }
+
+      if (user.energy < 9999) {
+        user.energy = 9999;
+        changed = true;
+      }
+
+      if (user.freeTries < 9999) {
+        user.freeTries = 9999;
+        changed = true;
+      }
+
+      if (changed) await user.save();
     }
 
-    /* ================= RESPONSE ================= */
+    /* ========== RESPONSE ========== */
     res.json({
       success: true,
       userId: user.userId,
