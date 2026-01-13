@@ -25,6 +25,7 @@ let referralsCount = 0;
 
 let MAX_ENERGY = 100;
 let openingLocked = false;
+let adWatched = false;
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", async () => {
@@ -223,6 +224,8 @@ async function watchAd() {
   if (!btn || !status) return;
 
   btn.disabled = true;
+  adWatched = false;
+
   let t = 30;
   status.classList.remove("hidden");
   status.innerText = `⏳ Watching ad... ${t}s`;
@@ -230,14 +233,22 @@ async function watchAd() {
   const timer = setInterval(() => {
     t--;
     status.innerText = `⏳ Watching ad... ${t}s`;
+
     if (t <= 0) {
       clearInterval(timer);
+      adWatched = true; // ✅ tabbatar an kammala
       claimAdReward(btn, status);
     }
   }, 1000);
 }
 
 async function claimAdReward(btn, status) {
+  if (!adWatched) {
+    status.innerText = "❌ Watch the ad first";
+    btn.disabled = false;
+    return;
+  }
+
   try {
     const res = await fetch("/api/ads/watch", {
       method: "POST",
@@ -246,18 +257,17 @@ async function claimAdReward(btn, status) {
     });
 
     if (!res.ok) {
-      status.innerText = "❌ Server not reachable";
+      status.innerText = "📡 Server not reachable";
       return;
     }
 
     const data = await res.json();
 
     if (data.error) {
-      // 👇 Friendly messages
       if (data.error === "WAIT_30_SECONDS") {
-        status.innerText = "⏳ Please wait before watching another ad";
+        status.innerText = "⏳ Please wait before next ad";
       } else if (data.error === "USER_NOT_FOUND") {
-        status.innerText = "⚠️ Account error. Reload app.";
+        status.innerText = "⚠️ Reload app";
       } else {
         status.innerText = "❌ Action not allowed";
       }
@@ -272,6 +282,7 @@ async function claimAdReward(btn, status) {
   } catch (e) {
     status.innerText = "📡 No internet connection";
   } finally {
+    adWatched = false;
     setTimeout(() => {
       status.classList.add("hidden");
       btn.disabled = false;
