@@ -435,6 +435,44 @@ app.post("/api/pro/upgrade", async (req, res) => {
   res.json({ proLevel: user.proLevel, energy: user.energy });
 });
 
+app.post("/api/telegram/link", async (req, res) => {
+  const { userId, telegramId } = req.body;
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  user.telegramId = telegramId;
+  await user.save();
+  res.json({ success: true });
+});
+
+app.post("/api/telegram/balance", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "NOT_LINKED" });
+
+  res.json({
+    balance: user.balance,
+    energy: user.energy,
+    tokens: user.tokens
+  });
+});
+
+app.post("/api/telegram/daily", async (req, res) => {
+  const { telegramId } = req.body;
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "NOT_LINKED" });
+
+  const DAY = 24 * 60 * 60 * 1000;
+  if (user.lastDaily && Date.now() - user.lastDaily < DAY)
+    return res.json({ error: "WAIT" });
+
+  user.balance += 300; // virtual
+  user.lastDaily = Date.now();
+  await user.save();
+
+  res.json({ reward: 300 });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
