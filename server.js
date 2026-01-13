@@ -508,6 +508,26 @@ app.post("/api/telegram/link", async (req, res) => {
   res.json({ success: true });
 });
 
+// 🔗 GET USER BY TELEGRAM
+app.post("/api/user/by-telegram", async (req, res) => {
+  const { telegramId } = req.body;
+  if (!telegramId) return res.json({ error: "INVALID" });
+
+  const user = await User.findOne({ telegramId });
+  if (!user) return res.json({ error: "NOT_LINKED" });
+
+  res.json({
+    userId: user.userId,
+    wallet: user.walletAddress,
+    balance: user.balance,
+    energy: user.energy,
+    tokens: user.tokens,
+    referralsCount: user.referralsCount,
+    proLevel: user.proLevel,
+    role: user.role
+  });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
