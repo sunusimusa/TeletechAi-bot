@@ -54,6 +54,12 @@ document.addEventListener("click", () => {
   });
 }, { once: true });
 
+function linkTelegram() {
+  const botUsername = "YOUR_BOT_USERNAME"; // misali LuckyBoxBot
+  const url = `https://t.me/${botUsername}?start=${userId}`;
+  window.open(url, "_blank");
+}
+
 /* ================= AGREEMENT ================= */
 function agreementInit() {
   const modal = document.getElementById("agreementModal");
