@@ -76,6 +76,18 @@ function linkTelegram() {
   window.open(url, "_blank");
 }
 
+function handleOffline() {
+  if (!navigator.onLine) {
+    document.body.classList.add("offline");
+  } else {
+    document.body.classList.remove("offline");
+  }
+}
+
+window.addEventListener("online", handleOffline);
+window.addEventListener("offline", handleOffline);
+handleOffline();
+
 /* ================= SYNC USER ================= */
 async function syncUserFromServer() {
   try {
