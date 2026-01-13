@@ -32,6 +32,7 @@ const UserSchema = new mongoose.Schema({
   energy: { type: Number, default: 50 },
   freeTries: { type: Number, default: 3 },
   tokens: { type: Number, default: 0 },
+  lastOpenAt: { type: Number, default: 0 },
 
   /* ===== PRO / ROLE ===== */
   proLevel: { type: Number, default: 0 }, // 0–3 user, 4 founder
