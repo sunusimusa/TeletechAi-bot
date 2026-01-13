@@ -164,10 +164,14 @@ async function openBox(box, type) {
 
     const data = await res.json();
     if (data.error) {
-      playSound("errorSound");
-      alert("❌ " + data.error);
-      openingLocked = false;
-      return;
+  playSound("errorSound");
+
+  if (data.error !== "TOO_FAST") {
+    alert("❌ " + data.error);
+  }
+
+  openingLocked = false;
+  return;
     }
 
     balance = data.balance;
@@ -230,16 +234,20 @@ async function claimAdReward(btn, status) {
     });
 
     const data = await res.json();
-    if (!data.error) {
+
+    if (data.error) {
+      status.innerText =
+        data.error === "WAIT_30_SECONDS"
+          ? "⏳ Please wait before watching again"
+          : "❌ " + data.error;
+    } else {
       energy = data.energy;
       balance = data.balance;
       updateUI();
       status.innerText = "✅ Reward added!";
-    } else {
-      status.innerText = "❌ " + data.error;
     }
-  } catch {
-    status.innerText = "❌ Error";
+  } catch (e) {
+    status.innerText = "❌ Network error";
   }
 
   setTimeout(() => {
