@@ -70,6 +70,12 @@ function agreementInit() {
   };
 }
 
+function linkTelegram() {
+  const botUsername = "TeleTechAiBot"; // naka
+  const url = `https://t.me/${botUsername}?start=${userId}`;
+  window.open(url, "_blank");
+}
+
 /* ================= SYNC USER ================= */
 async function syncUserFromServer() {
   try {
