@@ -35,6 +35,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   await syncUserFromServer();
 });
 
+function playSound(id) {
+  const sound = document.getElementById(id);
+  if (!sound) return;
+
+  sound.currentTime = 0;
+  sound.play().catch(() => {});
+}
+
 /* ================= AGREEMENT ================= */
 function agreementInit() {
   const modal = document.getElementById("agreementModal");
@@ -139,6 +147,9 @@ async function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
+  // 🔊 click sound (da zarar an taba box)
+  playSound("clickSound");
+
   try {
     const res = await fetch("/api/open", {
       method: "POST",
@@ -149,6 +160,8 @@ async function openBox(box, type) {
     const data = await res.json();
 
     if (data.error) {
+      // ❌ error sound
+      playSound("errorSound");
       alert("❌ " + data.error);
       openingLocked = false;
       return;
@@ -162,10 +175,17 @@ async function openBox(box, type) {
     const rewardEl = box.querySelector(".reward");
     box.classList.add("opened");
 
-    rewardEl.textContent =
-      data.reward > 0 ? `+${data.reward}` : "Empty";
-    rewardEl.classList.remove("hidden");
+    if (data.reward > 0) {
+      // 🎉 win sound
+      playSound("winSound");
+      rewardEl.textContent = `💰 +${data.reward}`;
+    } else {
+      // 😢 lose sound
+      playSound("loseSound");
+      rewardEl.textContent = "😢 Empty";
+    }
 
+    rewardEl.classList.remove("hidden");
     updateUI();
 
     setTimeout(() => {
@@ -177,6 +197,7 @@ async function openBox(box, type) {
 
   } catch (e) {
     console.error(e);
+    playSound("errorSound");
     openingLocked = false;
   }
 }
