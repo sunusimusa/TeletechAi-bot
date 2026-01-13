@@ -198,28 +198,31 @@ app.post("/api/daily", async (req, res) => {
 app.post("/api/ads/watch", async (req, res) => {
   try {
     const { userId } = req.body;
+    if (!userId) return res.json({ error: "INVALID_USER" });
+
     const user = await User.findOne({ userId });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const today = new Date().toISOString().slice(0, 10);
-
-    // reset daily counter
-    if (user.lastAdDay !== today) {
-      user.adsWatchedToday = 0;
-      user.lastAdDay = today;
+    // 🛑 simple anti-spam (30s)
+    const now = Date.now();
+    if (user.lastAdAt && now - user.lastAdAt < 30000) {
+      return res.json({ error: "WAIT_30_SECONDS" });
     }
 
-    if (user.adsWatchedToday >= 5) {
-      return res.json({ error: "DAILY_LIMIT" });
-    }
+    // 🎁 REWARD
+    user.energy = Math.min(user.energy + 20, 9999);
+    user.balance += 100;
+    user.lastAdAt = now;
 
-    // mark ad as watched (claimable)
-    user.watchAd = true;
     await user.save();
 
-    res.json({ success: true });
-
+    res.json({
+      success: true,
+      energy: user.energy,
+      balance: user.balance
+    });
   } catch (e) {
+    console.error("ADS ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
