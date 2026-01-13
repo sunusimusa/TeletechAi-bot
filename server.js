@@ -56,24 +56,42 @@ app.post("/api/user", async (req, res) => {
         energy: isFounder ? 9999 : 100,
         freeTries: isFounder ? 9999 : 3,
         balance: 0,
-        tokens: 0
+        tokens: 0,
+        joinedByRef: false,     // 👈 NEW (ƙanƙane)
+        lastSyncAt: Date.now()  // 👈 NEW (ƙanƙane)
       });
 
-      // referral (once, normal users only)
+      // referral (ONCE, normal users only)
       if (ref && !isFounder) {
         const referrer = await User.findOne({ walletAddress: ref });
-        if (referrer && referrer.userId !== userId) {
+
+        if (
+          referrer &&
+          referrer.userId !== userId &&
+          user.joinedByRef === false
+        ) {
           user.referredBy = referrer.walletAddress;
+          user.joinedByRef = true;
+
           referrer.referrals.push(userId);
           referrer.referralsCount += 1;
           referrer.balance += 500;
+
           await referrer.save();
           await user.save();
         }
       }
+    } else {
+      // 🛑 ANTI-SPAM SYNC (1 second)
+      const now = Date.now();
+      if (user.lastSyncAt && now - user.lastSyncAt < 1000) {
+        return res.json({ error: "TOO_FAST" });
+      }
+      user.lastSyncAt = now;
+      await user.save();
     }
 
-    /* ========== 🔥 FOUNDER FIX (IMPORTANT) ========== */
+    /* ========== 🔥 FOUNDER FIX ========== */
     if (isFounder) {
       let changed = false;
 
@@ -81,17 +99,14 @@ app.post("/api/user", async (req, res) => {
         user.role = "founder";
         changed = true;
       }
-
       if (user.proLevel < 4) {
         user.proLevel = 4;
         changed = true;
       }
-
       if (user.energy < 9999) {
         user.energy = 9999;
         changed = true;
       }
-
       if (user.freeTries < 9999) {
         user.freeTries = 9999;
         changed = true;
@@ -130,6 +145,13 @@ app.post("/api/open", async (req, res) => {
       return res.json({ error: "USER_NOT_FOUND" });
     }
 
+    // 🛑 ANTI-SPAM (1 second)
+    const now = Date.now();
+    if (user.lastOpenAt && now - user.lastOpenAt < 1000) {
+      return res.json({ error: "TOO_FAST" });
+    }
+    user.lastOpenAt = now;
+
     // COST
     if (user.freeTries > 0) {
       user.freeTries -= 1;
@@ -159,6 +181,7 @@ app.post("/api/open", async (req, res) => {
       energy: user.energy,
       freeTries: user.freeTries
     });
+
   } catch (err) {
     console.error("OPEN BOX ERROR", err);
     res.status(500).json({ error: "SERVER_ERROR" });
