@@ -233,27 +233,38 @@ async function claimAdReward(btn, status) {
       body: JSON.stringify({ userId })
     });
 
+    if (!res.ok) {
+      status.innerText = "❌ Server not reachable";
+      return;
+    }
+
     const data = await res.json();
 
     if (data.error) {
-      status.innerText =
-        data.error === "WAIT_30_SECONDS"
-          ? "⏳ Please wait before watching again"
-          : "❌ " + data.error;
-    } else {
-      energy = data.energy;
-      balance = data.balance;
-      updateUI();
-      status.innerText = "✅ Reward added!";
+      // 👇 Friendly messages
+      if (data.error === "WAIT_30_SECONDS") {
+        status.innerText = "⏳ Please wait before watching another ad";
+      } else if (data.error === "USER_NOT_FOUND") {
+        status.innerText = "⚠️ Account error. Reload app.";
+      } else {
+        status.innerText = "❌ Action not allowed";
+      }
+      return;
     }
-  } catch (e) {
-    status.innerText = "❌ Network error";
-  }
 
-  setTimeout(() => {
-    status.classList.add("hidden");
-    btn.disabled = false;
-  }, 2000);
+    // ✅ SUCCESS
+    energy = data.energy;
+    balance = data.balance;
+    updateUI();
+    status.innerText = "✅ Reward added!";
+  } catch (e) {
+    status.innerText = "📡 No internet connection";
+  } finally {
+    setTimeout(() => {
+      status.classList.add("hidden");
+      btn.disabled = false;
+    }, 2000);
+  }
 }
 
 /* ================= NAV ================= */
