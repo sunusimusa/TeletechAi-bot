@@ -1,103 +1,128 @@
-import TelegramBot from "node-telegram-bot-api";
-import dotenv from "dotenv";
+import { Telegraf } from "telegraf";
 import fetch from "node-fetch";
+import dotenv from "dotenv";
 
 dotenv.config();
 
-const bot = new TelegramBot(process.env.BOT_TOKEN, { polling: true });
-const API = process.env.API_URL;
+/* ================= CONFIG ================= */
+const BOT_TOKEN = process.env.BOT_TOKEN;
+const WEB_APP_URL = process.env.WEB_APP_URL; // misali: https://yourapp.onrender.com
 
-// Helper: call backend safely
-async function api(path, body) {
-  const res = await fetch(`${API}${path}`, {
+if (!BOT_TOKEN) {
+  throw new Error("❌ BOT_TOKEN missing in .env");
+}
+
+const bot = new Telegraf(BOT_TOKEN);
+
+/* ================= HELPERS ================= */
+async function getUser(userId, ref = null) {
+  const res = await fetch(`${WEB_APP_URL}/api/user`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
+    body: JSON.stringify({ userId, ref })
   });
   return res.json();
 }
 
-// /start (NO LOGIN REQUIRED)
-bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
-  const chatId = msg.chat.id;
-  const telegramId = String(msg.from.id);
-  const userId = match?.[1]; // daga deep link
+/* ================= /start ================= */
+bot.start(async (ctx) => {
+  const tgId = String(ctx.from.id);
+  const ref = ctx.startPayload || null;
 
-  if (userId) {
-    const res = await fetch(`${API}/api/telegram/link`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, telegramId })
-    });
+  const user = await getUser(tgId, ref);
 
-    const data = await res.json();
-
-    if (data.success) {
-      bot.sendMessage(
-        chatId,
-        "✅ Telegram linked successfully!\n\nYou can now use /balance and /daily."
-      );
-      return;
+  await ctx.reply(
+    `🎁 *Lucky Box Game*\n\n` +
+    `👤 ID: ${tgId}\n` +
+    `💰 Balance: ${user.balance}\n` +
+    `⚡ Energy: ${user.energy}\n` +
+    `🪙 Tokens: ${user.tokens}\n\n` +
+    `👇 Bude wasan nan:`,
+    {
+      parse_mode: "Markdown",
+      reply_markup: {
+        inline_keyboard: [
+          [
+            {
+              text: "🎮 Open Game",
+              web_app: { url: WEB_APP_URL }
+            }
+          ],
+          [
+            {
+              text: "👥 My Referral Link",
+              callback_data: "REFERRAL"
+            }
+          ]
+        ]
+      }
     }
-  }
-
-  bot.sendMessage(
-    chatId,
-    "👋 Welcome!\n\nTelegram is optional.\nUse /help to see commands."
   );
 });
-  
-// /help
-bot.onText(/\/help/, (msg) => {
-  bot.sendMessage(
-    msg.chat.id,
-    `ℹ️ *Help*\n\n` +
-    `• All rewards are VIRTUAL\n` +
-    `• No real money\n` +
-    `• Telegram is optional`,
+
+/* ================= /balance ================= */
+bot.command("balance", async (ctx) => {
+  const tgId = String(ctx.from.id);
+  const user = await getUser(tgId);
+
+  ctx.reply(
+    `📊 *Your Stats*\n\n` +
+    `💰 Balance: ${user.balance}\n` +
+    `⚡ Energy: ${user.energy}\n` +
+    `🪙 Tokens: ${user.tokens}\n` +
+    `👥 Referrals: ${user.referralsCount || 0}`,
     { parse_mode: "Markdown" }
   );
 });
 
-// /balance (SAFE: telegramId only)
-bot.onText(/\/balance/, async (msg) => {
-  const chatId = msg.chat.id;
-  const telegramId = String(msg.from.id);
+/* ================= /daily ================= */
+bot.command("daily", async (ctx) => {
+  const tgId = String(ctx.from.id);
 
-  const data = await api("/api/telegram/balance", { telegramId });
+  const res = await fetch(`${WEB_APP_URL}/api/daily`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId: tgId })
+  });
+
+  const data = await res.json();
 
   if (data.error) {
-    bot.sendMessage(chatId, "❌ Please open the app at least once.");
-    return;
+    return ctx.reply("⏳ Ka dawo gobe domin Daily Bonus.");
   }
 
-  bot.sendMessage(
-    chatId,
-    `📊 *Your Stats*\n` +
-    `💰 Balance: ${data.balance}\n` +
-    `⚡ Energy: ${data.energy}\n` +
-    `🪙 Tokens: ${data.tokens}`,
+  ctx.reply(
+    `🎉 *Daily Bonus Claimed!*\n\n` +
+    `💰 +${data.reward} coins\n` +
+    `⚡ Energy yanzu: ${data.energy}`,
     { parse_mode: "Markdown" }
   );
 });
 
-// /daily (LIMITED, SAFE)
-bot.onText(/\/daily/, async (msg) => {
-  const chatId = msg.chat.id;
-  const telegramId = String(msg.from.id);
+/* ================= REFERRAL ================= */
+bot.action("REFERRAL", async (ctx) => {
+  const tgId = String(ctx.from.id);
+  const user = await getUser(tgId);
 
-  const data = await api("/api/telegram/daily", { telegramId });
+  const link = `https://t.me/${ctx.me}?start=${user.wallet}`;
 
-  if (data.error) {
-    bot.sendMessage(chatId, "⏳ Come back later.");
-    return;
-  }
-
-  bot.sendMessage(
-    chatId,
-    `🎁 *Daily Bonus*\n+${data.reward} coins added!`,
+  await ctx.reply(
+    `👥 *Your Referral Link*\n\n${link}\n\n` +
+    `Invites: ${user.referralsCount || 0}`,
     { parse_mode: "Markdown" }
   );
 });
 
-console.log("🤖 Telegram bot running");
+/* ================= ERROR HANDLER ================= */
+bot.catch((err) => {
+  console.error("❌ BOT ERROR:", err);
+});
+
+/* ================= START BOT ================= */
+bot.launch().then(() => {
+  console.log("🤖 Telegram bot running...");
+});
+
+/* ================= GRACEFUL STOP ================= */
+process.once("SIGINT", () => bot.stop("SIGINT"));
+process.once("SIGTERM", () => bot.stop("SIGTERM"));
