@@ -43,6 +43,17 @@ function playSound(id) {
   sound.play().catch(() => {});
 }
 
+// 🔓 UNLOCK AUDIO (Android / WebView fix)
+document.addEventListener("click", () => {
+  ["clickSound", "winSound", "loseSound", "errorSound"].forEach(id => {
+    const s = document.getElementById(id);
+    if (s) {
+      s.volume = 1;
+      s.play().then(() => s.pause()).catch(() => {});
+    }
+  });
+}, { once: true });
+
 /* ================= AGREEMENT ================= */
 function agreementInit() {
   const modal = document.getElementById("agreementModal");
@@ -147,8 +158,7 @@ async function openBox(box, type) {
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
-  // 🔊 click sound (da zarar an taba box)
-  playSound("clickSound");
+  playSound("clickSound"); // 👈 danna box
 
   try {
     const res = await fetch("/api/open", {
@@ -160,7 +170,6 @@ async function openBox(box, type) {
     const data = await res.json();
 
     if (data.error) {
-      // ❌ error sound
       playSound("errorSound");
       alert("❌ " + data.error);
       openingLocked = false;
@@ -176,13 +185,11 @@ async function openBox(box, type) {
     box.classList.add("opened");
 
     if (data.reward > 0) {
-      // 🎉 win sound
-      playSound("winSound");
-      rewardEl.textContent = `💰 +${data.reward}`;
+      playSound("winSound");   // 🎉 win
+      rewardEl.textContent = `+${data.reward}`;
     } else {
-      // 😢 lose sound
-      playSound("loseSound");
-      rewardEl.textContent = "😢 Empty";
+      playSound("loseSound");  // 😢 empty
+      rewardEl.textContent = "Empty";
     }
 
     rewardEl.classList.remove("hidden");
