@@ -18,22 +18,35 @@ async function api(path, body) {
 }
 
 // /start (NO LOGIN REQUIRED)
-bot.onText(/\/start/, async (msg) => {
+bot.onText(/\/start(?: (.+))?/, async (msg, match) => {
   const chatId = msg.chat.id;
+  const telegramId = String(msg.from.id);
+  const userId = match?.[1]; // daga deep link
+
+  if (userId) {
+    const res = await fetch(`${API}/api/telegram/link`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, telegramId })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      bot.sendMessage(
+        chatId,
+        "✅ Telegram linked successfully!\n\nYou can now use /balance and /daily."
+      );
+      return;
+    }
+  }
 
   bot.sendMessage(
     chatId,
-    `🎁 *Lucky Box Community Bot*\n\n` +
-    `This bot is OPTIONAL.\n` +
-    `Your game works without Telegram.\n\n` +
-    `Commands:\n` +
-    `/balance – check virtual stats\n` +
-    `/daily – get bonus\n` +
-    `/help`,
-    { parse_mode: "Markdown" }
+    "👋 Welcome!\n\nTelegram is optional.\nUse /help to see commands."
   );
 });
-
+  
 // /help
 bot.onText(/\/help/, (msg) => {
   bot.sendMessage(
