@@ -406,6 +406,35 @@ app.get("/api/my-referrals", async (req, res) => {
   }
 });
 
+app.post("/api/energy/buy", async (req, res) => {
+  const { userId, amount } = req.body;
+  const user = await User.findOne({ userId });
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+  const cost = amount === 100 ? 500 : 2000;
+  if (user.balance < cost) return res.json({ error: "NO_BALANCE" });
+
+  user.balance -= cost;
+  user.energy = Math.min(user.energy + amount, 9999);
+
+  await user.save();
+  res.json({ energy: user.energy, balance: user.balance });
+});
+
+app.post("/api/pro/upgrade", async (req, res) => {
+  const { userId, level } = req.body;
+  const user = await User.findOne({ userId });
+
+  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  if (level <= user.proLevel) return res.json({ error: "ALREADY_UPGRADED" });
+
+  user.proLevel = level;
+  user.energy = 9999;
+
+  await user.save();
+  res.json({ proLevel: user.proLevel, energy: user.energy });
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
