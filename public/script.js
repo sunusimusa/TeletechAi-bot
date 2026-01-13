@@ -30,6 +30,7 @@ let adWatched = false;
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", async () => {
   agreementInit();
+  handleOffline();
   await syncUserFromServer();
 });
 
@@ -192,6 +193,12 @@ function copyRef() {
 
 /* ================= OPEN BOX ================= */
 async function openBox(box, type) {
+
+  // ⛔ idan babu internet
+  if (!navigator.onLine) {
+    alert("📡 Don Allah ka kunna internet");
+    return;
+  }
   if (openingLocked || box.classList.contains("opened")) return;
   openingLocked = true;
 
@@ -248,6 +255,12 @@ async function openBox(box, type) {
 
 /* ================= ADS ================= */
 async function watchAd() {
+
+  // ⛔ idan babu internet
+  if (!navigator.onLine) {
+    alert("📡 Internet ake bukata don Ads");
+    return;
+  }
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
   if (!btn || !status) return;
