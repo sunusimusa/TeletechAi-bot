@@ -233,6 +233,81 @@ async function claimAdReward(btn, status) {
   }, 2000);
 }
 
+async function buyEnergy(amount) {
+  try {
+    const res = await fetch("/api/energy/buy", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, amount })
+    });
+
+    const data = await res.json();
+    if (data.error) return alert("❌ " + data.error);
+
+    energy = data.energy;
+    balance = data.balance;
+    updateUI();
+  } catch (e) {
+    alert("Network error");
+  }
+}
+
+async function convertPoints() {
+  if (balance < 10000) return alert("❌ Not enough balance");
+
+  const res = await fetch("/api/token/buy", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, amount: 1 })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert("❌ " + data.error);
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+}
+
+function buyToken() {
+  convertPoints();
+}
+
+async function sellToken() {
+  const res = await fetch("/api/token/sell", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, amount: 1 })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert("❌ " + data.error);
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+}
+
+async function upgradePro(level) {
+  const cost = level === 1 ? 5 : level === 2 ? 10 : 20;
+
+  if (tokens < cost) return alert("❌ Not enough tokens");
+
+  const res = await fetch("/api/pro/upgrade", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, level })
+  });
+
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  proLevel = data.proLevel;
+  energy = data.energy;
+  updateUI();
+}
+
+
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
