@@ -137,6 +137,14 @@ app.post("/api/user", async (req, res) => {
 
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
+  const now = Date.now();
+
+if (user.lastOpenAt && now - user.lastOpenAt < 1500) {
+  return res.json({ error: "TOO_FAST" });
+}
+
+user.lastOpenAt = now;
+  
   try {
     const { userId, type } = req.body;
 
