@@ -196,7 +196,7 @@ async function openBox(box, type) {
   await ensureUser(); // ✅ nan daidai ne
 
   if (!navigator.onLine) {
-    alert("📡 Don Allah ka kunna internet");
+    alert("📡 Please turn on your internet connection");
     return;
   }
   if (openingLocked || box.classList.contains("opened")) return;
@@ -265,7 +265,7 @@ async function watchAd() {
 
   // ⛔ idan babu internet
   if (!navigator.onLine) {
-    alert("📡 Internet ake bukata don Ads");
+    alert("📡 Internet connection is required to watch ads");
     return;
   }
   const btn = document.getElementById("watchAdBtn");
