@@ -227,6 +227,17 @@ app.post("/api/daily", async (req, res) => {
 
 /* ================= WATCH ADS ================= */
 app.post("/api/ads/watch", async (req, res) => {
+  const today = new Date().toDateString();
+
+if (user.lastAdDay !== today) {
+  user.lastAdDay = today;
+  user.adsWatchedToday = 0;
+}
+
+if (user.adsWatchedToday >= 5) {
+  return res.json({ error: "DAILY_AD_LIMIT" });
+}
+  
   try {
     const { userId } = req.body;
     if (!userId) return res.json({ error: "INVALID_USER" });
