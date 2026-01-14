@@ -260,46 +260,6 @@ app.post("/api/ads/watch", async (req, res) => {
   }
 });
 
-app.post("/api/ads/claim", async (req, res) => {
-  try {
-    const { userId } = req.body;
-    const user = await User.findOne({ userId });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-    if (!user.watchAd) {
-      return res.json({ error: "WATCH_FIRST" });
-    }
-
-    const today = new Date().toISOString().slice(0, 10);
-    if (user.lastAdDay !== today) {
-      user.adsWatchedToday = 0;
-      user.lastAdDay = today;
-    }
-
-    if (user.adsWatchedToday >= 5) {
-      return res.json({ error: "DAILY_LIMIT" });
-    }
-
-    // REWARD
-    user.adsWatchedToday += 1;
-    user.energy += 20;
-    user.balance += 200;
-    user.watchAd = false;
-
-    await user.save();
-
-    res.json({
-      success: true,
-      energy: user.energy,
-      balance: user.balance,
-      adsLeft: 5 - user.adsWatchedToday
-    });
-
-  } catch (e) {
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
 /* ================= TOKEN MARKET ================= */
 app.post("/api/token/buy", async (req, res) => {
   const { userId, amount } = req.body;
