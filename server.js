@@ -137,30 +137,21 @@ app.post("/api/user", async (req, res) => {
 
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
-  const now = Date.now();
-
-if (user.lastOpenAt && now - user.lastOpenAt < 1500) {
-  return res.json({ error: "TOO_FAST" });
-}
-
-user.lastOpenAt = now;
-  
   try {
     const { userId, type } = req.body;
+    if (!userId) return res.json({ error: "INVALID_USER" });
 
     const user = await User.findOne({ userId });
-    if (!user) {
-      return res.json({ error: "USER_NOT_FOUND" });
-    }
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    // 🛑 ANTI-SPAM (1 second)
+    // 🛑 ANTI-SPAM (1.5 seconds)
     const now = Date.now();
-    if (user.lastOpenAt && now - user.lastOpenAt < 1000) {
+    if (user.lastOpenAt && now - user.lastOpenAt < 1500) {
       return res.json({ error: "TOO_FAST" });
     }
     user.lastOpenAt = now;
 
-    // COST
+    // 💸 COST
     if (user.freeTries > 0) {
       user.freeTries -= 1;
     } else if (user.energy >= 10) {
@@ -169,15 +160,13 @@ user.lastOpenAt = now;
       return res.json({ error: "NO_ENERGY" });
     }
 
-    // REWARD TABLE
+    // 🎁 REWARD TABLE
     let rewards = [0, 50, 100];
     if (type === "gold") rewards = [100, 200, 500];
     if (type === "diamond") rewards = [300, 500, 1000, 2000];
     if (user.proLevel >= 3) rewards.push(5000);
 
-    const reward =
-      rewards[Math.floor(Math.random() * rewards.length)];
-
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
 
     await user.save();
@@ -189,9 +178,8 @@ user.lastOpenAt = now;
       energy: user.energy,
       freeTries: user.freeTries
     });
-
   } catch (err) {
-    console.error("OPEN BOX ERROR", err);
+    console.error("OPEN BOX ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
@@ -227,17 +215,6 @@ app.post("/api/daily", async (req, res) => {
 
 /* ================= WATCH ADS ================= */
 app.post("/api/ads/watch", async (req, res) => {
-  const today = new Date().toDateString();
-
-if (user.lastAdDay !== today) {
-  user.lastAdDay = today;
-  user.adsWatchedToday = 0;
-}
-
-if (user.adsWatchedToday >= 5) {
-  return res.json({ error: "DAILY_AD_LIMIT" });
-}
-  
   try {
     const { userId } = req.body;
     if (!userId) return res.json({ error: "INVALID_USER" });
@@ -245,7 +222,20 @@ if (user.adsWatchedToday >= 5) {
     const user = await User.findOne({ userId });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    // 🛑 simple anti-spam (30s)
+    const today = new Date().toDateString();
+
+    // 🔄 reset daily ads
+    if (user.lastAdDay !== today) {
+      user.lastAdDay = today;
+      user.adsWatchedToday = 0;
+    }
+
+    // ⛔ daily limit
+    if (user.adsWatchedToday >= 5) {
+      return res.json({ error: "DAILY_AD_LIMIT" });
+    }
+
+    // 🛑 30s cooldown
     const now = Date.now();
     if (user.lastAdAt && now - user.lastAdAt < 30000) {
       return res.json({ error: "WAIT_30_SECONDS" });
@@ -254,6 +244,7 @@ if (user.adsWatchedToday >= 5) {
     // 🎁 REWARD
     user.energy = Math.min(user.energy + 20, 9999);
     user.balance += 100;
+    user.adsWatchedToday += 1;
     user.lastAdAt = now;
 
     await user.save();
