@@ -375,16 +375,11 @@ async function ensureUser() {
     return;
   }
 
-  const res = await fetch("/api/user", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
-  });
+  // 🛑 kada a bugi server sau da yawa
+  if (window.__ensured) return;
+  window.__ensured = true;
 
-  const data = await res.json();
-  if (data.error === "USER_NOT_FOUND") {
-    await syncUserFromServer(); // 🔁 ƙirƙiri user a server
-  }
+  await syncUserFromServer();
 }
 
 /* ================= NAV ================= */
