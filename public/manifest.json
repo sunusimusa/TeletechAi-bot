@@ -1,23 +1,42 @@
 {
-  "name": "Lucky Box Game",
+  "name": "Lucky Box Game – Earn Virtual Rewards",
   "short_name": "LuckyBox",
-  "description": "Play, open boxes and earn virtual rewards",
-  "start_url": "/",
+  "description": "Open boxes, complete tasks, and earn virtual rewards in a fun lucky box game experience.",
+  "id": "/",
+  "start_url": "/?source=pwa",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "fullscreen"],
   "background_color": "#140900",
   "theme_color": "#ffd700",
   "orientation": "portrait",
+  "lang": "en",
+  "dir": "ltr",
+  "categories": ["games", "entertainment"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-192-maskable.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ]
 }
