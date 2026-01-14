@@ -332,6 +332,29 @@ async function claimAdReward(btn, status) {
   }
 }
 
+async function convertBalance() {
+  const amount = 10000;
+
+  const res = await fetch("/api/convert", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, amount })
+  });
+
+  const data = await res.json();
+
+  if (data.error) {
+    alert("❌ " + data.error);
+    return;
+  }
+
+  balance = data.balance;
+  tokens = data.tokens;
+  updateUI();
+
+  alert("✅ Converted successfully!");
+}
+
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
