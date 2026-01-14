@@ -193,8 +193,8 @@ function copyRef() {
 
 /* ================= OPEN BOX ================= */
 async function openBox(box, type) {
+  await ensureUser(); // ✅ nan daidai ne
 
-  // ⛔ idan babu internet
   if (!navigator.onLine) {
     alert("📡 Don Allah ka kunna internet");
     return;
@@ -212,15 +212,22 @@ async function openBox(box, type) {
     });
 
     const data = await res.json();
+
     if (data.error) {
-  playSound("errorSound");
+      playSound("errorSound");
 
-  if (data.error !== "TOO_FAST") {
-    alert("❌ " + data.error);
-  }
+      if (data.error === "USER_NOT_FOUND") {
+        await syncUserFromServer();
+        openingLocked = false;
+        return;
+      }
 
-  openingLocked = false;
-  return;
+      if (data.error !== "TOO_FAST") {
+        alert("❌ " + data.error);
+      }
+
+      openingLocked = false;
+      return;
     }
 
     balance = data.balance;
@@ -298,21 +305,27 @@ async function claimAdReward(btn, status) {
       body: JSON.stringify({ userId })
     });
 
-    if (!res.ok) {
-      status.innerText = "📡 Server not reachable";
-      return;
-    }
-
     const data = await res.json();
 
     if (data.error) {
+
+      // 🔁 idan user bai wanzu ba (tester / reinstall / first open)
+      if (data.error === "USER_NOT_FOUND") {
+        await syncUserFromServer();
+        status.innerText = "🔄 Please try again";
+        btn.disabled = false;
+        return;
+      }
+
       if (data.error === "WAIT_30_SECONDS") {
         status.innerText = "⏳ Please wait before next ad";
-      } else if (data.error === "USER_NOT_FOUND") {
-        status.innerText = "⚠️ Reload app";
+      } else if (data.error === "DAILY_AD_LIMIT") {
+        status.innerText = "🚫 Daily ad limit reached";
       } else {
         status.innerText = "❌ Action not allowed";
       }
+
+      btn.disabled = false;
       return;
     }
 
@@ -320,6 +333,7 @@ async function claimAdReward(btn, status) {
     energy = data.energy;
     balance = data.balance;
     updateUI();
+
     status.innerText = "✅ Reward added!";
   } catch (e) {
     status.innerText = "📡 No internet connection";
@@ -353,6 +367,24 @@ async function convertBalance() {
   updateUI();
 
   alert("✅ Converted successfully!");
+}
+
+async function ensureUser() {
+  if (!userId) {
+    await syncUserFromServer();
+    return;
+  }
+
+  const res = await fetch("/api/user", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
+
+  const data = await res.json();
+  if (data.error === "USER_NOT_FOUND") {
+    await syncUserFromServer(); // 🔁 ƙirƙiri user a server
+  }
 }
 
 /* ================= NAV ================= */
