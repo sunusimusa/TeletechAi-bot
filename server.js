@@ -538,6 +538,67 @@ app.post("/api/user/by-telegram", async (req, res) => {
   });
 });
 
+app.post("/api/convert", async (req, res) => {
+  try {
+    const { userId, amount } = req.body;
+
+    // 1️⃣ basic validation
+    if (!userId || !amount) {
+      return res.json({ error: "INVALID_REQUEST" });
+    }
+
+    if (amount <= 0) {
+      return res.json({ error: "INVALID_AMOUNT" });
+    }
+
+    // 2️⃣ find user
+    const user = await User.findOne({ userId });
+    if (!user) {
+      return res.json({ error: "USER_NOT_FOUND" });
+    }
+
+    // 3️⃣ anti-spam (3 seconds)
+    const now = Date.now();
+    if (user.lastConvertAt && now - user.lastConvertAt < 3000) {
+      return res.json({ error: "TOO_FAST" });
+    }
+
+    // 4️⃣ conversion rule
+    const RATE = 10000; // 10,000 balance = 1 TTECH
+
+    if (amount % RATE !== 0) {
+      return res.json({ error: "INVALID_CONVERSION_RATE" });
+    }
+
+    if (user.balance < amount) {
+      return res.json({ error: "INSUFFICIENT_BALANCE" });
+    }
+
+    // 5️⃣ calculate tokens
+    const tokensToAdd = amount / RATE;
+
+    // 6️⃣ apply conversion
+    user.balance -= amount;
+    user.tokens += tokensToAdd;
+    user.lastConvertAt = now;
+
+    await user.save();
+
+    // 7️⃣ response
+    res.json({
+      success: true,
+      converted: amount,
+      tokensAdded: tokensToAdd,
+      balance: user.balance,
+      tokens: user.tokens
+    });
+
+  } catch (err) {
+    console.error("CONVERT ERROR:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
