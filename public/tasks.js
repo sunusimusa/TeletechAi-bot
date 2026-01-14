@@ -81,30 +81,6 @@ async function watchAd() {
   }, 1000);
 }
 
-function claimAdReward() {
-  fetch("/api/ads/claim", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) {
-        alert("❌ " + data.error);
-        return;
-      }
-
-      balance = data.balance;
-      energy = data.energy;
-      updateUI();
-
-      document.getElementById("adStatus").innerText =
-        `🎉 +200 coins & +20 energy (Ads left: ${data.adsLeft})`;
-
-      document.getElementById("claimAdBtn").disabled = true;
-    });
-}
-
 /* ===============================
    OPEN LINKS
 ================================ */
