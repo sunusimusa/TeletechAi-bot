@@ -1,127 +1,135 @@
-/* ===============================
-   CONFIG – SAKA NAKAN LINKS
-================================ */
+/* =====================================================
+   TASKS PAGE ONLY (NO GAME LOGIC HERE)
+   SERVER = SOURCE OF TRUTH
+===================================================== */
 
-// 🔴 SAKA SUNAN CHANNEL DINKA ANAN
-const YOUTUBE_CHANNEL =
-  "https://youtube.com/@Sunusicrypto"; // <- canza nan
+/* ================= CONFIG ================= */
+const YOUTUBE_CHANNEL = "https://youtube.com/@Sunusicrypto";
+const TELEGRAM_CHAT   = "https://t.me/tele_tap_ai";
+const TELEGRAM_UPDATE = "https://t.me/TeleAIupdates";
 
-const TELEGRAM_CHAT =
-  "https://t.me/tele_tap_ai"; // <- public chat
-
-const TELEGRAM_UPDATE =
-  "https://t.me/TeleAIupdates"; // <- update channel
-
-
-/* ===============================
-   GLOBAL
-================================ */
+/* ================= GLOBAL ================= */
 const userId = localStorage.getItem("userId");
 const msg = document.getElementById("taskMsg");
 
-/* ===============================
-   WATCH AD TASK
-================================ */
-let adTimer = null;
-let adTimeLeft = 30;
+/* ================= WATCH AD ================= */
+let adRunning = false;
 
 async function watchAd() {
+  if (!navigator.onLine) {
+    alert("📡 Internet required");
+    return;
+  }
+
+  if (!userId) {
+    alert("❌ User not initialized");
+    return;
+  }
+
+  if (adRunning) return;
+  adRunning = true;
+
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
 
   if (!btn || !status) return;
 
   btn.disabled = true;
-  btn.innerText = "Watching...";
   status.classList.remove("hidden");
 
-  adTimeLeft = 30;
-  status.innerText = `⏳ Watching ad... ${adTimeLeft}s`;
+  let t = 30;
+  status.innerText = `⏳ Watching ad... ${t}s`;
 
-  adTimer = setInterval(async () => {
-    adTimeLeft--;
+  const timer = setInterval(async () => {
+    t--;
+    status.innerText = `⏳ Watching ad... ${t}s`;
 
-    status.innerText = `⏳ Watching ad... ${adTimeLeft}s`;
+    if (t <= 0) {
+      clearInterval(timer);
 
-    if (adTimeLeft <= 0) {
-      clearInterval(adTimer);
-
-      // 📡 CLAIM FROM SERVER
       try {
         const res = await fetch("/api/ads/watch", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: localStorage.getItem("userId")
-          })
+          body: JSON.stringify({ userId })
         });
 
         const data = await res.json();
 
         if (data.error) {
-          status.innerText = "❌ Ad limit reached";
+          if (data.error === "DAILY_AD_LIMIT") {
+            status.innerText = "🚫 Daily ad limit reached";
+          } else if (data.error === "WAIT_30_SECONDS") {
+            status.innerText = "⏳ Please wait before next ad";
+          } else if (data.error === "USER_NOT_FOUND") {
+            status.innerText = "🔄 Please reopen the app";
+          } else {
+            status.innerText = "❌ Action failed";
+          }
         } else {
-          status.innerText = "✅ +20 ⚡ +100 💰 added!";
-          balance = data.balance;
-          energy = data.energy;
-          updateUI();
+          status.innerText = "✅ Reward added (⚡ +20)";
         }
 
       } catch (e) {
         status.innerText = "❌ Network error";
       }
 
-      btn.disabled = false;
-      btn.innerText = "📺 Watch Ad (+20 ⚡ +100 💰)";
-
       setTimeout(() => {
         status.classList.add("hidden");
+        btn.disabled = false;
+        adRunning = false;
       }, 2500);
     }
   }, 1000);
 }
 
-/* ===============================
-   OPEN LINKS
-================================ */
+/* ================= SOCIAL LINKS ================= */
 function openYouTube() {
   window.open(YOUTUBE_CHANNEL, "_blank");
-  completeSocialTask("youtube");
+  showMsg("▶️ YouTube opened. Come back to claim.");
 }
 
 function openTelegramChat() {
   window.open(TELEGRAM_CHAT, "_blank");
-  completeSocialTask("telegramChat");
+  showMsg("💬 Telegram chat opened.");
 }
 
 function openTelegramUpdate() {
   window.open(TELEGRAM_UPDATE, "_blank");
-  completeSocialTask("telegramUpdate");
+  showMsg("📢 Update channel opened.");
 }
 
-function verifyTelegram(type) {
-  const telegramId = localStorage.getItem("telegramId");
-
-  if (!telegramId) {
-    alert("❌ Open app from Telegram first");
+/* ================= CLAIM SOCIAL TASK ================= */
+async function claimTask(type) {
+  if (!userId) {
+    alert("❌ User not initialized");
     return;
   }
 
-  fetch("/api/task/verify-telegram", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      userId: localStorage.getItem("userId"),
-      telegramId,
-      type
-    })
-  })
-    .then(res => res.json())
-    .then(data => {
-      if (data.error) {
-        alert("❌ " + data.error);
-        return;
-      }
-      alert("✅ Task verified +300 coins!");
+  try {
+    const res = await fetch("/api/task/claim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, type })
     });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert("❌ " + data.error);
+      return;
+    }
+
+    alert("✅ Task completed + reward added!");
+
+  } catch (e) {
+    alert("❌ Network error");
+  }
+}
+
+/* ================= HELPERS ================= */
+function showMsg(text) {
+  if (!msg) return;
+  msg.innerText = text;
+  setTimeout(() => (msg.innerText = ""), 3000);
 }
