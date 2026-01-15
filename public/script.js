@@ -1,20 +1,17 @@
 /* =====================================================
-   CLEAN FINAL FRONTEND
+   LUCKY BOX – CLEAN FINAL FRONTEND
    SERVER = SOURCE OF TRUTH
+   PLAY STORE SAFE
 ===================================================== */
 
 /* ================= USER ID ================= */
 let userId = localStorage.getItem("userId");
 if (!userId) {
-  userId =
-    "USER_" +
-    Date.now() +
-    "_" +
-    Math.random().toString(36).substring(2, 6);
+  userId = "USER_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
   localStorage.setItem("userId", userId);
 }
 
-/* ================= STATE (FROM SERVER) ================= */
+/* ================= GLOBAL STATE ================= */
 let wallet = "";
 let balance = 0;
 let energy = 0;
@@ -22,8 +19,8 @@ let tokens = 0;
 let freeTries = 0;
 let proLevel = 0;
 let referralsCount = 0;
-
 let MAX_ENERGY = 100;
+
 let openingLocked = false;
 let adWatched = false;
 
@@ -31,18 +28,18 @@ let adWatched = false;
 document.addEventListener("DOMContentLoaded", async () => {
   agreementInit();
   handleOffline();
-  await syncUserFromServer();
+  await ensureUser();
 });
 
 /* ================= SOUND ================= */
 function playSound(id) {
-  const sound = document.getElementById(id);
-  if (!sound) return;
-  sound.currentTime = 0;
-  sound.play().catch(() => {});
+  const s = document.getElementById(id);
+  if (!s) return;
+  s.currentTime = 0;
+  s.play().catch(() => {});
 }
 
-// 🔓 unlock audio (Android / Play Store)
+// Android unlock
 document.addEventListener(
   "click",
   () => {
@@ -72,58 +69,23 @@ function agreementInit() {
   };
 }
 
-function linkTelegram() {
-  const botUsername = "TeleTechAiBot"; // naka
-  const url = `https://t.me/${botUsername}?start=${userId}`;
-  window.open(url, "_blank");
-}
-
+/* ================= OFFLINE ================= */
 function handleOffline() {
-  if (!navigator.onLine) {
-    document.body.classList.add("offline");
-  } else {
-    document.body.classList.remove("offline");
-  }
+  document.body.classList.toggle("offline", !navigator.onLine);
 }
-
 window.addEventListener("online", handleOffline);
 window.addEventListener("offline", handleOffline);
-handleOffline();
 
-function isOffline() {
-  return !navigator.onLine;
+/* ================= USER SYNC ================= */
+async function ensureUser() {
+  if (window.__synced) return;
+  window.__synced = true;
+  await syncUserFromServer();
 }
 
-window.addEventListener("offline", showOffline);
-window.addEventListener("online", hideOffline);
-
-function showOffline() {
-  const msg = document.getElementById("offlineMsg");
-  if (msg) msg.classList.remove("hidden");
-
-  disableGame(true);
-}
-
-function hideOffline() {
-  const msg = document.getElementById("offlineMsg");
-  if (msg) msg.classList.add("hidden");
-
-  disableGame(false);
-}
-
-function disableGame(state) {
-  document.querySelectorAll("button").forEach(btn => {
-    if (!btn.dataset.allowOffline) {
-      btn.disabled = state;
-    }
-  });
-}
-
-/* ================= SYNC USER ================= */
 async function syncUserFromServer() {
   try {
-    const params = new URLSearchParams(location.search);
-    const ref = params.get("ref");
+    const ref = new URLSearchParams(location.search).get("ref");
 
     const res = await fetch("/api/user", {
       method: "POST",
@@ -142,8 +104,8 @@ async function syncUserFromServer() {
     proLevel = data.proLevel;
     referralsCount = data.referralsCount || 0;
 
-    // limits from role / pro
-    MAX_ENERGY = data.role === "founder" ? 9999 : 100;
+    // energy limits
+    MAX_ENERGY = data.role === "founder" ? 999 : 100;
     if (proLevel === 1) MAX_ENERGY = 150;
     if (proLevel === 2) MAX_ENERGY = 200;
     if (proLevel === 3) MAX_ENERGY = 300;
@@ -151,7 +113,7 @@ async function syncUserFromServer() {
     updateUI();
     fillReferralLink();
   } catch (e) {
-    console.error("Sync failed", e);
+    console.error("SYNC ERROR", e);
   }
 }
 
@@ -164,10 +126,7 @@ function updateUI() {
   setText("refCount", `👥 Referrals: ${referralsCount}`);
 
   const bar = document.getElementById("energyFill");
-  if (bar) {
-    bar.style.width =
-      Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
-  }
+  if (bar) bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
 }
 
 function setText(id, text) {
@@ -177,10 +136,8 @@ function setText(id, text) {
 
 /* ================= REFERRAL ================= */
 function fillReferralLink() {
-  const refLink = document.getElementById("refLink");
-  if (refLink && wallet) {
-    refLink.value = location.origin + "/?ref=" + wallet;
-  }
+  const input = document.getElementById("refLink");
+  if (input && wallet) input.value = location.origin + "/?ref=" + wallet;
 }
 
 function copyRef() {
@@ -193,15 +150,13 @@ function copyRef() {
 
 /* ================= OPEN BOX ================= */
 async function openBox(box, type) {
-  await ensureUser(); // ✅ nan daidai ne
-
   if (!navigator.onLine) {
-    alert("📡 Please turn on your internet connection");
+    alert("📡 Internet required");
     return;
   }
   if (openingLocked || box.classList.contains("opened")) return;
-  openingLocked = true;
 
+  openingLocked = true;
   playSound("clickSound");
 
   try {
@@ -212,22 +167,10 @@ async function openBox(box, type) {
     });
 
     const data = await res.json();
-
     if (data.error) {
       playSound("errorSound");
-
-      if (data.error === "USER_NOT_FOUND") {
-        await syncUserFromServer();
-        openingLocked = false;
-        return;
-      }
-
-      if (data.error !== "TOO_FAST") {
-        alert("❌ " + data.error);
-      }
-
       openingLocked = false;
-      return;
+      return alert("❌ " + data.error);
     }
 
     balance = data.balance;
@@ -254,27 +197,20 @@ async function openBox(box, type) {
       rewardEl.textContent = "";
       openingLocked = false;
     }, 1500);
-  } catch (e) {
-    playSound("errorSound");
+  } catch {
     openingLocked = false;
   }
 }
 
 /* ================= ADS ================= */
 async function watchAd() {
+  if (!navigator.onLine) return alert("📡 Internet required");
 
-  // ⛔ idan babu internet
-  if (!navigator.onLine) {
-    alert("📡 Internet connection is required to watch ads");
-    return;
-  }
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
   if (!btn || !status) return;
 
   btn.disabled = true;
-  adWatched = false;
-
   let t = 30;
   status.classList.remove("hidden");
   status.innerText = `⏳ Watching ad... ${t}s`;
@@ -282,22 +218,14 @@ async function watchAd() {
   const timer = setInterval(() => {
     t--;
     status.innerText = `⏳ Watching ad... ${t}s`;
-
     if (t <= 0) {
       clearInterval(timer);
-      adWatched = true; // ✅ tabbatar an kammala
       claimAdReward(btn, status);
     }
   }, 1000);
 }
 
 async function claimAdReward(btn, status) {
-  if (!adWatched) {
-    status.innerText = "❌ Watch the ad first";
-    btn.disabled = false;
-    return;
-  }
-
   try {
     const res = await fetch("/api/ads/watch", {
       method: "POST",
@@ -306,39 +234,17 @@ async function claimAdReward(btn, status) {
     });
 
     const data = await res.json();
-
     if (data.error) {
-
-      // 🔁 idan user bai wanzu ba (tester / reinstall / first open)
-      if (data.error === "USER_NOT_FOUND") {
-        await syncUserFromServer();
-        status.innerText = "🔄 Please try again";
-        btn.disabled = false;
-        return;
-      }
-
-      if (data.error === "WAIT_30_SECONDS") {
-        status.innerText = "⏳ Please wait before next ad";
-      } else if (data.error === "DAILY_AD_LIMIT") {
-        status.innerText = "🚫 Daily ad limit reached";
-      } else {
-        status.innerText = "❌ Action not allowed";
-      }
-
+      status.innerText = "❌ " + data.error;
       btn.disabled = false;
       return;
     }
 
-    // ✅ SUCCESS
     energy = data.energy;
     balance = data.balance;
     updateUI();
-
-    status.innerText = "✅ Reward added!";
-  } catch (e) {
-    status.innerText = "📡 No internet connection";
+    status.innerText = "✅ +20 Energy added!";
   } finally {
-    adWatched = false;
     setTimeout(() => {
       status.classList.add("hidden");
       btn.disabled = false;
@@ -346,47 +252,30 @@ async function claimAdReward(btn, status) {
   }
 }
 
+/* ================= CONVERT ================= */
 async function convertBalance() {
-  const amount = 10000;
-
   const res = await fetch("/api/convert", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, amount })
+    body: JSON.stringify({ userId, amount: 10000 })
   });
 
   const data = await res.json();
-
-  if (data.error) {
-    alert("❌ " + data.error);
-    return;
-  }
+  if (data.error) return alert("❌ " + data.error);
 
   balance = data.balance;
   tokens = data.tokens;
   updateUI();
-
-  alert("✅ Converted successfully!");
-}
-
-async function ensureUser() {
-  if (!userId) {
-    await syncUserFromServer();
-    return;
-  }
-
-  // 🛑 kada a bugi server sau da yawa
-  if (window.__ensured) return;
-  window.__ensured = true;
-
-  await syncUserFromServer();
+  alert("✅ Converted successfully");
 }
 
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
 }
-
 function openFounderStats() {
   location.href = "/founder-stats.html";
 }
+function linkTelegram() {
+  window.open(`https://t.me/TeleTechAiBot?start=${userId}`, "_blank");
+       }
