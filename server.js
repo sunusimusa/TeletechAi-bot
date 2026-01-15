@@ -11,17 +11,28 @@ import Transaction from "./models/Transaction.js";
 dotenv.config();
 const app = express();
 
-/* ================= CONFIG ================= */
-const FOUNDER_USER_ID = "SUNUSI_001";
-
-/* ================= PATH FIX ================= */
+/* ================= BASIC SETUP ================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
+
+/* ================= CONSTANTS ================= */
+const FOUNDER_USER_ID = "SUNUSI_001";
+
+const ENERGY_PER_AD = 20;
+const MAX_ADS_PER_DAY = 5;
+
+const BASE_MAX_ENERGY = 100;
+const PRO_ENERGY = {
+  0: 100,
+  1: 150,
+  2: 200,
+  3: 300,
+  4: 999 // founder
+};
 
 /* ================= DATABASE ================= */
 mongoose
@@ -30,102 +41,66 @@ mongoose
   .catch(err => console.error("❌ Mongo Error:", err));
 
 /* ================= HELPERS ================= */
-function generateWallet() {
+function today() {
+  return new Date().toISOString().split("T")[0];
+}
+
+function wallet() {
   return "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
-/* ================= CREATE / LOAD USER ================= */
+/* =====================================================
+   CREATE / LOAD USER  (SOURCE OF TRUTH)
+===================================================== */
 app.post("/api/user", async (req, res) => {
   try {
     const { userId, ref } = req.body;
     if (!userId) return res.json({ error: "INVALID_USER" });
 
-    const isFounder = userId === FOUNDER_USER_ID;
     let user = await User.findOne({ userId });
 
-    /* ========== CREATE USER ========== */
+    /* ===== CREATE USER IF NOT EXISTS ===== */
     if (!user) {
-      const wallet =
-        "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
+      const isFounder = userId === FOUNDER_USER_ID;
 
       user = await User.create({
         userId,
-        walletAddress: wallet,
+        walletAddress: wallet(),
         role: isFounder ? "founder" : "user",
         proLevel: isFounder ? 4 : 0,
-        energy: isFounder ? 9999 : 100,
-        freeTries: isFounder ? 9999 : 3,
         balance: 0,
         tokens: 0,
-        joinedByRef: false,     // 👈 NEW (ƙanƙane)
-        lastSyncAt: Date.now()  // 👈 NEW (ƙanƙane)
+        energy: PRO_ENERGY[isFounder ? 4 : 0],
+        freeTries: isFounder ? 999 : 3,
+        referrals: [],
+        referralsCount: 0,
+        adsWatchedToday: 0,
+        lastAdDay: today(),
+        createdAt: Date.now()
       });
 
-      // referral (ONCE, normal users only)
+      // referral (one time)
       if (ref && !isFounder) {
         const referrer = await User.findOne({ walletAddress: ref });
-
-        if (
-          referrer &&
-          referrer.userId !== userId &&
-          user.joinedByRef === false
-        ) {
-          user.referredBy = referrer.walletAddress;
-          user.joinedByRef = true;
-
+        if (referrer && referrer.userId !== userId) {
           referrer.referrals.push(userId);
           referrer.referralsCount += 1;
           referrer.balance += 500;
-
           await referrer.save();
-          await user.save();
         }
       }
-    } else {
-      // 🛑 ANTI-SPAM SYNC (1 second)
-      const now = Date.now();
-      if (user.lastSyncAt && now - user.lastSyncAt < 1000) {
-        return res.json({ error: "TOO_FAST" });
-      }
-      user.lastSyncAt = now;
-      await user.save();
     }
 
-    /* ========== 🔥 FOUNDER FIX ========== */
-    if (isFounder) {
-      let changed = false;
-
-      if (user.role !== "founder") {
-        user.role = "founder";
-        changed = true;
-      }
-      if (user.proLevel < 4) {
-        user.proLevel = 4;
-        changed = true;
-      }
-      if (user.energy < 9999) {
-        user.energy = 9999;
-        changed = true;
-      }
-      if (user.freeTries < 9999) {
-        user.freeTries = 9999;
-        changed = true;
-      }
-
-      if (changed) await user.save();
-    }
-
-    /* ========== RESPONSE ========== */
+    /* ===== RESPONSE ===== */
     res.json({
       success: true,
-      userId: user.userId,
       wallet: user.walletAddress,
       balance: user.balance,
       energy: user.energy,
-      freeTries: user.freeTries,
       tokens: user.tokens,
-      referralsCount: user.referralsCount,
+      freeTries: user.freeTries,
       proLevel: user.proLevel,
+      referralsCount: user.referralsCount,
       role: user.role
     });
 
@@ -135,23 +110,22 @@ app.post("/api/user", async (req, res) => {
   }
 });
 
-/* ================= OPEN BOX ================= */
+/* =====================================================
+   OPEN BOX
+===================================================== */
 app.post("/api/open", async (req, res) => {
   try {
     const { userId, type } = req.body;
-    if (!userId) return res.json({ error: "INVALID_USER" });
-
     const user = await User.findOne({ userId });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    // 🛑 ANTI-SPAM (1.5 seconds)
+    // anti-spam
     const now = Date.now();
-    if (user.lastOpenAt && now - user.lastOpenAt < 1500) {
+    if (user.lastOpenAt && now - user.lastOpenAt < 1500)
       return res.json({ error: "TOO_FAST" });
-    }
     user.lastOpenAt = now;
 
-    // 💸 COST
+    // cost
     if (user.freeTries > 0) {
       user.freeTries -= 1;
     } else if (user.energy >= 10) {
@@ -160,11 +134,11 @@ app.post("/api/open", async (req, res) => {
       return res.json({ error: "NO_ENERGY" });
     }
 
-    // 🎁 REWARD TABLE
+    // rewards
     let rewards = [0, 50, 100];
     if (type === "gold") rewards = [100, 200, 500];
-    if (type === "diamond") rewards = [300, 500, 1000, 2000];
-    if (user.proLevel >= 3) rewards.push(5000);
+    if (type === "diamond") rewards = [300, 500, 1000];
+    if (user.proLevel >= 3) rewards.push(2000);
 
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
@@ -178,71 +152,40 @@ app.post("/api/open", async (req, res) => {
       energy: user.energy,
       freeTries: user.freeTries
     });
-  } catch (err) {
-    console.error("OPEN BOX ERROR:", err);
+
+  } catch (e) {
+    console.error("OPEN ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
-/* ================= DAILY BONUS ================= */
-app.post("/api/daily", async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  const DAY = 24 * 60 * 60 * 1000;
-  const now = Date.now();
-
-  if (user.lastDaily && now - user.lastDaily < DAY)
-    return res.json({ error: "COME_BACK_LATER" });
-
-  let reward = 500;
-  if (user.proLevel >= 2) reward = 800;
-  if (user.proLevel >= 3) reward = 1200;
-
-  user.balance += reward;
-  user.energy += 20;
-  user.lastDaily = now;
-
-  await user.save();
-
-  res.json({
-    reward,
-    balance: user.balance,
-    energy: user.energy
-  });
-});
-
-/* ================= WATCH ADS ================= */
+/* =====================================================
+   WATCH ADS  (ONLY WAY TO GET ENERGY)
+===================================================== */
 app.post("/api/ads/watch", async (req, res) => {
   try {
     const { userId } = req.body;
-    if (!userId) return res.json({ error: "INVALID_USER" });
-
     const user = await User.findOne({ userId });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const today = new Date().toDateString();
-
-    // 🔄 reset daily ads
-    if (user.lastAdDay !== today) {
-      user.lastAdDay = today;
+    // reset daily
+    if (user.lastAdDay !== today()) {
+      user.lastAdDay = today();
       user.adsWatchedToday = 0;
     }
 
-    // ⛔ daily limit
-    if (user.adsWatchedToday >= 5) {
+    // daily limit
+    if (user.adsWatchedToday >= MAX_ADS_PER_DAY)
       return res.json({ error: "DAILY_AD_LIMIT" });
-    }
 
-    // 🛑 30s cooldown
+    // cooldown
     const now = Date.now();
-    if (user.lastAdAt && now - user.lastAdAt < 30000) {
+    if (user.lastAdAt && now - user.lastAdAt < 30000)
       return res.json({ error: "WAIT_30_SECONDS" });
-    }
 
-    // 🎁 REWARD
-    user.energy = Math.min(user.energy + 20, 9999);
+    const maxEnergy = PRO_ENERGY[user.proLevel] || BASE_MAX_ENERGY;
+
+    user.energy = Math.min(user.energy + ENERGY_PER_AD, maxEnergy);
     user.balance += 100;
     user.adsWatchedToday += 1;
     user.lastAdAt = now;
@@ -254,294 +197,82 @@ app.post("/api/ads/watch", async (req, res) => {
       energy: user.energy,
       balance: user.balance
     });
+
   } catch (e) {
     console.error("ADS ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
-/* ================= TOKEN MARKET ================= */
-app.post("/api/token/buy", async (req, res) => {
-  const { userId, amount } = req.body;
+/* =====================================================
+   DAILY BONUS
+===================================================== */
+app.post("/api/daily", async (req, res) => {
+  const { userId } = req.body;
   const user = await User.findOne({ userId });
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  const cost = amount * 10000;
-  if (user.balance < cost)
-    return res.json({ error: "NOT_ENOUGH_BALANCE" });
-
-  user.balance -= cost;
-  user.tokens += amount;
-  await user.save();
-
-  res.json({ balance: user.balance, tokens: user.tokens });
-});
-
-app.post("/api/token/sell", async (req, res) => {
-  const { userId, amount } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  if (user.tokens < amount)
-    return res.json({ error: "NOT_ENOUGH_TOKENS" });
-
-  user.tokens -= amount;
-  user.balance += amount * 9000;
-  await user.save();
-
-  res.json({ balance: user.balance, tokens: user.tokens });
-});
-
-/* ================= WALLET ================= */
-app.get("/api/wallet/:userId", async (req, res) => {
-  const user = await User.findOne({ userId: req.params.userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-
-  res.json({
-    wallet: user.walletAddress,
-    tokens: user.tokens
-  });
-});
-
-app.post("/api/wallet/send", async (req, res) => {
-  const { userId, to, amount } = req.body;
-
-  const sender = await User.findOne({ userId });
-  const receiver = await User.findOne({ walletAddress: to });
-
-  if (!sender || !receiver)
-    return res.json({ error: "INVALID_WALLET" });
-
-  if (sender.tokens < amount)
-    return res.json({ error: "INSUFFICIENT_BALANCE" });
-
-  sender.tokens -= amount;
-  receiver.tokens += amount;
-
-  await Transaction.create({
-    from: sender.walletAddress,
-    to,
-    amount
-  });
-
-  await sender.save();
-  await receiver.save();
-
-  res.json({ success: true, tokens: sender.tokens });
-});
-
-/* ================= LEADERBOARD ================= */
-app.get("/api/leaderboard", async (req, res) => {
-  const top = await User.find()
-    .sort({ balance: -1 })
-    .limit(10)
-    .select("userId balance");
-
-  res.json(top);
-});
-
-/* ================= FOUNDER DASHBOARD ================= */
-app.get("/api/founder/stats", async (req, res) => {
-  try {
-    const totalUsers = await User.countDocuments();
-    const proUsers = await User.countDocuments({ proLevel: { $gte: 1 } });
-    const founders = await User.countDocuments({ proLevel: { $gte: 4 } });
-
-    const agg = await User.aggregate([
-      {
-        $group: {
-          _id: null,
-          totalBalance: { $sum: "$balance" },
-          totalTokens: { $sum: "$tokens" },
-          totalEnergy: { $sum: "$energy" },
-          totalReferrals: { $sum: "$referralsCount" }
-        }
-      }
-    ]);
-
-    const stats = agg[0] || {
-      totalBalance: 0,
-      totalTokens: 0,
-      totalEnergy: 0,
-      totalReferrals: 0
-    };
-
-    res.json({
-      totalUsers,
-      proUsers,
-      founders,
-      ...stats
-    });
-
-  } catch (err) {
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
-app.get("/api/my-referrals", async (req, res) => {
-  try {
-    const { userId } = req.query;
-    if (!userId) return res.json([]);
-
-    const user = await User.findOne({ userId });
-    if (!user || !user.referrals || user.referrals.length === 0) {
-      return res.json([]);
-    }
-
-    const referrals = await User.find({
-      userId: { $in: user.referrals }
-    })
-      .select("userId createdAt")
-      .sort({ createdAt: -1 });
-
-    res.json(referrals);
-
-  } catch (err) {
-    console.error("MY REFERRALS ERROR:", err);
-    res.status(500).json([]);
-  }
-});
-
-app.post("/api/pro/upgrade", async (req, res) => {
-  const { userId, level } = req.body;
-  const user = await User.findOne({ userId });
-
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
-  if (level <= user.proLevel) return res.json({ error: "ALREADY_UPGRADED" });
-
-  user.proLevel = level;
-  user.energy = 9999;
-
-  await user.save();
-  res.json({ proLevel: user.proLevel, energy: user.energy });
-});
-
-app.post("/api/telegram/balance", async (req, res) => {
-  const { telegramId } = req.body;
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ error: "NOT_LINKED" });
-
-  res.json({
-    balance: user.balance,
-    energy: user.energy,
-    tokens: user.tokens
-  });
-});
-
-app.post("/api/telegram/daily", async (req, res) => {
-  const { telegramId } = req.body;
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ error: "NOT_LINKED" });
-
-  const DAY = 24 * 60 * 60 * 1000;
+  const DAY = 86400000;
   if (user.lastDaily && Date.now() - user.lastDaily < DAY)
-    return res.json({ error: "WAIT" });
+    return res.json({ error: "COME_BACK_LATER" });
 
-  user.balance += 300; // virtual
+  const reward = user.proLevel >= 2 ? 800 : 500;
+  user.balance += reward;
+  user.energy += 20;
   user.lastDaily = Date.now();
-  await user.save();
 
-  res.json({ reward: 300 });
+  await user.save();
+  res.json({ reward, balance: user.balance, energy: user.energy });
 });
 
-app.post("/api/telegram/link", async (req, res) => {
-  const { userId, telegramId } = req.body;
-
-  if (!userId || !telegramId)
-    return res.json({ error: "INVALID" });
-
+/* =====================================================
+   CONVERT BALANCE → TOKEN
+===================================================== */
+app.post("/api/convert", async (req, res) => {
+  const { userId, amount } = req.body;
   const user = await User.findOne({ userId });
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  // prevent hijacking
-  if (user.telegramId && user.telegramId !== telegramId)
-    return res.json({ error: "ALREADY_LINKED" });
+  const RATE = 10000;
+  if (amount % RATE !== 0 || user.balance < amount)
+    return res.json({ error: "INVALID_CONVERSION" });
 
-  user.telegramId = telegramId;
+  const tokens = amount / RATE;
+  user.balance -= amount;
+  user.tokens += tokens;
   await user.save();
 
-  res.json({ success: true });
-});
-
-// 🔗 GET USER BY TELEGRAM
-app.post("/api/user/by-telegram", async (req, res) => {
-  const { telegramId } = req.body;
-  if (!telegramId) return res.json({ error: "INVALID" });
-
-  const user = await User.findOne({ telegramId });
-  if (!user) return res.json({ error: "NOT_LINKED" });
-
   res.json({
-    userId: user.userId,
-    wallet: user.walletAddress,
+    success: true,
     balance: user.balance,
-    energy: user.energy,
-    tokens: user.tokens,
-    referralsCount: user.referralsCount,
-    proLevel: user.proLevel,
-    role: user.role
+    tokens: user.tokens
   });
 });
 
-app.post("/api/convert", async (req, res) => {
-  try {
-    const { userId, amount } = req.body;
+/* =====================================================
+   FOUNDER DASHBOARD (SECURE)
+===================================================== */
+app.get("/api/founder/stats", async (req, res) => {
+  const { userId } = req.query;
+  const user = await User.findOne({ userId });
 
-    // 1️⃣ basic validation
-    if (!userId || !amount) {
-      return res.json({ error: "INVALID_REQUEST" });
+  if (!user || user.role !== "founder")
+    return res.json({ error: "ACCESS_DENIED" });
+
+  const agg = await User.aggregate([
+    {
+      $group: {
+        _id: null,
+        totalUsers: { $sum: 1 },
+        totalBalance: { $sum: "$balance" },
+        totalEnergy: { $sum: "$energy" },
+        totalTokens: { $sum: "$tokens" },
+        totalReferrals: { $sum: "$referralsCount" }
+      }
     }
+  ]);
 
-    if (amount <= 0) {
-      return res.json({ error: "INVALID_AMOUNT" });
-    }
-
-    // 2️⃣ find user
-    const user = await User.findOne({ userId });
-    if (!user) {
-      return res.json({ error: "USER_NOT_FOUND" });
-    }
-
-    // 3️⃣ anti-spam (3 seconds)
-    const now = Date.now();
-    if (user.lastConvertAt && now - user.lastConvertAt < 3000) {
-      return res.json({ error: "TOO_FAST" });
-    }
-
-    // 4️⃣ conversion rule
-    const RATE = 10000; // 10,000 balance = 1 TTECH
-
-    if (amount % RATE !== 0) {
-      return res.json({ error: "INVALID_CONVERSION_RATE" });
-    }
-
-    if (user.balance < amount) {
-      return res.json({ error: "INSUFFICIENT_BALANCE" });
-    }
-
-    // 5️⃣ calculate tokens
-    const tokensToAdd = amount / RATE;
-
-    // 6️⃣ apply conversion
-    user.balance -= amount;
-    user.tokens += tokensToAdd;
-    user.lastConvertAt = now;
-
-    await user.save();
-
-    // 7️⃣ response
-    res.json({
-      success: true,
-      converted: amount,
-      tokensAdded: tokensToAdd,
-      balance: user.balance,
-      tokens: user.tokens
-    });
-
-  } catch (err) {
-    console.error("CONVERT ERROR:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
+  res.json(agg[0] || {});
 });
 
 /* ================= ROOT ================= */
