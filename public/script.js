@@ -1,35 +1,8 @@
 /* =====================================================
-   LUCKY BOX – CLEAN FINAL FRONTEND
-   SERVER = SOURCE OF TRUTH
-   PLAY STORE SAFE
+   LUCKY BOX – FINAL CLEAN SCRIPT.JS
+   UI + ANIMATION + SOUND ONLY
+   NO localStorage
 ===================================================== */
-
-/* ================= USER ID ================= */
-let userId = localStorage.getItem("userId");
-if (!userId) {
-  userId = "USER_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
-  localStorage.setItem("userId", userId);
-}
-
-/* ================= GLOBAL STATE ================= */
-let wallet = "";
-let balance = 0;
-let energy = 0;
-let tokens = 0;
-let freeTries = 0;
-let proLevel = 0;
-let referralsCount = 0;
-let MAX_ENERGY = 100;
-
-let openingLocked = false;
-let adWatched = false;
-
-/* ================= INIT ================= */
-document.addEventListener("DOMContentLoaded", async () => {
-  agreementInit();
-  handleOffline();
-  await ensureUser();
-});
 
 /* ================= SOUND ================= */
 function playSound(id) {
@@ -39,7 +12,7 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-// Android unlock
+// 🔓 Android / Play Store audio unlock
 document.addEventListener(
   "click",
   () => {
@@ -57,163 +30,78 @@ function agreementInit() {
   const btn = document.getElementById("agreeBtn");
   if (!modal || !btn) return;
 
-  if (localStorage.getItem("agreed") === "yes") {
-    modal.classList.add("hidden");
-  } else {
-    modal.classList.remove("hidden");
-  }
+  modal.classList.remove("hidden");
 
   btn.onclick = () => {
-    localStorage.setItem("agreed", "yes");
     modal.classList.add("hidden");
   };
 }
 
-function openLeaderboard() {
-  location.href = "/leaderboard.html";
-}
+/* ================= BOX ANIMATION ================= */
+function animateBox(box, reward) {
+  const rewardEl = box.querySelector(".reward");
+  box.classList.add("opened");
 
-/* ================= OFFLINE ================= */
-function handleOffline() {
-  document.body.classList.toggle("offline", !navigator.onLine);
-}
-window.addEventListener("online", handleOffline);
-window.addEventListener("offline", handleOffline);
-
-/* ================= USER SYNC ================= */
-async function ensureUser() {
-  if (window.__synced) return;
-  window.__synced = true;
-  await syncUserFromServer();
-}
-
-async function syncUserFromServer() {
-  try {
-    const ref = new URLSearchParams(location.search).get("ref");
-
-    const res = await fetch("/api/user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, ref })
-    });
-
-    const data = await res.json();
-    if (!data.success) return;
-
-    wallet = data.wallet;
-    balance = data.balance;
-    energy = data.energy;
-    tokens = data.tokens;
-    freeTries = data.freeTries;
-    proLevel = data.proLevel;
-    referralsCount = data.referralsCount || 0;
-
-    // energy limits
-    MAX_ENERGY = data.role === "founder" ? 999 : 100;
-    if (proLevel === 1) MAX_ENERGY = 150;
-    if (proLevel === 2) MAX_ENERGY = 200;
-    if (proLevel === 3) MAX_ENERGY = 300;
-
-    updateUI();
-    fillReferralLink();
-  } catch (e) {
-    console.error("SYNC ERROR", e);
+  if (reward > 0) {
+    playSound("winSound");
+    rewardEl.textContent = `+${reward}`;
+  } else {
+    playSound("loseSound");
+    rewardEl.textContent = "Empty";
   }
+
+  rewardEl.classList.remove("hidden");
+
+  setTimeout(() => {
+    box.classList.remove("opened");
+    rewardEl.classList.add("hidden");
+    rewardEl.textContent = "";
+  }, 1500);
 }
 
-/* ================= UI ================= */
-function updateUI() {
-  const safeMax = MAX_ENERGY > 0 ? MAX_ENERGY : 100;
-
-  setText("balance", `Balance: ${balance}`);
-  setText("tokens", `Tokens: ${tokens}`);
-  setText("freeTries", `Free tries: ${freeTries}`);
-  setText("energy", `Energy: ${energy} / ${safeMax}`);
-  setText("refCount", `👥 Referrals: ${referralsCount}`);
-
-  const bar = document.getElementById("energyFill");
-  if (bar) {
-    bar.style.width =
-      Math.min((energy / safeMax) * 100, 100) + "%";
-  }
-}
-
-function setText(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.innerText = text;
-}
-
-/* ================= REFERRAL ================= */
-function fillReferralLink() {
-  const input = document.getElementById("refLink");
-  if (input && wallet) input.value = location.origin + "/?ref=" + wallet;
-}
-
-function copyRef() {
-  const input = document.getElementById("refLink");
-  if (!input) return;
-  input.select();
-  document.execCommand("copy");
-  alert("✅ Referral link copied");
-}
-
-/* ================= OPEN BOX ================= */
-async function openBox(box, type) {
+/* ================= OPEN BOX (UI WRAPPER) ================= */
+async function openBoxUI(box, type) {
   if (!navigator.onLine) {
     alert("📡 Internet required");
     return;
   }
-  if (openingLocked || box.classList.contains("opened")) return;
 
-  openingLocked = true;
   playSound("clickSound");
 
   try {
     const res = await fetch("/api/open", {
       method: "POST",
+      credentials: "include",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, type })
+      body: JSON.stringify({ type })
     });
 
     const data = await res.json();
     if (data.error) {
       playSound("errorSound");
-      openingLocked = false;
       return alert("❌ " + data.error);
     }
 
+    animateBox(box, data.reward);
+
+    // update global UI (from index.js)
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
-
-    const rewardEl = box.querySelector(".reward");
-    box.classList.add("opened");
-
-    if (data.reward > 0) {
-      playSound("winSound");
-      rewardEl.textContent = `+${data.reward}`;
-    } else {
-      playSound("loseSound");
-      rewardEl.textContent = "Empty";
-    }
-
-    rewardEl.classList.remove("hidden");
     updateUI();
 
-    setTimeout(() => {
-      box.classList.remove("opened");
-      rewardEl.classList.add("hidden");
-      rewardEl.textContent = "";
-      openingLocked = false;
-    }, 1500);
   } catch {
-    openingLocked = false;
+    playSound("errorSound");
+    alert("❌ Network error");
   }
 }
 
-/* ================= ADS ================= */
-async function watchAd() {
-  if (!navigator.onLine) return alert("📡 Internet required");
+/* ================= WATCH AD UI ================= */
+async function watchAdUI() {
+  if (!navigator.onLine) {
+    alert("📡 Internet required");
+    return;
+  }
 
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
@@ -221,25 +109,26 @@ async function watchAd() {
 
   btn.disabled = true;
   let t = 30;
+
   status.classList.remove("hidden");
   status.innerText = `⏳ Watching ad... ${t}s`;
 
   const timer = setInterval(() => {
     t--;
     status.innerText = `⏳ Watching ad... ${t}s`;
+
     if (t <= 0) {
       clearInterval(timer);
-      claimAdReward(btn, status);
+      claimAdRewardUI(btn, status);
     }
   }, 1000);
 }
 
-async function claimAdReward(btn, status) {
+async function claimAdRewardUI(btn, status) {
   try {
     const res = await fetch("/api/ads/watch", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId })
+      credentials: "include"
     });
 
     const data = await res.json();
@@ -249,10 +138,15 @@ async function claimAdReward(btn, status) {
       return;
     }
 
-    energy = data.energy;
+    playSound("winSound");
+
     balance = data.balance;
+    energy = data.energy;
     updateUI();
+
     status.innerText = "✅ +20 Energy added!";
+  } catch {
+    status.innerText = "❌ Network error";
   } finally {
     setTimeout(() => {
       status.classList.add("hidden");
@@ -261,30 +155,38 @@ async function claimAdReward(btn, status) {
   }
 }
 
-/* ================= CONVERT ================= */
-async function convertBalance() {
-  const res = await fetch("/api/convert", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, amount: 10000 })
-  });
+/* ================= DAILY BONUS UI ================= */
+async function dailyBonusUI() {
+  try {
+    const res = await fetch("/api/daily", {
+      method: "POST",
+      credentials: "include"
+    });
 
-  const data = await res.json();
-  if (data.error) return alert("❌ " + data.error);
+    const data = await res.json();
+    if (data.error) return alert(data.error);
 
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-  alert("✅ Converted successfully");
+    playSound("winSound");
+
+    balance = data.balance;
+    energy = data.energy;
+    updateUI();
+
+    alert("🎁 Daily bonus received!");
+  } catch {
+    alert("❌ Network error");
+  }
 }
 
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
 }
+
 function openFounderStats() {
   location.href = "/founder-stats.html";
 }
+
 function linkTelegram() {
-  window.open(`https://t.me/TeleTechAiBot?start=${userId}`, "_blank");
-       }
+  window.open("https://t.me/TeleTechAiBot", "_blank");
+}
