@@ -1,59 +1,55 @@
 /* =====================================================
-   FOUNDER STATS – NO LOGIN (SERVER PROTECTED)
+   FOUNDER STATS – FINAL CLEAN
+   SERVER = SOURCE OF TRUTH
+   NO localStorage
 ===================================================== */
 
-const userId = localStorage.getItem("userId");
-
-/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  loadStats();
+  loadFounderStats();
 });
 
 /* ================= LOAD STATS ================= */
-async function loadStats() {
-  if (!userId) {
-    showDenied();
-    return;
-  }
-
+async function loadFounderStats() {
   try {
-    const res = await fetch(`/api/founder/stats?userId=${userId}`);
+    const res = await fetch("/api/founder/stats", {
+      credentials: "include" // 🍪 session cookie
+    });
+
     const data = await res.json();
 
-    if (data.error) {
-      showDenied();
+    if (!data.success) {
+      deny();
       return;
     }
 
-    // ✅ show dashboard
-    document.getElementById("app").style.display = "block";
+    showApp();
 
-    setText("totalUsers", data.totalUsers);
-    setText("totalBalance", data.totalBalance);
-    setText("totalTokens", data.totalTokens);
-    setText("totalEnergy", data.totalEnergy);
-    setText("totalReferrals", data.totalReferrals);
+    set("totalUsers", data.totalUsers);
+    set("proUsers", data.proUsers);
+    set("totalBalance", data.totalBalance);
+    set("totalTokens", data.totalTokens);
+    set("totalEnergy", data.totalEnergy);
+    set("totalReferrals", data.totalReferrals);
 
   } catch (e) {
-    alert("❌ Failed to load founder stats");
+    deny();
   }
 }
 
 /* ================= HELPERS ================= */
-function showDenied() {
-  const denied = document.getElementById("denied");
-  const app = document.getElementById("app");
-
-  if (app) app.style.display = "none";
-  if (denied) denied.style.display = "block";
+function deny() {
+  document.getElementById("denied").classList.remove("hidden");
 }
 
-function setText(id, value) {
+function showApp() {
+  document.getElementById("app").classList.remove("hidden");
+}
+
+function set(id, value) {
   const el = document.getElementById(id);
   if (el) el.innerText = value ?? 0;
 }
 
-/* ================= NAV ================= */
 function backToGame() {
-  window.location.href = "/";
+  location.href = "/";
 }
