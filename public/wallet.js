@@ -1,68 +1,82 @@
-/* ================= GLOBAL ================= */
-const USER_ID = localStorage.getItem("userId") || "SUNUSI_001";
+/* =====================================================
+   WALLET – FINAL CLEAN
+   SERVER = SOURCE OF TRUTH
+   NO localStorage
+===================================================== */
 
-let tokens = Number(localStorage.getItem("tokens")) || 0;
-let wallet = localStorage.getItem("wallet");
-
-/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  ensureWallet();
-  updateUI();
+  loadWallet();
 });
 
-/* ================= WALLET ================= */
-function ensureWallet() {
-  if (!wallet) {
-    wallet = "TTECH-" + Math.random().toString(36).substring(2, 8).toUpperCase();
-    localStorage.setItem("wallet", wallet);
-  }
-}
+/* ================= LOAD WALLET ================= */
+async function loadWallet() {
+  try {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      credentials: "include" // 🍪 session cookie
+    });
 
-function updateUI() {
-  document.getElementById("walletBalance").innerText = tokens + " TTECH";
-  document.getElementById("myWallet").value = wallet;
-}
+    const data = await res.json();
 
-/* ================= ACTIONS ================= */
-function copyWallet() {
-  navigator.clipboard.writeText(wallet);
-  showMsg("✅ Wallet address copied");
-}
-
-document.getElementById("sendBtn").onclick = sendToken;
-
-function sendToken() {
-  const to = document.getElementById("toAddress").value.trim();
-  const amount = Number(document.getElementById("sendAmount").value);
-
-  if (!to || !amount || amount <= 0) {
-    showMsg("❌ Invalid input");
-    return;
-  }
-
-  if (tokens < amount) {
-    showMsg("❌ Not enough tokens");
-    return;
-  }
-
-  // DEMO TRANSFER (browser-only)
-  tokens -= amount;
-  localStorage.setItem("tokens", tokens);
-
-  updateUI();
-
-  document.getElementById("toAddress").value = "";
-  document.getElementById("sendAmount").value = "";
-
-  showMsg(`✅ Sent ${amount} TTECH`);
-}
-
-function showMsg(text) {
-  const msg = document.getElementById("walletMsg");
-  msg.innerText = text;
-}
-
-/* ================= NAV ================= */
-function goBack() {
-  location.href = "/";
+    if (!data.success) {
+      deny();
+      return;
     }
+
+    showApp();
+
+    document.getElementById("walletAddress").value = data.wallet;
+    document.getElementById("balance").innerText = data.balance;
+    document.getElementById("tokens").innerText = data.tokens;
+
+  } catch (e) {
+    deny();
+  }
+}
+
+/* ================= CONVERT ================= */
+async function convert() {
+  try {
+    const res = await fetch("/api/convert", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ amount: 10000 })
+    });
+
+    const data = await res.json();
+
+    if (!data.success) {
+      alert("❌ " + (data.error || "Conversion failed"));
+      return;
+    }
+
+    document.getElementById("balance").innerText = data.balance;
+    document.getElementById("tokens").innerText = data.tokens;
+
+    alert("✅ Converted successfully");
+
+  } catch (e) {
+    alert("❌ Network error");
+  }
+}
+
+/* ================= HELPERS ================= */
+function copyWallet() {
+  const input = document.getElementById("walletAddress");
+  input.select();
+  document.execCommand("copy");
+  alert("✅ Wallet copied");
+}
+
+function deny() {
+  document.getElementById("denied").classList.remove("hidden");
+}
+
+function showApp() {
+  document.getElementById("app").classList.remove("hidden");
+}
+
+function backToGame() {
+  location.href = "/";
+}
