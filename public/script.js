@@ -119,14 +119,19 @@ async function syncUserFromServer() {
 
 /* ================= UI ================= */
 function updateUI() {
+  const safeMax = MAX_ENERGY > 0 ? MAX_ENERGY : 100;
+
   setText("balance", `Balance: ${balance}`);
   setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
-  setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
+  setText("energy", `Energy: ${energy} / ${safeMax}`);
   setText("refCount", `👥 Referrals: ${referralsCount}`);
 
   const bar = document.getElementById("energyFill");
-  if (bar) bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
+  if (bar) {
+    bar.style.width =
+      Math.min((energy / safeMax) * 100, 100) + "%";
+  }
 }
 
 function setText(id, text) {
