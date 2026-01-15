@@ -193,6 +193,7 @@ app.post("/api/open", async (req, res) => {
     user.balance += reward;
 
     await user.save();
+    regenEnergy(user);
 
     res.json({
       success: true,
@@ -247,6 +248,7 @@ app.post("/api/daily", async (req, res) => {
     user.lastDaily = today;
 
     await user.save();
+    regenEnergy(user);
 
     res.json({
       success: true,
@@ -289,6 +291,7 @@ app.post("/api/ads/watch", async (req, res) => {
     user.lastAdAt = now;
 
     await user.save();
+    regenEnergy(user);
 
     res.json({
       success: true,
@@ -320,6 +323,7 @@ app.post("/api/convert", async (req, res) => {
     user.lastConvertAt = Date.now();
 
     await user.save();
+    regenEnergy(user);
 
     res.json({
       success: true,
