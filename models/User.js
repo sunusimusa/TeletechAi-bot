@@ -27,6 +27,7 @@ const UserSchema = new mongoose.Schema({
   },
 
   /* ===== REFERRAL ===== */
+  sessionId: { type: String, unique: true },
   referredBy: { type: String, default: null },
   referrals: { type: [String], default: [] },
   referralsCount: { type: Number, default: 0 },
