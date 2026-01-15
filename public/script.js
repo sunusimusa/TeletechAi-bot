@@ -69,6 +69,10 @@ function agreementInit() {
   };
 }
 
+function openLeaderboard() {
+  location.href = "/leaderboard.html";
+}
+
 /* ================= OFFLINE ================= */
 function handleOffline() {
   document.body.classList.toggle("offline", !navigator.onLine);
