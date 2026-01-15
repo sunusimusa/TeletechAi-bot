@@ -318,13 +318,16 @@ app.get("/api/leaderboard", async (req, res) => {
 /* ================= FOUNDER STATS ================= */
 app.get("/api/founder/stats", async (req, res) => {
   try {
-    const { userId } = req.query;
-    if (!userId) return res.json({ error: "NO_USER" });
+    const userId = req.query.userId;
+    if (!userId) {
+      return res.json({ error: "NO_USER" });
+    }
 
     const user = await User.findOne({ userId });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+    if (!user) {
+      return res.json({ error: "USER_NOT_FOUND" });
+    }
 
-    // 🔐 ONLY FOUNDER
     if (user.role !== "founder") {
       return res.json({ error: "ACCESS_DENIED" });
     }
@@ -357,7 +360,7 @@ app.get("/api/founder/stats", async (req, res) => {
     });
 
   } catch (e) {
-    console.error("FOUNDER ERROR:", e);
+    console.error("FOUNDER STATS ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
