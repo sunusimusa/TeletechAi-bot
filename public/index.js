@@ -1,141 +1,84 @@
 /* =====================================================
-   FULL CLEAN FRONTEND (index.js)
+   LUCKY BOX GAME – CLEAN FRONTEND (INDEX.JS)
    SERVER = SOURCE OF TRUTH
 ===================================================== */
 
 /* ================= USER ID ================= */
 let userId = localStorage.getItem("userId");
 if (!userId) {
-  userId = "USER_" + Date.now() + "_" + Math.random().toString(36).slice(2, 6);
+  userId =
+    "USER_" +
+    Date.now() +
+    "_" +
+    Math.random().toString(36).substring(2, 6);
   localStorage.setItem("userId", userId);
 }
 
 /* ================= GLOBAL STATE ================= */
-let wallet = "";
 let balance = 0;
-let tokens = 0;
-let freeTries = 0;
 let energy = 0;
+let freeTries = 0;
+let tokens = 0;
 let referralsCount = 0;
-let proLevel = 0;
-let role = "user";
-
 let MAX_ENERGY = 100;
 let openingLocked = false;
-let adWatched = false;
 
 /* ================= INIT ================= */
-document.addEventListener("DOMContentLoaded", async () => {
-  agreementInit();
-  handleOffline();
-  await syncUserFromServer();
+document.addEventListener("DOMContentLoaded", () => {
+  syncUserFromServer();
 });
 
-/* ================= AGREEMENT ================= */
-function agreementInit() {
-  const modal = document.getElementById("agreementModal");
-  const btn = document.getElementById("agreeBtn");
-  if (!modal || !btn) return;
-
-  if (localStorage.getItem("agreed") === "yes") {
-    modal.classList.add("hidden");
-  } else {
-    modal.classList.remove("hidden");
-  }
-
-  btn.onclick = () => {
-    localStorage.setItem("agreed", "yes");
-    modal.classList.add("hidden");
-  };
-}
-
-/* ================= OFFLINE ================= */
-function handleOffline() {
-  document.body.classList.toggle("offline", !navigator.onLine);
-}
-window.addEventListener("online", handleOffline);
-window.addEventListener("offline", handleOffline);
-
-/* ================= SERVER SYNC ================= */
+/* ================= SYNC USER ================= */
 async function syncUserFromServer() {
   try {
-    const params = new URLSearchParams(location.search);
-    const ref = params.get("ref");
-
     const res = await fetch("/api/user", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, ref })
+      body: JSON.stringify({ userId })
     });
 
     const data = await res.json();
-    if (!data.success) return;
 
-    wallet = data.wallet;
-    balance = data.balance;
-    tokens = data.tokens;
-    freeTries = data.freeTries;
-    energy = data.energy;
-    referralsCount = data.referralsCount || 0;
-    proLevel = data.proLevel || 0;
-    role = data.role || "user";
+    if (data.error) {
+      console.warn("SYNC ERROR:", data.error);
+      return;
+    }
 
-    // 🔒 ENERGY LIMITS
-    MAX_ENERGY = 100;
-    if (proLevel === 1) MAX_ENERGY = 150;
-    if (proLevel === 2) MAX_ENERGY = 200;
-    if (proLevel === 3) MAX_ENERGY = 300;
-    if (role === "founder") MAX_ENERGY = 9999;
+    balance = data.balance ?? 0;
+    energy = data.energy ?? 0;
+    freeTries = data.freeTries ?? 0;
+    tokens = data.tokens ?? 0;
+    referralsCount = data.referralsCount ?? 0;
+    MAX_ENERGY = data.role === "founder" ? 9999 : 100;
 
     updateUI();
-    fillReferralLink();
-  } catch (e) {
-    console.error("SYNC ERROR", e);
+  } catch (err) {
+    console.error("SYNC FAILED", err);
   }
 }
 
 /* ================= UI ================= */
+function updateUI() {
+  setText("balance", `Balance: ${balance}`);
+  setText("tokens", `Tokens: ${tokens}`);
+  setText("freeTries", `Free tries: ${freeTries}`);
+  setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
+
+  const bar = document.getElementById("energyFill");
+  if (bar) {
+    const percent = MAX_ENERGY > 0 ? (energy / MAX_ENERGY) * 100 : 0;
+    bar.style.width = Math.min(percent, 100) + "%";
+  }
+}
+
 function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.innerText = text;
 }
 
-function updateUI() {
-  const safeMax = MAX_ENERGY > 0 ? MAX_ENERGY : 100;
-
-  setText("balance", `Balance: ${balance}`);
-  setText("tokens", `Tokens: ${tokens}`);
-  setText("freeTries", `Free tries: ${freeTries}`);
-  setText("energy", `Energy: ${energy} / ${safeMax}`);
-  setText("refCount", `👥 Referrals: ${referralsCount}`);
-
-  const bar = document.getElementById("energyFill");
-  if (bar) {
-    bar.style.width = Math.min((energy / safeMax) * 100, 100) + "%";
-  }
-}
-
-/* ================= REFERRAL ================= */
-function fillReferralLink() {
-  const input = document.getElementById("refLink");
-  if (input && wallet) {
-    input.value = location.origin + "/?ref=" + wallet;
-  }
-}
-
-function copyRef() {
-  const input = document.getElementById("refLink");
-  if (!input) return;
-  input.select();
-  document.execCommand("copy");
-  alert("✅ Referral link copied");
-}
-
 /* ================= OPEN BOX ================= */
-async function openBox(box, type) {
-  if (!navigator.onLine) return alert("📡 Internet required");
+async function openBox(type) {
   if (openingLocked) return;
-
   openingLocked = true;
 
   try {
@@ -148,12 +91,9 @@ async function openBox(box, type) {
     const data = await res.json();
 
     if (data.error) {
+      alert("❌ " + data.error);
       openingLocked = false;
-      if (data.error === "USER_NOT_FOUND") {
-        await syncUserFromServer();
-        return;
-      }
-      return alert("❌ " + data.error);
+      return;
     }
 
     balance = data.balance;
@@ -161,43 +101,47 @@ async function openBox(box, type) {
     freeTries = data.freeTries;
 
     updateUI();
-  } catch {
+  } catch (e) {
     alert("❌ Network error");
-  } finally {
-    openingLocked = false;
   }
+
+  setTimeout(() => {
+    openingLocked = false;
+  }, 1200);
 }
 
-/* ================= ADS → ENERGY ONLY ================= */
-async function watchAd() {
-  if (!navigator.onLine) return alert("📡 Internet required");
+/* ================= DAILY BONUS ================= */
+async function claimDaily() {
+  const res = await fetch("/api/daily", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId })
+  });
 
+  const data = await res.json();
+  if (data.error) {
+    alert("⏳ Come back later");
+    return;
+  }
+
+  balance = data.balance;
+  energy = data.energy;
+  updateUI();
+
+  alert("🎁 Daily reward claimed!");
+}
+
+/* ================= WATCH ADS ================= */
+async function watchAd() {
   const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
+
   if (!btn || !status) return;
 
   btn.disabled = true;
-  adWatched = false;
+  status.innerText = "⏳ Watching ad (30s)...";
 
-  let t = 30;
-  status.classList.remove("hidden");
-  status.innerText = `⏳ Watching ad... ${t}s`;
-
-  const timer = setInterval(() => {
-    t--;
-    status.innerText = `⏳ Watching ad... ${t}s`;
-    if (t <= 0) {
-      clearInterval(timer);
-      adWatched = true;
-      claimAdReward(btn, status);
-    }
-  }, 1000);
-}
-
-async function claimAdReward(btn, status) {
-  if (!adWatched) return;
-
-  try {
+  setTimeout(async () => {
     const res = await fetch("/api/ads/watch", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -208,53 +152,16 @@ async function claimAdReward(btn, status) {
 
     if (data.error) {
       status.innerText = "❌ " + data.error;
-      btn.disabled = false;
-      return;
+    } else {
+      energy = data.energy;
+      balance = data.balance;
+      updateUI();
+      status.innerText = "✅ +20 Energy added!";
     }
 
-    energy = data.energy;
-    balance = data.balance;
-    updateUI();
-
-    status.innerText = "✅ +20 Energy added";
-  } catch {
-    status.innerText = "❌ Network error";
-  } finally {
-    adWatched = false;
-    setTimeout(() => {
-      status.classList.add("hidden");
-      btn.disabled = false;
-    }, 2000);
-  }
-}
-
-/* ================= CONVERT ================= */
-async function convertBalance() {
-  const amount = 10000;
-
-  const res = await fetch("/api/convert", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, amount })
-  });
-
-  const data = await res.json();
-  if (data.error) return alert("❌ " + data.error);
-
-  balance = data.balance;
-  tokens = data.tokens;
-  updateUI();
-}
-
-/* ================= NAV ================= */
-function openStats() {
-  location.href = "/stats.html";
-}
-function openBurns() {
-  location.href = "/burn.html";
-}
-function openLeaderboard() {
-  location.href = "/leaderboard.html";
+    btn.disabled = false;
+    setTimeout(() => (status.innerText = ""), 2000);
+  }, 30000);
 }
 
 /* ================= SOCIAL ================= */
