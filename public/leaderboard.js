@@ -1,64 +1,82 @@
 /* =====================================================
    LEADERBOARD – FINAL CLEAN
    SERVER = SOURCE OF TRUTH
-   NO localStorage
 ===================================================== */
 
-const listEl = document.getElementById("leaderboardList");
-const msgEl = document.getElementById("lbMsg");
-
-/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  loadLeaderboard("balance");
+  loadBoard("balance");
 });
 
-/* ================= LOAD LEADERBOARD ================= */
-async function loadLeaderboard(type = "balance") {
-  listEl.innerHTML = "";
-  msgEl.innerText = "⏳ Loading...";
+/* ================= LOAD BOARD ================= */
+async function loadBoard(type) {
+  setActive(type);
+  setTitle(type);
+
+  const status = document.getElementById("status");
+  const table = document.getElementById("board");
+  const body = document.getElementById("boardBody");
+
+  status.innerText = "⏳ Loading...";
+  table.classList.add("hidden");
+  body.innerHTML = "";
 
   try {
-    const res = await fetch(`/api/leaderboard?type=${type}`, {
-      credentials: "include"
-    });
-
+    const res = await fetch(`/api/leaderboard?type=${type}`);
     const data = await res.json();
 
     if (!data.success || !data.list || data.list.length === 0) {
-      msgEl.innerText = "❌ No data";
+      status.innerText = "❌ No data";
       return;
     }
 
-    msgEl.innerText = "";
-
     data.list.forEach((u, i) => {
-      const li = document.createElement("li");
+      const tr = document.createElement("tr");
 
-      let value = "";
-      if (type === "balance") value = `💰 ${u.balance}`;
-      if (type === "tokens") value = `🪙 ${u.tokens}`;
-      if (type === "referrals") value = `👥 ${u.referralsCount}`;
+      const value =
+        type === "tokens" ? u.tokens :
+        type === "referrals" ? u.referralsCount :
+        u.balance;
 
-      li.innerHTML = `
-        <span>#${i + 1}</span>
-        <span>${maskUser(u.userId)}</span>
-        <span>${value}</span>
+      tr.innerHTML = `
+        <td>${i + 1}</td>
+        <td>${maskUser(u.userId)}</td>
+        <td>${value}</td>
+        <td>${u.proLevel || 0}</td>
       `;
-
-      listEl.appendChild(li);
+      body.appendChild(tr);
     });
 
+    status.innerText = "";
+    table.classList.remove("hidden");
+
   } catch (e) {
-    msgEl.innerText = "❌ Network error";
+    status.innerText = "❌ Network error";
   }
 }
 
-/* ================= HELPERS ================= */
-function maskUser(id) {
-  if (!id) return "User";
-  return id.slice(0, 4) + "***" + id.slice(-3);
+/* ================= UI HELPERS ================= */
+function setActive(type) {
+  ["balance", "tokens", "referrals"].forEach(t => {
+    const btn = document.getElementById("tab-" + t);
+    if (btn) btn.classList.toggle("active", t === type);
+  });
 }
 
-function backToGame() {
+function setTitle(type) {
+  const el = document.getElementById("valueTitle");
+  if (!el) return;
+
+  el.innerText =
+    type === "tokens" ? "Tokens" :
+    type === "referrals" ? "Referrals" :
+    "Balance";
+}
+
+function maskUser(id) {
+  if (!id) return "USER";
+  return id.slice(0, 4) + "***" + id.slice(-2);
+}
+
+function back() {
   location.href = "/";
 }
