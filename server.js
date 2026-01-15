@@ -68,6 +68,22 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function applyAutoEnergy(user) {
+  const now = Date.now();
+  const last = user.lastEnergyAt || now;
+  const diff = now - last;
+
+  const ENERGY_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  const gained = Math.floor(diff / ENERGY_INTERVAL);
+
+  if (gained <= 0) return;
+
+  const maxEnergy = user.role === "founder" ? 999 : 100;
+
+  user.energy = Math.min(user.energy + gained, maxEnergy);
+  user.lastEnergyAt = last + gained * ENERGY_INTERVAL;
+}
+
 /* ================= CREATE / SYNC USER ================= */
 app.post("/api/user", async (req, res) => {
   try {
@@ -94,6 +110,9 @@ app.post("/api/user", async (req, res) => {
       if (user.energy > 999) user.energy = 999;
       await user.save();
     }
+
+    applyAutoEnergy(user);
+    await user.save();
 
     res.json({
       success: true,
@@ -165,16 +184,22 @@ app.post("/api/daily", async (req, res) => {
   if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
   const DAY = 24 * 60 * 60 * 1000;
-  if (user.lastDaily && Date.now() - user.lastDaily < DAY)
-    return res.json({ error: "WAIT" });
+  const now = Date.now();
+
+  if (user.lastDaily && now - user.lastDaily < DAY) {
+    return res.json({ error: "COME_BACK_LATER" });
+  }
+
+  const maxEnergy = user.role === "founder" ? 999 : 100;
 
   user.balance += 500;
-  user.energy = Math.min(user.energy + 20, user.role === "founder" ? 999 : 100);
-  user.lastDaily = Date.now();
+  user.energy = Math.min(user.energy + 30, maxEnergy);
+  user.lastDaily = now;
 
   await user.save();
 
   res.json({
+    success: true,
     balance: user.balance,
     energy: user.energy
   });
