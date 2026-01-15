@@ -5,70 +5,33 @@
   <title>Founder Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <style>
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: radial-gradient(circle, #2a1a00, #000);
-      color: #ffd700;
-      text-align: center;
-    }
-
-    #app {
-      display: none;
-      padding: 20px;
-    }
-
-    #denied {
-      display: none;
-      padding: 40px;
-      color: red;
-      font-size: 18px;
-    }
-
-    .card {
-      background: #1a1200;
-      border: 1px solid #ffd700;
-      border-radius: 12px;
-      padding: 16px;
-      margin: 12px 0;
-    }
-
-    button {
-      background: #ffd700;
-      color: #000;
-      border: none;
-      padding: 10px 18px;
-      border-radius: 20px;
-      font-weight: bold;
-      margin-top: 20px;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
 
-  <!-- ❌ ACCESS DENIED -->
-  <div id="denied">
-    ❌ Access denied <br />
-    This page is for founders only
-  </div>
+<h2>👑 Founder Dashboard</h2>
 
-  <!-- ✅ APP -->
-  <div id="app">
-    <h2>👑 Founder Dashboard</h2>
+<!-- ❌ ACCESS DENIED -->
+<div id="denied" class="hidden">
+  <p>🚫 Access Denied</p>
+  <button onclick="backToGame()">⬅ Back</button>
+</div>
 
-    <div class="card">👥 Total Users: <span id="totalUsers">0</span></div>
-    <div class="card">🚀 Pro Users: <span id="proUsers">0</span></div>
-    <div class="card">💰 Total Balance: <span id="totalBalance">0</span></div>
-    <div class="card">🪙 Total Tokens: <span id="totalTokens">0</span></div>
-    <div class="card">⚡ Total Energy: <span id="totalEnergy">0</span></div>
-    <div class="card">🔗 Total Referrals: <span id="totalReferrals">0</span></div>
+<!-- ✅ APP -->
+<div id="app" class="hidden">
 
-    <button onclick="backToGame()">← Back</button>
-  </div>
+  <div class="stat">👥 Total Users: <span id="totalUsers">0</span></div>
+  <div class="stat">⭐ Pro Users: <span id="proUsers">0</span></div>
+  <div class="stat">💰 Total Balance: <span id="totalBalance">0</span></div>
+  <div class="stat">🪙 Total Tokens: <span id="totalTokens">0</span></div>
+  <div class="stat">⚡ Total Energy: <span id="totalEnergy">0</span></div>
+  <div class="stat">👥 Total Referrals: <span id="totalReferrals">0</span></div>
 
-  <!-- ⚠️ JS A ƘASA -->
-  <script src="/founder-stats.js"></script>
+  <br />
+  <button onclick="backToGame()">⬅ Back to Game</button>
+
+</div>
+
+<script src="founder-stats.js"></script>
 </body>
 </html>
