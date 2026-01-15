@@ -4,7 +4,6 @@
   <meta charset="UTF-8" />
   <title>Leaderboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -12,16 +11,33 @@
 <h2>🏆 Leaderboard</h2>
 
 <div class="tabs">
-  <button onclick="loadLeaderboard('balance')">💰 Balance</button>
-  <button onclick="loadLeaderboard('tokens')">🪙 Tokens</button>
-  <button onclick="loadLeaderboard('referrals')">👥 Referrals</button>
+  <button onclick="loadBoard('balance')" class="active" id="tab-balance">
+    💰 Balance
+  </button>
+  <button onclick="loadBoard('tokens')" id="tab-tokens">
+    🪙 Tokens
+  </button>
+  <button onclick="loadBoard('referrals')" id="tab-referrals">
+    👥 Referrals
+  </button>
 </div>
 
-<ul id="leaderboardList" class="leaderboard"></ul>
+<p id="status">Loading...</p>
 
-<p id="lbMsg"></p>
+<table id="board" class="hidden">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>User</th>
+      <th id="valueTitle">Balance</th>
+      <th>Pro</th>
+    </tr>
+  </thead>
+  <tbody id="boardBody"></tbody>
+</table>
 
-<button onclick="backToGame()">⬅ Back to Game</button>
+<br />
+<button onclick="back()">⬅ Back</button>
 
 <script src="leaderboard.js"></script>
 </body>
