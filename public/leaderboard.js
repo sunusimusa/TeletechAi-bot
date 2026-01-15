@@ -1,36 +1,64 @@
-async function loadLeaderboard() {
-  const body = document.getElementById("leaderboardBody");
+/* =====================================================
+   LEADERBOARD – FINAL CLEAN
+   SERVER = SOURCE OF TRUTH
+   NO localStorage
+===================================================== */
+
+const listEl = document.getElementById("leaderboardList");
+const msgEl = document.getElementById("lbMsg");
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  loadLeaderboard("balance");
+});
+
+/* ================= LOAD LEADERBOARD ================= */
+async function loadLeaderboard(type = "balance") {
+  listEl.innerHTML = "";
+  msgEl.innerText = "⏳ Loading...";
 
   try {
-    const res = await fetch("/api/leaderboard/referrals");
+    const res = await fetch(`/api/leaderboard?type=${type}`, {
+      credentials: "include"
+    });
+
     const data = await res.json();
 
-    if (!data.success || data.users.length === 0) {
-      body.innerHTML =
-        `<tr><td colspan="3">No referrals yet</td></tr>`;
+    if (!data.success || !data.list || data.list.length === 0) {
+      msgEl.innerText = "❌ No data";
       return;
     }
 
-    body.innerHTML = "";
+    msgEl.innerText = "";
 
-    data.users.forEach((u, i) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${i + 1}</td>
-        <td>${u.userId}</td>
-        <td>${u.referrals}</td>
+    data.list.forEach((u, i) => {
+      const li = document.createElement("li");
+
+      let value = "";
+      if (type === "balance") value = `💰 ${u.balance}`;
+      if (type === "tokens") value = `🪙 ${u.tokens}`;
+      if (type === "referrals") value = `👥 ${u.referralsCount}`;
+
+      li.innerHTML = `
+        <span>#${i + 1}</span>
+        <span>${maskUser(u.userId)}</span>
+        <span>${value}</span>
       `;
-      body.appendChild(tr);
+
+      listEl.appendChild(li);
     });
 
-  } catch (err) {
-    body.innerHTML =
-      `<tr><td colspan="3">Failed to load</td></tr>`;
+  } catch (e) {
+    msgEl.innerText = "❌ Network error";
   }
 }
 
-function goBack() {
-  window.history.back();
+/* ================= HELPERS ================= */
+function maskUser(id) {
+  if (!id) return "User";
+  return id.slice(0, 4) + "***" + id.slice(-3);
 }
 
-document.addEventListener("DOMContentLoaded", loadLeaderboard);
+function backToGame() {
+  location.href = "/";
+}
