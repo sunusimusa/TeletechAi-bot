@@ -1,35 +1,139 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Founder Login</title>
-  <link rel="stylesheet" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <style>
+    body {
+      margin: 0;
+      background: #0b0700;
+      font-family: Arial, sans-serif;
+      color: #ffd700;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .box {
+      background: #140900;
+      padding: 24px;
+      border-radius: 14px;
+      width: 100%;
+      max-width: 360px;
+      box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+      text-align: center;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+      font-size: 22px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      outline: none;
+      font-size: 14px;
+      margin-bottom: 15px;
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      border-radius: 12px;
+      border: none;
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      font-size: 16px;
+      font-weight: bold;
+      cursor: pointer;
+      color: #000;
+    }
+
+    button:disabled {
+      opacity: 0.6;
+    }
+
+    .msg {
+      margin-top: 15px;
+      font-size: 14px;
+    }
+  </style>
 </head>
 <body>
 
-<h2>👑 Founder Login</h2>
+  <div class="box">
+    <h1>👑 Founder Login</h1>
 
-<input id="pin" placeholder="Enter PIN"
- style="padding:12px;width:200px;border-radius:12px;border:none">
+    <input
+      id="userIdInput"
+      placeholder="Enter your USER_ID"
+      autocomplete="off"
+    />
 
-<br><br>
+    <button id="loginBtn">Login</button>
 
-<button onclick="login()">Login</button>
+    <div class="msg" id="msg"></div>
+  </div>
 
-<p id="msg"></p>
+  <script>
+    const input = document.getElementById("userIdInput");
+    const btn = document.getElementById("loginBtn");
+    const msg = document.getElementById("msg");
 
-<script>
-const PIN = "3232"; // naka
+    // auto-fill from localStorage
+    const savedId = localStorage.getItem("userId");
+    if (savedId) input.value = savedId;
 
-function login(){
-  const val = document.getElementById("pin").value;
-  if(val === PIN){
-    localStorage.setItem("founder", "yes");
-    location.href = "/founder-stats.html";
-  } else {
-    document.getElementById("msg").innerText = "❌ Wrong PIN";
-  }
-}
-</script>
+    btn.onclick = async () => {
+      const userId = input.value.trim();
+      if (!userId) {
+        msg.innerText = "❌ USER ID required";
+        return;
+      }
+
+      btn.disabled = true;
+      msg.innerText = "⏳ Checking founder access...";
+
+      try {
+        const res = await fetch("/api/user", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId })
+        });
+
+        const data = await res.json();
+
+        if (!data.success) {
+          msg.innerText = "❌ User not found";
+          btn.disabled = false;
+          return;
+        }
+
+        if (data.role !== "founder") {
+          msg.innerText = "🚫 Access denied (Not a founder)";
+          btn.disabled = false;
+          return;
+        }
+
+        // ✅ founder confirmed
+        localStorage.setItem("userId", userId);
+        msg.innerText = "✅ Founder verified. Redirecting...";
+
+        setTimeout(() => {
+          location.href = "/founder-stats.html";
+        }, 800);
+
+      } catch (e) {
+        msg.innerText = "❌ Network error";
+        btn.disabled = false;
+      }
+    };
+  </script>
 
 </body>
 </html>
