@@ -35,7 +35,7 @@ const userSchema = new mongoose.Schema({
   userId: { type: String, unique: true },
 
   wallet: String,
-  role: { type: String, default: "user" }, // user | founder
+  role: { type: String, default: "user" },
   proLevel: { type: Number, default: 0 },
 
   balance: { type: Number, default: 0 },
@@ -44,12 +44,11 @@ const userSchema = new mongoose.Schema({
   freeTries: { type: Number, default: 3 },
 
   referralsCount: { type: Number, default: 0 },
-  lastEnergyAt: { type: Number, default: Date.now() },
+
+  lastEnergyAt: { type: Number, default: Date.now },
 
   lastOpenAt: Number,
-  lastDaily: Number,
-
-  lastEnergyAt: Number,
+  lastDaily: String,
 
   lastAdAt: Number,
   lastAdDay: String,
@@ -69,50 +68,26 @@ function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function applyAutoEnergy(user) {
-  const now = Date.now();
-  const last = user.lastEnergyAt || now;
-  const diff = now - last;
-
-  const ENERGY_INTERVAL = 5 * 60 * 1000; // 5 minutes
-  const gained = Math.floor(diff / ENERGY_INTERVAL);
-
-  if (gained <= 0) return;
-
-  const maxEnergy = user.role === "founder" ? 999 : 100;
-
-  user.energy = Math.min(user.energy + gained, maxEnergy);
-  user.lastEnergyAt = last + gained * ENERGY_INTERVAL;
+function getMaxEnergy(user) {
+  if (user.proLevel >= 4) return 999;
+  if (user.proLevel >= 3) return 300;
+  if (user.proLevel >= 2) return 200;
+  if (user.proLevel >= 1) return 150;
+  return 100;
 }
 
+/* ================= AUTO ENERGY REGEN ================= */
 function regenEnergy(user) {
   const now = Date.now();
+  const last = user.lastEnergyAt || now;
 
-  const REGEN_INTERVAL = 5 * 60 * 1000; // 5 minutes
-  const ENERGY_PER_INTERVAL = 1;
+  const INTERVAL = 5 * 60 * 1000; // 5 min
+  const gained = Math.floor((now - last) / INTERVAL);
+  if (gained <= 0) return;
 
-  const maxEnergy =
-    user.proLevel >= 4 ? 999 :
-    user.proLevel >= 3 ? 300 :
-    user.proLevel >= 2 ? 200 :
-    user.proLevel >= 1 ? 150 : 100;
-
-  if (user.energy >= maxEnergy) {
-    user.energy = maxEnergy;
-    user.lastEnergyAt = now;
-    return;
-  }
-
-  const diff = now - (user.lastEnergyAt || now);
-  const gained = Math.floor(diff / REGEN_INTERVAL);
-
-  if (gained > 0) {
-    user.energy = Math.min(
-      user.energy + gained * ENERGY_PER_INTERVAL,
-      maxEnergy
-    );
-    user.lastEnergyAt = now;
-  }
+  const maxEnergy = getMaxEnergy(user);
+  user.energy = Math.min(user.energy + gained, maxEnergy);
+  user.lastEnergyAt = last + gained * INTERVAL;
 }
 
 /* ================= CREATE / SYNC USER ================= */
@@ -129,20 +104,13 @@ app.post("/api/user", async (req, res) => {
         userId,
         wallet: makeWallet(),
         role: isFounder ? "founder" : "user",
-        proLevel: isFounder ? 3 : 0,
+        proLevel: isFounder ? 4 : 0,
         energy: isFounder ? 999 : 100,
-        freeTries: isFounder ? 999 : 3
+        freeTries: isFounder ? 5 : 3
       });
     }
 
-    // enforce founder limits
-    if (isFounder) {
-      if (user.role !== "founder") user.role = "founder";
-      if (user.energy > 999) user.energy = 999;
-      await user.save();
-    }
-
-    applyAutoEnergy(user);
+    regenEnergy(user);
     await user.save();
 
     res.json({
@@ -170,11 +138,7 @@ app.post("/api/open", async (req, res) => {
     const user = await User.findOne({ userId });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const now = Date.now();
-    if (user.lastOpenAt && now - user.lastOpenAt < 1500)
-      return res.json({ error: "TOO_FAST" });
-
-    user.lastOpenAt = now;
+    regenEnergy(user);
 
     if (user.freeTries > 0) {
       user.freeTries--;
@@ -193,7 +157,6 @@ app.post("/api/open", async (req, res) => {
     user.balance += reward;
 
     await user.save();
-    regenEnergy(user);
 
     res.json({
       success: true,
@@ -217,38 +180,29 @@ app.post("/api/daily", async (req, res) => {
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
     regenEnergy(user);
-
-    const today = new Date().toISOString().slice(0, 10);
-
-    if (user.lastDaily === today) {
+    const today = todayStr();
+    if (user.lastDaily === today)
       return res.json({ error: "COME_BACK_TOMORROW" });
-    }
 
     let rewardBalance = 500;
     let rewardEnergy = 20;
 
-    if (user.proLevel === 1) {
-      rewardBalance = 700; rewardEnergy = 30;
-    } else if (user.proLevel === 2) {
-      rewardBalance = 900; rewardEnergy = 40;
-    } else if (user.proLevel === 3) {
-      rewardBalance = 1200; rewardEnergy = 50;
-    } else if (user.proLevel >= 4) {
+    if (user.proLevel >= 4) {
       rewardBalance = 2000; rewardEnergy = 100;
+    } else if (user.proLevel >= 3) {
+      rewardBalance = 1200; rewardEnergy = 50;
+    } else if (user.proLevel >= 2) {
+      rewardBalance = 900; rewardEnergy = 40;
+    } else if (user.proLevel >= 1) {
+      rewardBalance = 700; rewardEnergy = 30;
     }
 
-    const maxEnergy =
-      user.proLevel >= 4 ? 999 :
-      user.proLevel >= 3 ? 300 :
-      user.proLevel >= 2 ? 200 :
-      user.proLevel >= 1 ? 150 : 100;
-
+    const maxEnergy = getMaxEnergy(user);
     user.balance += rewardBalance;
     user.energy = Math.min(user.energy + rewardEnergy, maxEnergy);
     user.lastDaily = today;
 
     await user.save();
-    regenEnergy(user);
 
     res.json({
       success: true,
@@ -259,7 +213,7 @@ app.post("/api/daily", async (req, res) => {
     });
 
   } catch (e) {
-    console.error("DAILY ERROR", e);
+    console.error("DAILY ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
@@ -271,7 +225,9 @@ app.post("/api/ads/watch", async (req, res) => {
     const user = await User.findOne({ userId });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
+    regenEnergy(user);
     const today = todayStr();
+
     if (user.lastAdDay !== today) {
       user.lastAdDay = today;
       user.adsWatchedToday = 0;
@@ -280,18 +236,12 @@ app.post("/api/ads/watch", async (req, res) => {
     if (user.adsWatchedToday >= MAX_ADS_PER_DAY)
       return res.json({ error: "DAILY_AD_LIMIT" });
 
-    const now = Date.now();
-    if (user.lastAdAt && now - user.lastAdAt < 30000)
-      return res.json({ error: "WAIT_30_SECONDS" });
-
-    const maxEnergy = user.role === "founder" ? 999 : 100;
+    const maxEnergy = getMaxEnergy(user);
     user.energy = Math.min(user.energy + ENERGY_PER_AD, maxEnergy);
     user.balance += 100;
     user.adsWatchedToday++;
-    user.lastAdAt = now;
 
     await user.save();
-    regenEnergy(user);
 
     res.json({
       success: true,
@@ -320,10 +270,7 @@ app.post("/api/convert", async (req, res) => {
 
     user.balance -= amount;
     user.tokens += 1;
-    user.lastConvertAt = Date.now();
-
     await user.save();
-    regenEnergy(user);
 
     res.json({
       success: true,
