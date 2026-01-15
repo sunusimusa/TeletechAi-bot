@@ -85,6 +85,36 @@ function applyAutoEnergy(user) {
   user.lastEnergyAt = last + gained * ENERGY_INTERVAL;
 }
 
+function regenEnergy(user) {
+  const now = Date.now();
+
+  const REGEN_INTERVAL = 5 * 60 * 1000; // 5 minutes
+  const ENERGY_PER_INTERVAL = 1;
+
+  const maxEnergy =
+    user.proLevel >= 4 ? 999 :
+    user.proLevel >= 3 ? 300 :
+    user.proLevel >= 2 ? 200 :
+    user.proLevel >= 1 ? 150 : 100;
+
+  if (user.energy >= maxEnergy) {
+    user.energy = maxEnergy;
+    user.lastEnergyAt = now;
+    return;
+  }
+
+  const diff = now - (user.lastEnergyAt || now);
+  const gained = Math.floor(diff / REGEN_INTERVAL);
+
+  if (gained > 0) {
+    user.energy = Math.min(
+      user.energy + gained * ENERGY_PER_INTERVAL,
+      maxEnergy
+    );
+    user.lastEnergyAt = now;
+  }
+}
+
 /* ================= CREATE / SYNC USER ================= */
 app.post("/api/user", async (req, res) => {
   try {
@@ -180,30 +210,56 @@ app.post("/api/open", async (req, res) => {
 
 /* ================= DAILY BONUS ================= */
 app.post("/api/daily", async (req, res) => {
-  const { userId } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  try {
+    const { userId } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  const DAY = 24 * 60 * 60 * 1000;
-  const now = Date.now();
+    regenEnergy(user);
 
-  if (user.lastDaily && now - user.lastDaily < DAY) {
-    return res.json({ error: "COME_BACK_LATER" });
+    const today = new Date().toISOString().slice(0, 10);
+
+    if (user.lastDaily === today) {
+      return res.json({ error: "COME_BACK_TOMORROW" });
+    }
+
+    let rewardBalance = 500;
+    let rewardEnergy = 20;
+
+    if (user.proLevel === 1) {
+      rewardBalance = 700; rewardEnergy = 30;
+    } else if (user.proLevel === 2) {
+      rewardBalance = 900; rewardEnergy = 40;
+    } else if (user.proLevel === 3) {
+      rewardBalance = 1200; rewardEnergy = 50;
+    } else if (user.proLevel >= 4) {
+      rewardBalance = 2000; rewardEnergy = 100;
+    }
+
+    const maxEnergy =
+      user.proLevel >= 4 ? 999 :
+      user.proLevel >= 3 ? 300 :
+      user.proLevel >= 2 ? 200 :
+      user.proLevel >= 1 ? 150 : 100;
+
+    user.balance += rewardBalance;
+    user.energy = Math.min(user.energy + rewardEnergy, maxEnergy);
+    user.lastDaily = today;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      balance: user.balance,
+      energy: user.energy,
+      rewardBalance,
+      rewardEnergy
+    });
+
+  } catch (e) {
+    console.error("DAILY ERROR", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
   }
-
-  const maxEnergy = user.role === "founder" ? 999 : 100;
-
-  user.balance += 500;
-  user.energy = Math.min(user.energy + 30, maxEnergy);
-  user.lastDaily = now;
-
-  await user.save();
-
-  res.json({
-    success: true,
-    balance: user.balance,
-    energy: user.energy
-  });
 });
 
 /* ================= WATCH ADS ================= */
