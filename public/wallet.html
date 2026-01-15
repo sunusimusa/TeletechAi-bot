@@ -8,43 +8,40 @@
 </head>
 <body>
 
-  <h2>👜 My Wallet</h2>
+<h2>👛 My Wallet</h2>
 
-  <div class="wallet-box">
+<!-- ❌ ACCESS / SESSION ERROR -->
+<div id="denied" class="hidden">
+  <p>🚫 Session expired or access denied</p>
+  <button onclick="backToGame()">⬅ Back</button>
+</div>
 
-    <p class="pro-badge">TTECH WALLET</p>
+<!-- ✅ WALLET APP -->
+<div id="app" class="hidden">
 
-    <p><strong>Balance</strong></p>
-    <h3 id="walletBalance">0 TTECH</h3>
-
-    <hr style="opacity:.25;margin:14px 0">
-
-    <p><strong>Your Wallet Address</strong></p>
-    <input id="myWallet" readonly />
-
-    <button onclick="copyWallet()" class="secondary">
-      📋 Copy Address
-    </button>
-
-    <hr style="opacity:.25;margin:14px 0">
-
-    <p><strong>Send Tokens</strong></p>
-
-    <input id="toAddress" placeholder="Receiver Wallet Address" />
-    <input id="sendAmount" type="number" placeholder="Amount" />
-
-    <button id="sendBtn" class="gold">
-      🚀 Send
-    </button>
-
-    <p id="walletMsg"></p>
-
+  <div class="card">
+    <p>💳 Wallet Address</p>
+    <input id="walletAddress" readonly />
+    <button onclick="copyWallet()">📋 Copy</button>
   </div>
 
-  <button class="secondary" onclick="goBack()">
-    ⬅ Back to Game
-  </button>
+  <div class="card">
+    <p>💰 Balance: <span id="balance">0</span></p>
+    <p>🪙 Tokens: <span id="tokens">0</span></p>
+  </div>
 
-  <script src="wallet.js"></script>
+  <hr />
+
+  <h3>🔁 Convert Balance → Token</h3>
+  <p>Rate: 10,000 Balance = 1 Token</p>
+  <button onclick="convert()">Convert 10,000</button>
+
+  <hr />
+
+  <button onclick="backToGame()">⬅ Back to Game</button>
+
+</div>
+
+<script src="wallet.js"></script>
 </body>
 </html>
