@@ -4,57 +4,137 @@
   <meta charset="UTF-8" />
   <title>Founder Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+
+  <style>
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #0b0700;
+      color: #ffd700;
+    }
+
+    .container {
+      max-width: 420px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #140900;
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 14px;
+      box-shadow: 0 0 18px rgba(255, 215, 0, 0.15);
+    }
+
+    .row {
+      display: flex;
+      justify-content: space-between;
+      margin: 8px 0;
+      font-size: 15px;
+    }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      margin-top: 12px;
+      border-radius: 14px;
+      border: none;
+      background: linear-gradient(135deg, #ffd700, #ffb700);
+      color: #000;
+      font-weight: bold;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .danger {
+      background: #2a0000;
+      color: #ff8080;
+      text-align: center;
+      padding: 16px;
+      border-radius: 12px;
+      margin-top: 40px;
+    }
+  </style>
 </head>
 <body>
 
-  <h2>👑 Founder Dashboard</h2>
-  <p class="pro-badge">GLOBAL STATS</p>
+  <div class="container" id="app" style="display:none">
+    <h1>👑 Founder Dashboard</h1>
 
-  <div class="founder-grid">
-
-    <div class="founder-card glow">
-      <h3>👥 Total Users</h3>
-      <div class="stat" id="totalUsers">0</div>
+    <div class="card">
+      <h3>🌍 Global Stats</h3>
+      <div class="row"><span>Total Users</span><span id="totalUsers">0</span></div>
+      <div class="row"><span>Pro Users</span><span id="proUsers">0</span></div>
+      <div class="row"><span>Total Balance</span><span id="totalBalance">0</span></div>
+      <div class="row"><span>Total Tokens</span><span id="totalTokens">0</span></div>
+      <div class="row"><span>Total Energy</span><span id="totalEnergy">0</span></div>
+      <div class="row"><span>Total Referrals</span><span id="totalReferrals">0</span></div>
     </div>
 
-    <div class="founder-card">
-      <h3>⭐ Pro Users</h3>
-      <div class="stat" id="proUsers">0</div>
-    </div>
-
-    <div class="founder-card">
-      <h3>👑 Founders</h3>
-      <div class="stat" id="founders">0</div>
-    </div>
-
-    <div class="founder-card">
-      <h3>💰 Total Balance</h3>
-      <div class="stat" id="totalBalance">0</div>
-    </div>
-
-    <div class="founder-card">
-      <h3>🪙 Total Tokens</h3>
-      <div class="stat" id="totalTokens">0</div>
-    </div>
-
-    <div class="founder-card">
-      <h3>⚡ Total Energy</h3>
-      <div class="stat" id="totalEnergy">0</div>
-    </div>
-
-    <div class="founder-card">
-      <h3>🔗 Total Referrals</h3>
-      <div class="stat" id="totalReferrals">0</div>
-    </div>
-
+    <button class="btn" onclick="location.href='/'">⬅ Back to Game</button>
   </div>
 
-  <button class="secondary" onclick="goBack()">
-    ⬅ Back
-  </button>
+  <div class="container danger" id="denied" style="display:none">
+    ❌ Access denied — Founder only
+  </div>
 
-  <!-- Founder logic yana cikin JS -->
-  <script src="founder-stats.js"></script>
+<script>
+  const userId = localStorage.getItem("userId");
+
+  async function checkFounder() {
+    if (!userId) return deny();
+
+    try {
+      const res = await fetch("/api/user", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId })
+      });
+
+      const data = await res.json();
+
+      if (!data.success || data.role !== "founder") {
+        return deny();
+      }
+
+      // founder confirmed
+      document.getElementById("app").style.display = "block";
+      loadStats();
+
+    } catch (e) {
+      deny();
+    }
+  }
+
+  function deny() {
+    document.getElementById("denied").style.display = "block";
+  }
+
+  async function loadStats() {
+    try {
+      const res = await fetch("/api/founder/stats");
+      const data = await res.json();
+
+      document.getElementById("totalUsers").innerText = data.totalUsers || 0;
+      document.getElementById("proUsers").innerText = data.proUsers || 0;
+      document.getElementById("totalBalance").innerText = data.totalBalance || 0;
+      document.getElementById("totalTokens").innerText = data.totalTokens || 0;
+      document.getElementById("totalEnergy").innerText = data.totalEnergy || 0;
+      document.getElementById("totalReferrals").innerText = data.totalReferrals || 0;
+
+    } catch (e) {
+      alert("Failed to load stats");
+    }
+  }
+
+  checkFounder();
+</script>
+
 </body>
-</html>
+                                                  </html>
