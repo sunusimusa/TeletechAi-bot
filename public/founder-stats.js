@@ -1,48 +1,31 @@
 /* =====================================================
-   FOUNDER STATS – FINAL CLEAN
-   SERVER = SOURCE OF TRUTH
+   FOUNDER STATS – NO LOGIN (SERVER PROTECTED)
 ===================================================== */
 
 const userId = localStorage.getItem("userId");
 
 /* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", () => {
-  verifyFounder();
+  loadStats();
 });
-
-/* ================= VERIFY FOUNDER ================= */
-async function verifyFounder() {
-  if (!userId) return denyAccess();
-
-  try {
-    const res = await fetch("/api/user", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId })
-    });
-
-    const data = await res.json();
-
-    if (!data.success || data.role !== "founder") {
-      return denyAccess();
-    }
-
-    // ✅ founder confirmed
-    loadStats();
-
-  } catch (e) {
-    denyAccess();
-  }
-}
 
 /* ================= LOAD STATS ================= */
 async function loadStats() {
+  if (!userId) {
+    showDenied();
+    return;
+  }
+
   try {
     const res = await fetch(`/api/founder/stats?userId=${userId}`);
     const data = await res.json();
 
-    if (data.error) return denyAccess();
+    if (data.error) {
+      showDenied();
+      return;
+    }
 
+    // ✅ show dashboard
     document.getElementById("app").style.display = "block";
 
     setText("totalUsers", data.totalUsers);
@@ -57,7 +40,7 @@ async function loadStats() {
 }
 
 /* ================= HELPERS ================= */
-function denyAccess() {
+function showDenied() {
   const denied = document.getElementById("denied");
   const app = document.getElementById("app");
 
