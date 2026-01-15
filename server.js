@@ -8,6 +8,9 @@ import { fileURLToPath } from "url";
 dotenv.config();
 const app = express();
 
+import cookieParser from "cookie-parser";
+
+
 /* ================= PATH ================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -22,7 +25,9 @@ const CONVERT_RATE = 10000;
 /* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
+app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
+
 
 /* ================= DATABASE ================= */
 mongoose
