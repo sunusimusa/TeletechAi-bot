@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Bonus & Energy</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+<h2>🎁 Daily Bonus & ⚡ Energy</h2>
+
+<!-- ❌ ACCESS ERROR -->
+<div id="denied" class="hidden">
+  <p>🚫 Session expired</p>
+  <button onclick="back()">⬅ Back</button>
+</div>
+
+<!-- ✅ APP -->
+<div id="app" class="hidden">
+
+  <div class="card">
+    <p>⚡ Energy</p>
+    <div class="energy-bar">
+      <div id="energyFill"></div>
+    </div>
+    <p id="energyText">0 / 0</p>
+    <small>🔄 Auto regenerates every 5 minutes</small>
+  </div>
+
+  <div class="card">
+    <p>💰 Balance: <span id="balance">0</span></p>
+  </div>
+
+  <hr />
+
+  <h3>🎁 Daily Bonus</h3>
+  <p id="dailyMsg">Claim your reward once per day</p>
+  <button id="dailyBtn" onclick="claimDaily()">🎁 Claim Daily Bonus</button>
+
+  <hr />
+
+  <button onclick="back()">⬅ Back to Game</button>
+</div>
+
+<script src="daily.js"></script>
+</body>
+</html>
