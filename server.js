@@ -318,23 +318,22 @@ app.get("/api/leaderboard", async (req, res) => {
 /* ================= FOUNDER STATS ================= */
 app.get("/api/founder/stats", async (req, res) => {
   try {
-    const userId = req.query.userId;
-    if (!userId) {
-      return res.json({ error: "NO_USER" });
-    }
+    const { userId } = req.query;
+    if (!userId) return res.json({ error: "NO_USER" });
 
-    const user = await User.findOne({ userId });
-    if (!user) {
-      return res.json({ error: "USER_NOT_FOUND" });
-    }
-
-    if (user.role !== "founder") {
+    const founder = await User.findOne({ userId });
+    if (!founder || founder.role !== "founder") {
       return res.json({ error: "ACCESS_DENIED" });
     }
 
+    // ===== GLOBAL STATS =====
     const totalUsers = await User.countDocuments();
 
-    const agg = await User.aggregate([
+    const proUsers = await User.countDocuments({
+      proLevel: { $gt: 0 }
+    });
+
+    const totals = await User.aggregate([
       {
         $group: {
           _id: null,
@@ -346,7 +345,7 @@ app.get("/api/founder/stats", async (req, res) => {
       }
     ]);
 
-    const stats = agg[0] || {
+    const stats = totals[0] || {
       totalBalance: 0,
       totalTokens: 0,
       totalEnergy: 0,
@@ -356,7 +355,11 @@ app.get("/api/founder/stats", async (req, res) => {
     res.json({
       success: true,
       totalUsers,
-      ...stats
+      proUsers,
+      totalBalance: stats.totalBalance,
+      totalTokens: stats.totalTokens,
+      totalEnergy: stats.totalEnergy,
+      totalReferrals: stats.totalReferrals
     });
 
   } catch (e) {
