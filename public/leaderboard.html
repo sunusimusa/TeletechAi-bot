@@ -1,80 +1,28 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>Leaderboard</title>
-  <style>
-    body {
-      background: #0f0f0f;
-      color: #ffd700;
-      font-family: sans-serif;
-      padding: 16px;
-    }
-    h2 { text-align: center; }
-    button {
-      margin: 5px;
-      padding: 8px 12px;
-      border-radius: 6px;
-      border: none;
-      background: #ffd700;
-      color: #000;
-      font-weight: bold;
-    }
-    .item {
-      display: flex;
-      justify-content: space-between;
-      padding: 10px;
-      border-bottom: 1px solid #333;
-    }
-    .rank {
-      font-weight: bold;
-      color: #0ff;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
 <h2>🏆 Leaderboard</h2>
 
-<div style="text-align:center;">
-  <button onclick="loadLB('balance')">💰 Balance</button>
-  <button onclick="loadLB('tokens')">🪙 Tokens</button>
-  <button onclick="loadLB('referrals')">👥 Referrals</button>
+<div class="tabs">
+  <button onclick="loadLeaderboard('balance')">💰 Balance</button>
+  <button onclick="loadLeaderboard('tokens')">🪙 Tokens</button>
+  <button onclick="loadLeaderboard('referrals')">👥 Referrals</button>
 </div>
 
-<div id="list"></div>
+<ul id="leaderboardList" class="leaderboard"></ul>
 
-<script>
-async function loadLB(type) {
-  const res = await fetch("/api/leaderboard?type=" + type);
-  const data = await res.json();
-  if (!data.success) return;
+<p id="lbMsg"></p>
 
-  const box = document.getElementById("list");
-  box.innerHTML = "";
+<button onclick="backToGame()">⬅ Back to Game</button>
 
-  data.list.forEach((u, i) => {
-    const div = document.createElement("div");
-    div.className = "item";
-    div.innerHTML = `
-      <span class="rank">#${i + 1}</span>
-      <span>${u.userId.slice(0, 10)}...</span>
-      <span>
-        ${
-          type === "balance"
-            ? u.balance + " 💰"
-            : type === "tokens"
-            ? u.tokens + " 🪙"
-            : u.referralsCount + " 👥"
-        }
-      </span>
-    `;
-    box.appendChild(div);
-  });
-}
-
-loadLB("balance");
-</script>
-
+<script src="leaderboard.js"></script>
 </body>
 </html>
