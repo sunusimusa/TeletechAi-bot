@@ -8,15 +8,12 @@ import { fileURLToPath } from "url";
 dotenv.config();
 const app = express();
 
-/* ================= BASIC ================= */
+/* ================= BASIC SETUP ================= */
 const FOUNDER_USER_ID = "SUNUSI_001";
-const PORT = process.env.PORT || 10000;
 
-/* ================= PATH ================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-/* ================= MIDDLEWARE ================= */
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
@@ -25,10 +22,10 @@ app.use(express.static(path.join(__dirname, "public")));
 mongoose
   .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ Mongo Error:", err));
+  .catch(err => console.error("❌ MongoDB Error:", err));
 
-/* ================= MODEL ================= */
-const UserSchema = new mongoose.Schema({
+/* ================= USER MODEL ================= */
+const userSchema = new mongoose.Schema({
   userId: { type: String, unique: true },
   role: { type: String, default: "user" },
 
@@ -46,7 +43,7 @@ const UserSchema = new mongoose.Schema({
   createdAt: { type: Date, default: Date.now }
 });
 
-const User = mongoose.model("User", UserSchema);
+const User = mongoose.model("User", userSchema);
 
 /* ================= CREATE / SYNC USER ================= */
 app.post("/api/user", async (req, res) => {
@@ -75,42 +72,46 @@ app.post("/api/user", async (req, res) => {
       freeTries: user.freeTries,
       role: user.role
     });
-
-  } catch (err) {
-    console.error("USER ERROR:", err);
+  } catch (e) {
+    console.error("USER ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
-  const { userId, type } = req.body;
-  const user = await User.findOne({ userId });
-  if (!user) return res.json({ error: "USER_NOT_FOUND" });
+  try {
+    const { userId, type } = req.body;
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-  if (user.freeTries > 0) {
-    user.freeTries--;
-  } else if (user.energy >= 10) {
-    user.energy -= 10;
-  } else {
-    return res.json({ error: "NO_ENERGY" });
+    if (user.freeTries > 0) {
+      user.freeTries--;
+    } else if (user.energy >= 10) {
+      user.energy -= 10;
+    } else {
+      return res.json({ error: "NO_ENERGY" });
+    }
+
+    let rewards = [0, 50, 100];
+    if (type === "gold") rewards = [100, 200, 500];
+    if (type === "diamond") rewards = [300, 500, 1000];
+
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    user.balance += reward;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward,
+      balance: user.balance,
+      energy: user.energy,
+      freeTries: user.freeTries
+    });
+  } catch (e) {
+    res.status(500).json({ error: "SERVER_ERROR" });
   }
-
-  let rewards = [0, 50, 100];
-  if (type === "gold") rewards = [100, 200, 500];
-  if (type === "diamond") rewards = [300, 500, 1000];
-
-  const reward = rewards[Math.floor(Math.random() * rewards.length)];
-  user.balance += reward;
-
-  await user.save();
-
-  res.json({
-    reward,
-    balance: user.balance,
-    energy: user.energy,
-    freeTries: user.freeTries
-  });
 });
 
 /* ================= DAILY BONUS ================= */
@@ -125,7 +126,7 @@ app.post("/api/daily", async (req, res) => {
   }
 
   user.balance += 500;
-  user.energy = Math.min(user.energy + 20, user.role === "founder" ? 999 : 100);
+  user.energy = Math.min(user.energy + 20, 999);
   user.lastDaily = Date.now();
 
   await user.save();
@@ -155,9 +156,7 @@ app.post("/api/ads/watch", async (req, res) => {
   if (user.lastAdAt && now - user.lastAdAt < 30000)
     return res.json({ error: "WAIT_30_SECONDS" });
 
-  const maxEnergy = user.role === "founder" ? 999 : 100;
-
-  user.energy = Math.min(user.energy + 20, maxEnergy);
+  user.energy = Math.min(user.energy + 20, 999);
   user.balance += 100;
   user.adsWatchedToday++;
   user.lastAdAt = now;
@@ -165,6 +164,7 @@ app.post("/api/ads/watch", async (req, res) => {
   await user.save();
 
   res.json({
+    success: true,
     energy: user.energy,
     balance: user.balance
   });
@@ -176,6 +176,7 @@ app.get("/", (req, res) => {
 });
 
 /* ================= START ================= */
-app.listen(PORT, () => {
-  console.log("🚀 Server running on port", PORT);
-});
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}`)
+);
