@@ -44,6 +44,7 @@ const userSchema = new mongoose.Schema({
   freeTries: { type: Number, default: 3 },
 
   referralsCount: { type: Number, default: 0 },
+  lastEnergyAt: { type: Number, default: Date.now() },
 
   lastOpenAt: Number,
   lastDaily: Number,
