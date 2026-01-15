@@ -284,6 +284,37 @@ app.post("/api/convert", async (req, res) => {
   }
 });
 
+/* ================= LEADERBOARD ================= */
+/*
+  Types:
+  - balance (default)
+  - tokens
+  - referrals
+*/
+
+app.get("/api/leaderboard", async (req, res) => {
+  try {
+    const type = req.query.type || "balance";
+
+    let sortField = { balance: -1 };
+    if (type === "tokens") sortField = { tokens: -1 };
+    if (type === "referrals") sortField = { referralsCount: -1 };
+
+    const topUsers = await User.find({})
+      .sort(sortField)
+      .limit(20)
+      .select("userId balance tokens referralsCount proLevel");
+
+    res.json({
+      success: true,
+      list: topUsers
+    });
+  } catch (e) {
+    console.error("LEADERBOARD ERROR:", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
