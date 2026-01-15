@@ -48,6 +48,8 @@ const userSchema = new mongoose.Schema({
   lastOpenAt: Number,
   lastDaily: Number,
 
+  lastEnergyAt: Number,
+
   lastAdAt: Number,
   lastAdDay: String,
   adsWatchedToday: { type: Number, default: 0 },
