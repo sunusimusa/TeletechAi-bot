@@ -315,6 +315,53 @@ app.get("/api/leaderboard", async (req, res) => {
   }
 });
 
+/* ================= FOUNDER STATS ================= */
+app.get("/api/founder/stats", async (req, res) => {
+  try {
+    const { userId } = req.query;
+    if (!userId) return res.json({ error: "NO_USER" });
+
+    const user = await User.findOne({ userId });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    // 🔐 ONLY FOUNDER
+    if (user.role !== "founder") {
+      return res.json({ error: "ACCESS_DENIED" });
+    }
+
+    const totalUsers = await User.countDocuments();
+
+    const agg = await User.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalBalance: { $sum: "$balance" },
+          totalTokens: { $sum: "$tokens" },
+          totalEnergy: { $sum: "$energy" },
+          totalReferrals: { $sum: "$referralsCount" }
+        }
+      }
+    ]);
+
+    const stats = agg[0] || {
+      totalBalance: 0,
+      totalTokens: 0,
+      totalEnergy: 0,
+      totalReferrals: 0
+    };
+
+    res.json({
+      success: true,
+      totalUsers,
+      ...stats
+    });
+
+  } catch (e) {
+    console.error("FOUNDER ERROR:", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= ROOT ================= */
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
