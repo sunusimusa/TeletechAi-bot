@@ -1,50 +1,71 @@
-/* ================= FOUNDER GUARD (SIMPLE) ================= */
-const USER_ID = localStorage.getItem("userId");
+/* =====================================================
+   FOUNDER STATS – CLEAN & SAFE
+   SERVER = SOURCE OF TRUTH
+===================================================== */
 
-if (USER_ID !== "SUNUSI_001") {
-  alert("❌ Access denied");
-  location.href = "/";
+const userId = localStorage.getItem("userId");
+
+/* ================= INIT ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  verifyFounder();
+});
+
+/* ================= VERIFY FOUNDER ================= */
+async function verifyFounder() {
+  if (!userId) return denyAccess();
+
+  try {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId })
+    });
+
+    const data = await res.json();
+
+    if (!data.success || data.role !== "founder") {
+      return denyAccess();
+    }
+
+    // ✅ founder confirmed
+    document.getElementById("app").style.display = "block";
+    loadStats();
+
+  } catch (e) {
+    denyAccess();
+  }
 }
 
 /* ================= LOAD STATS ================= */
-document.addEventListener("DOMContentLoaded", loadStats);
-
 async function loadStats() {
   try {
     const res = await fetch("/api/founder/stats");
     const data = await res.json();
 
-    setStat("totalUsers", data.totalUsers || 0);
-    setStat("proUsers", data.proUsers || 0);
-    setStat("founders", data.founders || 0);
-    setStat("totalBalance", data.totalBalance || 0);
-    setStat("totalTokens", data.totalTokens || 0);
-    setStat("totalEnergy", data.totalEnergy || 0);
-    setStat("totalReferrals", data.totalReferrals || 0);
+    setText("totalUsers", data.totalUsers);
+    setText("proUsers", data.proUsers);
+    setText("totalBalance", data.totalBalance);
+    setText("totalTokens", data.totalTokens);
+    setText("totalEnergy", data.totalEnergy);
+    setText("totalReferrals", data.totalReferrals);
 
-    animateCards();
-
-  } catch (err) {
-    console.error(err);
-    alert("❌ Failed to load stats");
+  } catch (e) {
+    alert("❌ Failed to load founder stats");
   }
 }
 
-/* ================= UI HELPERS ================= */
-function setStat(id, value) {
+/* ================= HELPERS ================= */
+function denyAccess() {
+  const denied = document.getElementById("denied");
+  if (denied) denied.style.display = "block";
+}
+
+function setText(id, value) {
   const el = document.getElementById(id);
-  if (el) el.innerText = value;
+  if (el) el.innerText = value ?? 0;
 }
 
-function animateCards() {
-  const cards = document.querySelectorAll(".founder-card");
-  cards.forEach((card, i) => {
-    setTimeout(() => {
-      card.classList.add("enter");
-    }, i * 120);
-  });
-}
-
-function goBack() {
+/* ================= NAV ================= */
+function backToGame() {
   location.href = "/";
 }
