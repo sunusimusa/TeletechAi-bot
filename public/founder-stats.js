@@ -1,5 +1,5 @@
 /* =====================================================
-   FOUNDER STATS – CLEAN & SAFE
+   FOUNDER STATS – FINAL CLEAN
    SERVER = SOURCE OF TRUTH
 ===================================================== */
 
@@ -28,7 +28,6 @@ async function verifyFounder() {
     }
 
     // ✅ founder confirmed
-    document.getElementById("app").style.display = "block";
     loadStats();
 
   } catch (e) {
@@ -39,11 +38,14 @@ async function verifyFounder() {
 /* ================= LOAD STATS ================= */
 async function loadStats() {
   try {
-    const res = await fetch("/api/founder/stats");
+    const res = await fetch(`/api/founder/stats?userId=${userId}`);
     const data = await res.json();
 
+    if (data.error) return denyAccess();
+
+    document.getElementById("app").style.display = "block";
+
     setText("totalUsers", data.totalUsers);
-    setText("proUsers", data.proUsers);
     setText("totalBalance", data.totalBalance);
     setText("totalTokens", data.totalTokens);
     setText("totalEnergy", data.totalEnergy);
@@ -57,6 +59,9 @@ async function loadStats() {
 /* ================= HELPERS ================= */
 function denyAccess() {
   const denied = document.getElementById("denied");
+  const app = document.getElementById("app");
+
+  if (app) app.style.display = "none";
   if (denied) denied.style.display = "block";
 }
 
@@ -67,5 +72,5 @@ function setText(id, value) {
 
 /* ================= NAV ================= */
 function backToGame() {
-  location.href = "/";
+  window.location.href = "/";
 }
