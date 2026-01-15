@@ -3,7 +3,7 @@
    SAFE • CLEAN • UPDATE FRIENDLY
 ================================ */
 
-const CACHE_VERSION = "v2"; // 🔁 CANZA WANNAN DUK LOKACIN DA KA GYARA
+const CACHE_VERSION = "v3"; // 🔁 CANZA WANNAN DUK LOKACIN DA KA GYARA
 const CACHE_NAME = `luckybox-${CACHE_VERSION}`;
 
 const STATIC_ASSETS = [
