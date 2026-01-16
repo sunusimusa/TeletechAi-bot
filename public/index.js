@@ -195,6 +195,7 @@ async function openBox(type, boxEl) {
     alert("📡 Internet required");
     return;
   }
+
   if (openingLocked) return;
   openingLocked = true;
 
@@ -206,34 +207,41 @@ async function openBox(type, boxEl) {
       body: JSON.stringify({ type })
     });
 
-    if (!res.ok) throw new Error("SERVER");
+    if (!res.ok) {
+      throw new Error("SERVER_DOWN");
+    }
 
     const data = await res.json();
+
     if (data.error) {
       playSound("errorSound");
       alert("❌ " + data.error);
       return;
     }
 
-    // 🔄 STATE
+    // 🔄 UPDATE STATE (SERVER = SOURCE OF TRUTH)
     balance   = data.balance;
     energy    = data.energy;
     freeTries = data.freeTries;
 
-    // 🎁 UI (script.js)
-    if (boxEl) {
+    // 🎁 UI animation (script.js)
+    if (boxEl && typeof animateBox === "function") {
       animateBox(boxEl, data.reward);
     }
 
-    setTimeout(updateUI, 600);
+    // ⏳ bari animation ta fara
+    setTimeout(() => {
+      updateUI();
+    }, 700);
 
-  } catch (e) {
+  } catch (err) {
+    console.error("OPEN BOX FETCH ERROR:", err);
     playSound("errorSound");
     alert("❌ Network error");
   } finally {
     openingLocked = false;
   }
-}
+ }
 
 /* ================= NAV ================= */
 function openWallet() {
