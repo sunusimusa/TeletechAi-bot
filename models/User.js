@@ -52,6 +52,7 @@ const UserSchema = new mongoose.Schema(
     /* ===== REFERRAL ===== */
     referredBy: { type: String, default: null },
     referralsCount: { type: Number, default: 0 },
+    joinedByRef: { type: Boolean, default: false },
 
     /* ===== ADS / DAILY ===== */
     adsWatchedToday: { type: Number, default: 0 },
