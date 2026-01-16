@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { fileURLToPath } from "url";
 import User from "./models/User.js";
+import crypto from "crypto";
 
 dotenv.config();
 const app = express();
@@ -56,19 +57,22 @@ function regenEnergy(user) {
 /* ===== CREATE / SYNC USER ===== */
 app.post("/api/user", async (req, res) => {
   try {
-    const { userId, telegramId, username } = req.body;
-    if (!userId) return res.json({ error: "NO_USER_ID" });
+    let { userId } = req.body;
+
+    // ✅ idan frontend bai turo ba, server zai ƙirƙira
+    if (!userId) {
+      userId = "USER_" + crypto.randomUUID().slice(0, 8);
+    }
 
     let user = await User.findOne({ userId });
 
     if (!user) {
       user = await User.create({
         userId,
-        telegramId: telegramId || null,
-        username: username || "",
         role: userId === FOUNDER_USER_ID ? "founder" : "user",
         proLevel: userId === FOUNDER_USER_ID ? 4 : 0,
-        energy: userId === FOUNDER_USER_ID ? 999 : 100
+        energy: userId === FOUNDER_USER_ID ? 999 : 100,
+        freeTries: userId === FOUNDER_USER_ID ? 999 : 3
       });
     }
 
@@ -77,14 +81,16 @@ app.post("/api/user", async (req, res) => {
 
     res.json({
       success: true,
-      userId: user.userId,
-      role: user.role,
-      proLevel: user.proLevel,
+      userId: user.userId, // 👈 MUHIMMI
       balance: user.balance,
-      energy: user.energy,
       tokens: user.tokens,
-      freeTries: user.freeTries
+      freeTries: user.freeTries,
+      energy: user.energy,
+      maxEnergy: maxEnergy(user),
+      role: user.role,
+      proLevel: user.proLevel
     });
+
   } catch (e) {
     console.error("USER ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
