@@ -40,6 +40,8 @@ async function syncUser() {
     const data = await res.json();
     if (!data.success) return;
 
+     USER_ID = data.userId;
+
     wallet = data.wallet;
     balance = data.balance;
     energy = data.energy;
@@ -65,8 +67,8 @@ function updateUI() {
   setText("balance", `Balance: ${balance}`);
   setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
-  setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
-
+  setText("energy", `Energy: ${energy} / ${MAX_ENERGY || 100}`);
+}
   const bar = document.getElementById("energyFill");
   if (bar) {
     bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
