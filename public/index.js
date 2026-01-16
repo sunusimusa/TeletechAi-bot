@@ -83,6 +83,11 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
+function getReferralLink() {
+  if (!USER_ID) return "";
+  return `${location.origin}/?ref=${USER_ID}`;
+}
+
 /* ================= GAME ACTIONS (LOGIC ONLY) ================= */
 async function openBox(type) {
   if (!navigator.onLine || openingLocked) return;
