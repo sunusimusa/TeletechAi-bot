@@ -102,35 +102,49 @@ app.post("/api/user", async (req, res) => {
     let user = null;
     let sid = req.cookies.sid;
 
-    // 1️⃣ idan cookie yana nan → nemo user
+    // 🔎 ref daga URL
+    const ref = req.query.ref || null;
+
+    // 1) idan akwai session
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
-    // 2️⃣ idan babu → ƙirƙiri sabon user
+    // 2) idan babu user → ƙirƙiri sabo
     if (!user) {
       sid = crypto.randomUUID();
 
       user = await User.create({
-        userId: "USER_" + Date.now(),
+        userId: "USER_" + crypto.randomUUID().slice(0, 8),
         sessionId: sid,
         walletAddress: makeWallet(),
         energy: 100,
-        freeTries: 3
+        freeTries: 3,
+        referredBy: ref,
+        joinedByRef: !!ref
       });
 
+      // 🍪 set cookie
       res.cookie("sid", sid, {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production"
       });
+
+      // 🤝 handle referral ONCE
+      if (ref) {
+        const refUser = await User.findOne({ userId: ref });
+        if (refUser) {
+          refUser.referralsCount += 1;
+          refUser.balance += 500; // 🎁 referral bonus
+          await refUser.save();
+        }
+      }
     }
 
-    // ⚡ auto energy regen
     regenEnergy(user);
     await user.save();
 
-    // 📦 response
     res.json({
       success: true,
       userId: user.userId,
