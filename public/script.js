@@ -33,22 +33,21 @@ function animateBox(box, reward) {
   box.classList.add("opened");
 
   if (reward > 0) {
-    playSound("winSound");
     rewardEl.textContent = `+${reward}`;
+    playSound("winSound");
   } else {
-    playSound("loseSound");
     rewardEl.textContent = "Empty";
+    playSound("loseSound");
   }
 
   rewardEl.classList.remove("hidden");
 
   setTimeout(() => {
-    box.classList.remove("opened");
     rewardEl.classList.add("hidden");
     rewardEl.textContent = "";
+    box.classList.remove("opened");
   }, 1500);
 }
-
 /* ================= UI WRAPPERS ================= */
 async function dailyBonusUI() {
   playSound("winSound");
