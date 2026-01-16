@@ -42,7 +42,7 @@ async function syncUser() {
     const data = await res.json();
     if (!data.success) return;
 
-    USER_ID = data.userId;
+    USER_ID = data.userId; // ✅ yanzu ba null ba
 
     wallet = data.wallet;
     balance = data.balance;
@@ -59,11 +59,12 @@ async function syncUser() {
       proLevel >= 1 ? 150 : 100;
 
     updateUI();
+    fillReferralLink(); // ✅ KIRA ANAN KAWAI
+
   } catch (e) {
     console.error("SYNC ERROR", e);
   }
 }
-
 /* ================= UI ================= */
 function updateUI() {
   setText("balance", `Balance: ${balance}`);
