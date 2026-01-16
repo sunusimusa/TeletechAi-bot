@@ -206,28 +206,51 @@ app.post("/api/open", async (req, res) => {
 app.post("/api/daily", async (req, res) => {
   try {
     const sid = req.cookies.sid;
+    if (!sid) return res.json({ error: "NO_SESSION" });
+
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    regenEnergy(user);
+    const today = new Date().toISOString().slice(0, 10);
 
-    const today = todayStr();
-    if (user.lastDaily === today)
+    // ❌ already claimed today
+    if (user.lastDaily === today) {
       return res.json({ error: "COME_BACK_TOMORROW" });
+    }
 
-    user.balance += 500;
-    user.energy = Math.min(
-      user.energy + 20,
-      getMaxEnergy(user)
-    );
+    // 🎁 rewards (can scale later)
+    let rewardBalance = 500;
+    let rewardEnergy = 20;
+
+    if (user.proLevel >= 4) {
+      rewardBalance = 2000;
+      rewardEnergy = 100;
+    } else if (user.proLevel >= 3) {
+      rewardBalance = 1200;
+      rewardEnergy = 60;
+    } else if (user.proLevel >= 2) {
+      rewardBalance = 900;
+      rewardEnergy = 40;
+    } else if (user.proLevel >= 1) {
+      rewardBalance = 700;
+      rewardEnergy = 30;
+    }
+
+    // ⚡ apply rewards
+    const maxEnergy = getMaxEnergy(user);
+    user.balance += rewardBalance;
+    user.energy = Math.min(user.energy + rewardEnergy, maxEnergy);
     user.lastDaily = today;
 
     await user.save();
 
     res.json({
       success: true,
+      rewardBalance,
+      rewardEnergy,
       balance: user.balance,
-      energy: user.energy
+      energy: user.energy,
+      maxEnergy
     });
 
   } catch (e) {
