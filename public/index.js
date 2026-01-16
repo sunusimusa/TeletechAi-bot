@@ -84,9 +84,13 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
-function getReferralLink() {
-  if (!USER_ID) return "";
-  return `${location.origin}/?ref=${USER_ID}`;
+function fillReferralLink() {
+  if (!USER_ID) return; // 🛑 kariya
+
+  const input = document.getElementById("refLink");
+  if (!input) return;
+
+  input.value = `${location.origin}/?ref=${USER_ID}`;
 }
 
 function copyRef() {
