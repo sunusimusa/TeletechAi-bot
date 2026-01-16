@@ -122,6 +122,7 @@ app.post("/api/user", async (req, res) => {
       res.cookie("sid", sid, {
         httpOnly: true,
         sameSite: "lax",
+        secure: false
         secure: process.env.NODE_ENV === "production"
       });
     }
