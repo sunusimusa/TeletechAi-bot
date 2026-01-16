@@ -48,6 +48,7 @@ function animateBox(box, reward) {
     box.classList.remove("opened");
   }, 1500);
 }
+
 /* ================= UI WRAPPERS ================= */
 async function dailyBonusUI() {
   playSound("winSound");
