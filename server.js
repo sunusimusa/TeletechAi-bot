@@ -167,27 +167,42 @@ app.post("/api/user", async (req, res) => {
 app.post("/api/open", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.json({ error: "NO_SESSION" });
+    if (!sid) {
+      return res.status(401).json({ error: "NO_SESSION" });
+    }
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
 
+    // ⚡ auto energy regen
     regenEnergy(user);
 
+    // 🎟️ check free tries / energy
+    const OPEN_COST = 10;
+
     if (user.freeTries > 0) {
-      user.freeTries--;
-    } else if (user.energy >= OPEN_COST_ENERGY) {
-      user.energy -= OPEN_COST_ENERGY;
+      user.freeTries -= 1;
+    } else if (user.energy >= OPEN_COST) {
+      user.energy -= OPEN_COST;
     } else {
       return res.json({ error: "NO_ENERGY" });
     }
 
+    // 🎁 rewards
     let rewards = [0, 50, 100];
-    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    if (req.body.type === "gold") rewards = [100, 200, 500];
+    if (req.body.type === "diamond") rewards = [300, 500, 1000];
+
+    const reward =
+      rewards[Math.floor(Math.random() * rewards.length)];
+
     user.balance += reward;
 
     await user.save();
 
+    // ✅ RESPONSE (JSON KAWAI)
     res.json({
       success: true,
       reward,
@@ -196,8 +211,8 @@ app.post("/api/open", async (req, res) => {
       freeTries: user.freeTries
     });
 
-  } catch (e) {
-    console.error("OPEN ERROR:", e);
+  } catch (err) {
+    console.error("OPEN BOX ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
