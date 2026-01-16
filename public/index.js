@@ -85,29 +85,6 @@ function setText(id, text) {
 }
 
 /* ================= GAME ACTIONS (LOGIC ONLY) ================= */
-async function openBox(type) {
-  if (!navigator.onLine || openingLocked) return;
-  openingLocked = true;
-
-  try {
-    const res = await fetch("/api/open", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type })
-    });
-
-    const data = await res.json();
-    if (data.error) return alert(data.error);
-
-    // server ne kawai yake canza state
-    await syncUser();
-    return data.reward; // 👈 don animation
-  } finally {
-    openingLocked = false;
-  }
-}
-
 async function dailyBonus() {
   try {
     const res = await fetch("/api/daily", {
