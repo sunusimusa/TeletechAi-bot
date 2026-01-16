@@ -153,6 +153,7 @@ app.post("/api/user", async (req, res) => {
       freeTries: user.freeTries,
       proLevel: user.proLevel,
       role: user.role,
+      referralsCount: user.referralsCount || 0,
       maxEnergy: getMaxEnergy(user)
     });
 
