@@ -122,12 +122,12 @@ app.post("/api/user", async (req, res) => {
         freeTries: 3,
         referredBy: ref && ref !== "null" ? ref : null
       });
-
-      res.cookie("sid", sid, {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production"
-      });
+      
+     res.cookie("sid", sid, {
+       httpOnly: true,
+       sameSite: "None",   // 🔴 MUHIMMI
+       secure: true        // 🔴 MUHIMMI (Render = HTTPS)
+     });
 
       // 🎁 referral bonus (sau ɗaya)
       if (ref && ref !== "null") {
