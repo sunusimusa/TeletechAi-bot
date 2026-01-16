@@ -167,7 +167,6 @@ app.post("/api/user", async (req, res) => {
 app.post("/api/open", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-
     if (!sid) {
       return res.status(401).json({ error: "NO_SESSION" });
     }
@@ -177,10 +176,9 @@ app.post("/api/open", async (req, res) => {
       return res.status(404).json({ error: "USER_NOT_FOUND" });
     }
 
-    // ⚡ auto energy regen
+    // ⚡ energy regen
     regenEnergy(user);
 
-    // 🎟️ cost
     const OPEN_COST = 10;
 
     if (user.freeTries > 0) {
@@ -191,10 +189,8 @@ app.post("/api/open", async (req, res) => {
       return res.json({ error: "NO_ENERGY" });
     }
 
-    // 🧱 SAFE TYPE
     const type = req.body?.type || "silver";
 
-    // 🎁 rewards
     let rewards = [0, 50, 100];
     if (type === "gold") rewards = [100, 200, 500];
     if (type === "diamond") rewards = [300, 500, 1000];
@@ -204,8 +200,7 @@ app.post("/api/open", async (req, res) => {
 
     await user.save();
 
-    // ✅ JSON RESPONSE ONLY
-    res.json({
+    return res.json({
       success: true,
       reward,
       balance: user.balance,
@@ -215,7 +210,7 @@ app.post("/api/open", async (req, res) => {
 
   } catch (err) {
     console.error("OPEN BOX ERROR:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
+    return res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
