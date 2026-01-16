@@ -191,10 +191,14 @@ async function convertBalance() {
 }
 
 async function openBox(type, boxEl = null) {
+  // 🌐 internet check
   if (!navigator.onLine) {
+    playSound("errorSound");
     alert("📡 Internet required");
     return;
   }
+
+  // 🔒 anti double click
   if (openingLocked) return;
   openingLocked = true;
 
@@ -206,33 +210,41 @@ async function openBox(type, boxEl = null) {
       body: JSON.stringify({ type })
     });
 
+    // ❗ idan server bai bada response lafiya ba
+    if (!res.ok) {
+      throw new Error("SERVER_DOWN");
+    }
+
     const data = await res.json();
 
+    // ❌ server logical error
     if (data.error) {
       playSound("errorSound");
       alert("❌ " + data.error);
       return;
     }
 
-    // 🔄 update STATE (SOURCE OF TRUTH)
-    balance = data.balance;
-    energy = data.energy;
+    // 🔄 UPDATE STATE (SERVER = SOURCE OF TRUTH)
+    balance   = data.balance;
+    energy    = data.energy;
     freeTries = data.freeTries;
 
-    // 🎁 animation + sound (script.js)
+    // 🎁 animation + sound (UI only)
     if (boxEl) {
       animateBox(boxEl, data.reward);
     }
 
-    // ⏳ jira animation kaɗan
+    // ⏳ jira animation kafin update UI
     setTimeout(() => {
       updateUI();
     }, 600);
 
-  } catch (e) {
+  } catch (err) {
+    console.error("OPEN BOX NETWORK ERROR:", err);
     playSound("errorSound");
     alert("❌ Network error");
   } finally {
+    // 🔓 tabbatar an buɗe lock koyaushe
     openingLocked = false;
   }
 }
