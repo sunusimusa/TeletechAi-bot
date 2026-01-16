@@ -21,7 +21,10 @@ const OPEN_COST_ENERGY = 10;
 const CONVERT_RATE = 10000;
 
 /* ================= MIDDLEWARE ================= */
-app.use(cors({ credentials: true, origin: true }));
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, "public")));
@@ -123,11 +126,11 @@ app.post("/api/user", async (req, res) => {
         referredBy: ref && ref !== "null" ? ref : null
       });
       
-     res.cookie("sid", sid, {
-       httpOnly: true,
-       sameSite: "None",   // 🔴 MUHIMMI
-       secure: true        // 🔴 MUHIMMI (Render = HTTPS)
-     });
+      res.cookie("sid", sid, {
+        httpOnly: true,
+        sameSite: "lax", // 👈 KAR KA CANZA
+        secure: process.env.NODE_ENV === "production" // true a Render
+      });
 
       // 🎁 referral bonus (sau ɗaya)
       if (ref && ref !== "null") {
