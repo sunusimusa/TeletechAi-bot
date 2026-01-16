@@ -1,7 +1,7 @@
 /* =====================================================
    LUCKY BOX – FINAL CLEAN INDEX.JS
-   NO localStorage
    SERVER = SOURCE OF TRUTH
+   NO localStorage
 ===================================================== */
 
 /* ================= GLOBAL STATE ================= */
@@ -31,7 +31,7 @@ function handleOffline() {
 window.addEventListener("online", handleOffline);
 window.addEventListener("offline", handleOffline);
 
-/* ================= SYNC USER ================= */
+/* ================= SYNC USER (CORE) ================= */
 async function syncUser() {
   try {
     const res = await fetch("/api/user", {
@@ -42,8 +42,7 @@ async function syncUser() {
     const data = await res.json();
     if (!data.success) return;
 
-    // 👇 server is source of truth
-    USER_ID = data.userId || null;
+    USER_ID = data.userId;
 
     wallet = data.wallet;
     balance = data.balance;
@@ -60,7 +59,6 @@ async function syncUser() {
       proLevel >= 1 ? 150 : 100;
 
     updateUI();
-     
   } catch (e) {
     console.error("SYNC ERROR", e);
   }
@@ -85,13 +83,9 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
-/* ================= OPEN BOX (LOGIC ONLY) ================= */
+/* ================= GAME ACTIONS (LOGIC ONLY) ================= */
 async function openBox(type) {
-  if (!navigator.onLine) {
-    alert("📡 Internet required");
-    return;
-  }
-  if (openingLocked) return;
+  if (!navigator.onLine || openingLocked) return;
   openingLocked = true;
 
   try {
@@ -103,88 +97,53 @@ async function openBox(type) {
     });
 
     const data = await res.json();
-    if (data.error) return alert("❌ " + data.error);
+    if (data.error) return alert(data.error);
 
-    balance = data.balance;
-    energy = data.energy;
-    freeTries = data.freeTries;
-
-    updateUI();
-  } catch {
-    alert("❌ Network error");
+    // server ne kawai yake canza state
+    await syncUser();
+    return data.reward; // 👈 don animation
   } finally {
     openingLocked = false;
   }
 }
 
-/* ================= DAILY BONUS ================= */
 async function dailyBonus() {
-  try {
-    const res = await fetch("/api/daily", {
-      method: "POST",
-      credentials: "include"
-    });
+  const res = await fetch("/api/daily", {
+    method: "POST",
+    credentials: "include"
+  });
+  const data = await res.json();
+  if (data.error) return alert(data.error);
 
-    const data = await res.json();
-    if (data.error) return alert(data.error);
-
-    balance = data.balance;
-    energy = data.energy;
-    updateUI();
-
-    alert("✅ Daily bonus claimed!");
-  } catch {
-    alert("❌ Network error");
-  }
+  await syncUser();
 }
 
-/* ================= WATCH ADS ================= */
 async function watchAd() {
-  try {
-    const res = await fetch("/api/ads/watch", {
-      method: "POST",
-      credentials: "include"
-    });
+  const res = await fetch("/api/ads/watch", {
+    method: "POST",
+    credentials: "include"
+  });
+  const data = await res.json();
+  if (data.error) return alert(data.error);
 
-    const data = await res.json();
-    if (data.error) return alert(data.error);
-
-    balance = data.balance;
-    energy = data.energy;
-    updateUI();
-
-    alert("✅ +20 Energy added");
-  } catch {
-    alert("❌ Network error");
-  }
+  await syncUser();
 }
 
-/* ================= CONVERT ================= */
 async function convertBalance() {
-  try {
-    const res = await fetch("/api/convert", {
-      method: "POST",
-      credentials: "include"
-    });
+  const res = await fetch("/api/convert", {
+    method: "POST",
+    credentials: "include"
+  });
+  const data = await res.json();
+  if (data.error) return alert(data.error);
 
-    const data = await res.json();
-    if (data.error) return alert(data.error);
-
-    balance = data.balance;
-    tokens = data.tokens;
-    updateUI();
-
-    alert("✅ Converted successfully");
-  } catch {
-    alert("❌ Network error");
-  }
+  await syncUser();
 }
 
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
 }
-
 function openFounderStats() {
   location.href = "/founder-stats.html";
-  }
+         }
