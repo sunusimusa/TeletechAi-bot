@@ -1,6 +1,7 @@
 /* =====================================================
    LUCKY BOX – FINAL CLEAN SCRIPT.JS
    UI + ANIMATION + SOUND ONLY
+   (DEPENDS ON index.js STATE)
 ===================================================== */
 
 /* ================= SOUND ================= */
@@ -11,13 +12,14 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-// Android unlock
+// 🔓 Android sound unlock (run once)
 document.addEventListener(
   "click",
   () => {
     ["clickSound", "winSound", "loseSound", "errorSound"].forEach(id => {
       const s = document.getElementById(id);
-      if (s) s.play().then(() => s.pause()).catch(() => {});
+      if (!s) return;
+      s.play().then(() => s.pause()).catch(() => {});
     });
   },
   { once: true }
@@ -26,13 +28,15 @@ document.addEventListener(
 /* ================= BOX ANIMATION ================= */
 function animateBox(box, reward) {
   const rewardEl = box.querySelector(".reward");
+  if (!rewardEl) return;
+
   box.classList.add("opened");
 
   if (reward > 0) {
-    playSound("winSound");   // ✅ nan kaɗai
+    playSound("winSound");
     rewardEl.textContent = `+${reward}`;
   } else {
-    playSound("loseSound");  // ✅ nan kaɗai
+    playSound("loseSound");
     rewardEl.textContent = "Empty";
   }
 
@@ -45,8 +49,10 @@ function animateBox(box, reward) {
   }, 1500);
 }
 
+/* ================= OPEN BOX UI ================= */
 async function openBoxUI(box, type) {
   if (openingLocked) return;
+
   if (!navigator.onLine) {
     playSound("errorSound");
     alert("📡 Internet required");
@@ -73,16 +79,16 @@ async function openBoxUI(box, type) {
       return;
     }
 
-    // 🎁 animation + sound (a wuri guda)
+    // 🎁 animation + sound
     animateBox(box, data.reward);
 
-    // 🔄 update state
+    // 🔄 update global state (index.js owns truth)
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
 
     setTimeout(() => {
-      updateUI();
+      updateUI(); // from index.js
       openingLocked = false;
     }, 600);
 
@@ -96,21 +102,15 @@ async function openBoxUI(box, type) {
 /* ================= UI WRAPPERS ================= */
 async function dailyBonusUI() {
   playSound("winSound");
-  await dailyBonus(); // 👈 index.js
+  await dailyBonus(); // index.js
 }
 
 async function watchAdUI() {
   playSound("clickSound");
-  await watchAd(); // 👈 index.js
+  await watchAd(); // index.js
 }
 
-/* ================= NAV ================= */
-function openWallet() {
-  location.href = "/wallet.html";
-}
-function openFounderStats() {
-  location.href = "/founder-stats.html";
-}
+/* ================= EXTERNAL LINKS ================= */
 function linkTelegram() {
   window.open("https://t.me/TeleTechAiBot", "_blank");
 }
