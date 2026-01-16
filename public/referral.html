@@ -2,75 +2,94 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>My Referrals</title>
+  <title>Referral</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+
+  <link rel="stylesheet" href="/style.css" />
 </head>
 <body>
 
-<h2>👥 My Referrals</h2>
+  <div class="page">
 
-<div class="energy-shop">
-  <p>Your referral link:</p>
+    <h2>🤝 Referral Program</h2>
 
-  <input id="refLink" readonly
-    style="width:100%;padding:10px;border-radius:12px;border:none;" />
+    <p class="desc">
+      Invite friends and earn rewards when they join the game.
+    </p>
 
-  <button onclick="copyRef()">📋 Copy</button>
+    <!-- REF LINK -->
+    <div class="card">
+      <label>Your Referral Link</label>
+      <input
+        type="text"
+        id="refLink"
+        readonly
+        value="Loading..."
+      />
+      <button onclick="copyRef()">📋 Copy Link</button>
+    </div>
 
-  <p id="refCount">Referrals: 0</p>
-</div>
+    <!-- STATS -->
+    <div class="card">
+      <p>👥 Total Referrals:</p>
+      <h3 id="refCount">0</h3>
+    </div>
 
-<hr>
+    <!-- INFO -->
+    <div class="info">
+      <p>🎁 Reward per referral:</p>
+      <ul>
+        <li>+500 Balance</li>
+        <li>More rewards coming soon 🚀</li>
+      </ul>
+    </div>
 
-<h3>📜 People you invited</h3>
-<ul id="refList"></ul>
+    <button class="back" onclick="goBack()">⬅ Back to Game</button>
 
-<button onclick="history.back()">⬅ Back</button>
+  </div>
 
-<script>
-const USER_ID = localStorage.getItem("userId");
-const wallet = localStorage.getItem("wallet");
+  <!-- MAIN LOGIC -->
+  <script src="/index.js"></script>
 
-document.getElementById("refLink").value =
-  location.origin + "/?ref=" + wallet;
+  <!-- REFERRAL PAGE SCRIPT -->
+  <script>
+    async function loadReferral() {
+      try {
+        const res = await fetch("/api/user", {
+          method: "POST",
+          credentials: "include"
+        });
 
-function copyRef() {
-  navigator.clipboard.writeText(
-    document.getElementById("refLink").value
-  );
-  alert("Referral link copied!");
-}
+        const data = await res.json();
+        if (!data.success) return;
 
-async function loadReferrals() {
-  const res = await fetch(`/api/my-referrals?userId=${USER_ID}`);
-  const data = await res.json();
+        const refLink = `${location.origin}/?ref=${data.userId}`;
+        document.getElementById("refLink").value = refLink;
 
-  const list = document.getElementById("refList");
-  const count = document.getElementById("refCount");
+        // referralsCount idan kana turawa daga server
+        if (data.referralsCount !== undefined) {
+          document.getElementById("refCount").innerText =
+            data.referralsCount;
+        }
 
-  list.innerHTML = "";
-  count.innerText = "Referrals: " + data.length;
+      } catch (e) {
+        console.error("REFERRAL LOAD ERROR", e);
+      }
+    }
 
-  if (data.length === 0) {
-    list.innerHTML = "<li>No referrals yet</li>";
-    return;
-  }
+    function copyRef() {
+      const i = document.getElementById("refLink");
+      i.select();
+      document.execCommand("copy");
+      alert("✅ Referral link copied");
+    }
 
-  data.forEach((u, i) => {
-    const li = document.createElement("li");
-    const date = new Date(u.createdAt).toLocaleDateString();
+    function goBack() {
+      location.href = "/";
+    }
 
-    li.innerHTML = `
-      <strong>#${i + 1}</strong> ${u.userId}
-      <br><small>Joined: ${date}</small>
-    `;
-    list.appendChild(li);
-  });
-}
-
-loadReferrals();
-</script>
+    document.addEventListener("DOMContentLoaded", loadReferral);
+  </script>
 
 </body>
 </html>
