@@ -1,41 +1,22 @@
-import express from "express";
-import mongoose from "mongoose";
-import cors from "cors";
-import dotenv from "dotenv";
-import path from "path";
-import { fileURLToPath } from "url";
-import User from "./models/User.js";
+// server.js (snippet)
+import session from "express-session";
 import crypto from "crypto";
+import User from "./models/User.js";
 
-dotenv.config();
-const app = express();
+app.use(session({
+  name: "teletech.sid",
+  secret: process.env.SESSION_SECRET || "teletech-secret",
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production"
+  }
+}));
 
-/* ===== PATH ===== */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-
-/* ===== CONFIG ===== */
-const FOUNDER_USER_ID = "SUNUSI_001";
-const MAX_ADS_PER_DAY = 5;
-const ENERGY_PER_AD = 20;
-const OPEN_COST_ENERGY = 10;
-const CONVERT_RATE = 10000;
-
-/* ===== MIDDLEWARE ===== */
-app.use(cors());
-app.use(express.json());
-app.use(express.static(path.join(__dirname, "public")));
-
-/* ===== DB ===== */
-mongoose
-  .connect(process.env.MONGODB_URI)
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch(err => console.error("❌ Mongo Error:", err));
-
-/* ===== HELPERS ===== */
-const todayStr = () => new Date().toISOString().slice(0, 10);
-
-function maxEnergy(user) {
+/* ================= AUTO ENERGY ================= */
+function getMaxEnergy(user) {
   if (user.proLevel >= 4) return 999;
   if (user.proLevel >= 3) return 300;
   if (user.proLevel >= 2) return 200;
@@ -46,93 +27,60 @@ function maxEnergy(user) {
 function regenEnergy(user) {
   const now = Date.now();
   const last = user.lastEnergyAt || now;
-  const interval = 5 * 60 * 1000;
-  const gained = Math.floor((now - last) / interval);
+
+  const INTERVAL = 5 * 60 * 1000; // 5 minutes
+  const gained = Math.floor((now - last) / INTERVAL);
   if (gained <= 0) return;
 
-  user.energy = Math.min(user.energy + gained, maxEnergy(user));
-  user.lastEnergyAt = last + gained * interval;
+  const max = getMaxEnergy(user);
+  user.energy = Math.min(user.energy + gained, max);
+  user.lastEnergyAt = last + gained * INTERVAL;
 }
 
-/* ===== CREATE / SYNC USER ===== */
+/* ================= FINAL /api/user ================= */
 app.post("/api/user", async (req, res) => {
   try {
-    let { userId } = req.body;
+    let user;
 
-    // ✅ idan frontend bai turo ba, server zai ƙirƙira
-    if (!userId) {
-      userId = "USER_" + crypto.randomUUID().slice(0, 8);
+    // 🔐 1. idan akwai session → samo user
+    if (req.session.userId) {
+      user = await User.findOne({ userId: req.session.userId });
     }
 
-    let user = await User.findOne({ userId });
-
+    // 🆕 2. idan babu session ko user → ƙirƙiri sabo
     if (!user) {
+      const userId = "USER_" + crypto.randomUUID();
+
       user = await User.create({
         userId,
-        role: userId === FOUNDER_USER_ID ? "founder" : "user",
-        proLevel: userId === FOUNDER_USER_ID ? 4 : 0,
-        energy: userId === FOUNDER_USER_ID ? 999 : 100,
-        freeTries: userId === FOUNDER_USER_ID ? 999 : 3
+        wallet: "TTECH-" + crypto.randomBytes(4).toString("hex").toUpperCase(),
+        energy: 100,
+        freeTries: 3
       });
+
+      req.session.userId = user.userId;
     }
 
+    // ⚡ 3. auto energy
     regenEnergy(user);
     await user.save();
 
+    // 📦 4. response (SOURCE OF TRUTH)
     res.json({
       success: true,
-      userId: user.userId, // 👈 MUHIMMI
+      userId: user.userId,
+      wallet: user.wallet,
       balance: user.balance,
       tokens: user.tokens,
-      freeTries: user.freeTries,
       energy: user.energy,
-      maxEnergy: maxEnergy(user),
+      freeTries: user.freeTries,
+      proLevel: user.proLevel,
       role: user.role,
-      proLevel: user.proLevel
+      maxEnergy: getMaxEnergy(user)
     });
 
-  } catch (e) {
-    console.error("USER ERROR:", e);
+  } catch (err) {
+    console.error("API /user ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
-
-/* ===== FOUNDER STATS ===== */
-app.get("/api/founder/stats", async (req, res) => {
-  const { userId } = req.query;
-  if (!userId) return res.json({ error: "NO_USER" });
-
-  const founder = await User.findOne({ userId });
-  if (!founder || founder.role !== "founder")
-    return res.json({ error: "ACCESS_DENIED" });
-
-  const totalUsers = await User.countDocuments();
-  const totals = await User.aggregate([
-    {
-      $group: {
-        _id: null,
-        totalBalance: { $sum: "$balance" },
-        totalTokens: { $sum: "$tokens" },
-        totalEnergy: { $sum: "$energy" },
-        totalReferrals: { $sum: "$referralsCount" }
-      }
-    }
-  ]);
-
-  res.json({
-    success: true,
-    totalUsers,
-    ...(totals[0] || {})
-  });
-});
-
-/* ===== ROOT ===== */
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public/index.html"));
-});
-
-/* ===== START ===== */
-const PORT = process.env.PORT || 10000;
-app.listen(PORT, () =>
-  console.log(`🚀 Server running on port ${PORT}`)
-);
