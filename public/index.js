@@ -109,14 +109,36 @@ async function openBox(type) {
 }
 
 async function dailyBonus() {
-  const res = await fetch("/api/daily", {
-    method: "POST",
-    credentials: "include"
-  });
-  const data = await res.json();
-  if (data.error) return alert(data.error);
+  try {
+    const res = await fetch("/api/daily", {
+      method: "POST",
+      credentials: "include"
+    });
 
-  await syncUser();
+    const data = await res.json();
+
+    if (data.error) {
+      if (data.error === "COME_BACK_TOMORROW") {
+        alert("⏳ Ka riga ka karɓa yau. Ka dawo gobe.");
+      } else {
+        alert("❌ " + data.error);
+      }
+      return;
+    }
+
+    balance = data.balance;
+    energy = data.energy;
+    MAX_ENERGY = data.maxEnergy;
+
+    updateUI();
+
+    alert(`🎁 Daily Bonus!
++${data.rewardBalance} Balance
++${data.rewardEnergy} Energy`);
+
+  } catch {
+    alert("❌ Network error");
+  }
 }
 
 async function watchAd() {
