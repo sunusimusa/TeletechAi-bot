@@ -178,29 +178,6 @@ async function dailyBonusUI() {
   }
 }
 
-async function syncUser() {
-  const res = await fetch("/api/user", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId: USER_ID }) // farko = null
-  });
-
-  const data = await res.json();
-  if (!data.success) return;
-
-  USER_ID = data.userId; // 👈 daga server
-
-  balance = data.balance;
-  tokens = data.tokens;
-  freeTries = data.freeTries;
-  energy = data.energy;
-  MAX_ENERGY = data.maxEnergy;
-
-  updateUI();
-}
-
-document.addEventListener("DOMContentLoaded", syncUser);
-
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
