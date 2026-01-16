@@ -190,6 +190,53 @@ async function convertBalance() {
   }
 }
 
+async function openBox(type, boxEl = null) {
+  if (!navigator.onLine) {
+    alert("📡 Internet required");
+    return;
+  }
+  if (openingLocked) return;
+  openingLocked = true;
+
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      playSound("errorSound");
+      alert("❌ " + data.error);
+      return;
+    }
+
+    // 🔄 update STATE (SOURCE OF TRUTH)
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+
+    // 🎁 animation + sound (script.js)
+    if (boxEl) {
+      animateBox(boxEl, data.reward);
+    }
+
+    // ⏳ jira animation kaɗan
+    setTimeout(() => {
+      updateUI();
+    }, 600);
+
+  } catch (e) {
+    playSound("errorSound");
+    alert("❌ Network error");
+  } finally {
+    openingLocked = false;
+  }
+}
+
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
