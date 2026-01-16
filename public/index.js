@@ -5,6 +5,8 @@
 ===================================================== */
 
 /* ================= GLOBAL STATE ================= */
+let USER_ID = null;
+
 let wallet = "";
 let balance = 0;
 let energy = 0;
@@ -40,7 +42,8 @@ async function syncUser() {
     const data = await res.json();
     if (!data.success) return;
 
-     USER_ID = data.userId;
+    // 👇 server is source of truth
+    USER_ID = data.userId || null;
 
     wallet = data.wallet;
     balance = data.balance;
@@ -67,11 +70,12 @@ function updateUI() {
   setText("balance", `Balance: ${balance}`);
   setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
-  setText("energy", `Energy: ${energy} / ${MAX_ENERGY || 100}`);
-}
+  setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
+
   const bar = document.getElementById("energyFill");
   if (bar) {
-    bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
+    bar.style.width =
+      Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 }
 
@@ -80,7 +84,7 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
-/* ================= OPEN BOX ================= */
+/* ================= OPEN BOX (LOGIC ONLY) ================= */
 async function openBox(type) {
   if (!navigator.onLine) {
     alert("📡 Internet required");
@@ -98,17 +102,14 @@ async function openBox(type) {
     });
 
     const data = await res.json();
-    if (data.error) {
-      openingLocked = false;
-      return alert("❌ " + data.error);
-    }
+    if (data.error) return alert("❌ " + data.error);
 
     balance = data.balance;
     energy = data.energy;
     freeTries = data.freeTries;
 
     updateUI();
-  } catch (e) {
+  } catch {
     alert("❌ Network error");
   } finally {
     openingLocked = false;
@@ -185,4 +186,4 @@ function openWallet() {
 
 function openFounderStats() {
   location.href = "/founder-stats.html";
-      }
+  }
