@@ -1,7 +1,7 @@
 /* =====================================================
    LUCKY BOX – FINAL CLEAN INDEX.JS
    SERVER = SOURCE OF TRUTH
-   NO localStorage
+   NO localStorage | NO FAKE STATE
 ===================================================== */
 
 /* ================= GLOBAL STATE ================= */
@@ -14,26 +14,25 @@ let tokens = 0;
 let freeTries = 0;
 let proLevel = 0;
 let role = "user";
-let MAX_ENERGY = 100;
 
+let MAX_ENERGY = 100;
+let dailyTimerInterval = null;
 let openingLocked = false;
 
-let dailyTimerInterval = null;
-
 /* ================= INIT ================= */
-document.addEventListener("DOMContentLoaded", async () => {
+document.addEventListener("DOMContentLoaded", () => {
   handleOffline();
-  await syncUser();
+  syncUser();
 });
 
-/* ================= OFFLINE ================= */
+/* ================= OFFLINE HANDLER ================= */
 function handleOffline() {
   document.body.classList.toggle("offline", !navigator.onLine);
 }
 window.addEventListener("online", handleOffline);
 window.addEventListener("offline", handleOffline);
 
-/* ================= SYNC USER (CORE) ================= */
+/* ================= CORE SYNC ================= */
 async function syncUser() {
   try {
     const res = await fetch("/api/user", {
@@ -44,15 +43,15 @@ async function syncUser() {
     const data = await res.json();
     if (!data.success) return;
 
-    USER_ID = data.userId; // ✅ yanzu ba null ba
+    USER_ID = data.userId;
 
-    wallet = data.wallet;
-    balance = data.balance;
-    energy = data.energy;
-    tokens = data.tokens;
-    freeTries = data.freeTries;
-    proLevel = data.proLevel;
-    role = data.role;
+    wallet = data.wallet || "";
+    balance = Number(data.balance || 0);
+    energy = Number(data.energy || 0);
+    tokens = Number(data.tokens || 0);
+    freeTries = Number(data.freeTries || 0);
+    proLevel = Number(data.proLevel || 0);
+    role = data.role || "user";
 
     MAX_ENERGY =
       proLevel >= 4 ? 999 :
@@ -61,12 +60,17 @@ async function syncUser() {
       proLevel >= 1 ? 150 : 100;
 
     updateUI();
-    fillReferralLink(); // ✅ KIRA ANAN KAWAI
+    fillReferralLink();
 
-  } catch (e) {
-    console.error("SYNC ERROR", e);
+    if (data.dailyRemaining && data.dailyRemaining > 0) {
+      startDailyCooldown(data.dailyRemaining);
+    }
+
+  } catch (err) {
+    console.error("SYNC ERROR:", err);
   }
 }
+
 /* ================= UI ================= */
 function updateUI() {
   setText("balance", `Balance: ${balance}`);
@@ -86,18 +90,15 @@ function setText(id, text) {
   if (el) el.innerText = text;
 }
 
+/* ================= DAILY COOLDOWN ================= */
 function startDailyCooldown(ms) {
   const btn = document.getElementById("dailyBtn");
   if (!btn) return;
 
   btn.disabled = true;
-
   let remaining = ms;
 
-  if (dailyTimerInterval) {
-    clearInterval(dailyTimerInterval);
-  }
-
+  clearInterval(dailyTimerInterval);
   updateDailyText(btn, remaining);
 
   dailyTimerInterval = setInterval(() => {
@@ -125,7 +126,7 @@ function updateDailyText(btn, ms) {
     `${String(s).padStart(2, "0")}`;
 }
 
-/* ================= GAME ACTIONS (LOGIC ONLY) ================= */
+/* ================= GAME ACTIONS ================= */
 async function dailyBonus() {
   try {
     const res = await fetch("/api/daily", {
@@ -135,7 +136,6 @@ async function dailyBonus() {
 
     const data = await res.json();
 
-    // ⛔ cooldown
     if (data.error === "COOLDOWN") {
       startDailyCooldown(data.remaining);
       return;
@@ -146,13 +146,11 @@ async function dailyBonus() {
       return;
     }
 
-    // ✅ success
     balance = data.balance;
     energy = data.energy;
     updateUI();
 
     alert(`🎁 +${data.rewardBalance} Balance\n⚡ +${data.rewardEnergy} Energy`);
-
     startDailyCooldown(24 * 60 * 60 * 1000);
 
   } catch {
@@ -161,31 +159,42 @@ async function dailyBonus() {
 }
 
 async function watchAd() {
-  const res = await fetch("/api/ads/watch", {
-    method: "POST",
-    credentials: "include"
-  });
-  const data = await res.json();
-  if (data.error) return alert(data.error);
+  try {
+    const res = await fetch("/api/ads/watch", {
+      method: "POST",
+      credentials: "include"
+    });
 
-  await syncUser();
+    const data = await res.json();
+    if (data.error) return alert(data.error);
+
+    syncUser();
+  } catch {
+    alert("❌ Network error");
+  }
 }
 
 async function convertBalance() {
-  const res = await fetch("/api/convert", {
-    method: "POST",
-    credentials: "include"
-  });
-  const data = await res.json();
-  if (data.error) return alert(data.error);
+  try {
+    const res = await fetch("/api/convert", {
+      method: "POST",
+      credentials: "include"
+    });
 
-  await syncUser();
+    const data = await res.json();
+    if (data.error) return alert(data.error);
+
+    syncUser();
+  } catch {
+    alert("❌ Network error");
+  }
 }
 
 /* ================= NAV ================= */
 function openWallet() {
   location.href = "/wallet.html";
 }
+
 function openFounderStats() {
   location.href = "/founder-stats.html";
-         }
+ }
