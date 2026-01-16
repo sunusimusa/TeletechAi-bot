@@ -60,6 +60,7 @@ async function syncUser() {
       proLevel >= 1 ? 150 : 100;
 
     updateUI();
+     
   } catch (e) {
     console.error("SYNC ERROR", e);
   }
