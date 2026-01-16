@@ -88,6 +88,14 @@ function getReferralLink() {
   return `${location.origin}/?ref=${USER_ID}`;
 }
 
+function copyRef() {
+  const i = document.getElementById("refLink");
+  i.value = getReferralLink();
+  i.select();
+  document.execCommand("copy");
+  alert("✅ Referral link copied");
+}
+
 /* ================= GAME ACTIONS (LOGIC ONLY) ================= */
 async function openBox(type) {
   if (!navigator.onLine || openingLocked) return;
