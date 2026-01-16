@@ -1,21 +1,77 @@
-// server.js (snippet)
-import session from "express-session";
+import express from "express";
+import mongoose from "mongoose";
+import cors from "cors";
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
 import crypto from "crypto";
-import User from "./models/User.js";
+import cookieParser from "cookie-parser";
 
-app.use(session({
-  name: "teletech.sid",
-  secret: process.env.SESSION_SECRET || "teletech-secret",
-  resave: false,
-  saveUninitialized: false,
-  cookie: {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production"
-  }
-}));
+dotenv.config();
+const app = express();
 
-/* ================= AUTO ENERGY ================= */
+/* ================= PATH ================= */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+/* ================= CONFIG ================= */
+const MAX_ADS_PER_DAY = 5;
+const ENERGY_PER_AD = 20;
+const OPEN_COST_ENERGY = 10;
+const CONVERT_RATE = 10000;
+
+/* ================= MIDDLEWARE ================= */
+app.use(cors({ credentials: true, origin: true }));
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
+
+/* ================= DATABASE ================= */
+mongoose
+  .connect(process.env.MONGODB_URI)
+  .then(() => console.log("✅ MongoDB Connected"))
+  .catch(err => console.error("❌ Mongo Error:", err));
+
+/* ================= USER MODEL ================= */
+const userSchema = new mongoose.Schema({
+  userId: { type: String, unique: true },
+  sessionId: { type: String, unique: true },
+
+  walletAddress: String,
+
+  role: { type: String, default: "user" }, // user | founder
+  proLevel: { type: Number, default: 0 },
+
+  balance: { type: Number, default: 0 },
+  tokens: { type: Number, default: 0 },
+  energy: { type: Number, default: 100 },
+  freeTries: { type: Number, default: 3 },
+
+  referralsCount: { type: Number, default: 0 },
+
+  lastEnergyAt: { type: Number, default: Date.now },
+
+  lastOpenAt: Number,
+  lastDaily: String,
+
+  lastAdAt: Number,
+  lastAdDay: String,
+  adsWatchedToday: { type: Number, default: 0 },
+
+  lastConvertAt: Number
+}, { timestamps: true });
+
+const User = mongoose.model("User", userSchema);
+
+/* ================= HELPERS ================= */
+function makeWallet() {
+  return "TTECH-" + crypto.randomBytes(4).toString("hex").toUpperCase();
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
 function getMaxEnergy(user) {
   if (user.proLevel >= 4) return 999;
   if (user.proLevel >= 3) return 300;
@@ -32,44 +88,51 @@ function regenEnergy(user) {
   const gained = Math.floor((now - last) / INTERVAL);
   if (gained <= 0) return;
 
-  const max = getMaxEnergy(user);
-  user.energy = Math.min(user.energy + gained, max);
+  user.energy = Math.min(
+    user.energy + gained,
+    getMaxEnergy(user)
+  );
+
   user.lastEnergyAt = last + gained * INTERVAL;
 }
 
-/* ================= FINAL /api/user ================= */
+/* ================= CREATE / SYNC USER ================= */
 app.post("/api/user", async (req, res) => {
   try {
-    let user;
+    let user = null;
+    let sid = req.cookies.sid;
 
-    // 🔐 1. idan akwai session → samo user
-    if (req.session.userId) {
-      user = await User.findOne({ userId: req.session.userId });
+    // 1️⃣ if cookie exists → find user
+    if (sid) {
+      user = await User.findOne({ sessionId: sid });
     }
 
-    // 🆕 2. idan babu session ko user → ƙirƙiri sabo
+    // 2️⃣ create new user if not found
     if (!user) {
-      const userId = "USER_" + crypto.randomUUID();
+      sid = crypto.randomUUID();
 
       user = await User.create({
-        userId,
-        wallet: "TTECH-" + crypto.randomBytes(4).toString("hex").toUpperCase(),
+        userId: "USER_" + Date.now(),
+        sessionId: sid,
+        walletAddress: makeWallet(),
         energy: 100,
         freeTries: 3
       });
 
-      req.session.userId = user.userId;
+      res.cookie("sid", sid, {
+        httpOnly: true,
+        sameSite: "lax",
+        secure: process.env.NODE_ENV === "production"
+      });
     }
 
-    // ⚡ 3. auto energy
     regenEnergy(user);
     await user.save();
 
-    // 📦 4. response (SOURCE OF TRUTH)
     res.json({
       success: true,
       userId: user.userId,
-      wallet: user.wallet,
+      wallet: user.walletAddress,
       balance: user.balance,
       tokens: user.tokens,
       energy: user.energy,
@@ -79,8 +142,158 @@ app.post("/api/user", async (req, res) => {
       maxEnergy: getMaxEnergy(user)
     });
 
-  } catch (err) {
-    console.error("API /user ERROR:", err);
+  } catch (e) {
+    console.error("USER ERROR:", e);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
+
+/* ================= OPEN BOX ================= */
+app.post("/api/open", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) return res.json({ error: "NO_SESSION" });
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    regenEnergy(user);
+
+    if (user.freeTries > 0) {
+      user.freeTries--;
+    } else if (user.energy >= OPEN_COST_ENERGY) {
+      user.energy -= OPEN_COST_ENERGY;
+    } else {
+      return res.json({ error: "NO_ENERGY" });
+    }
+
+    let rewards = [0, 50, 100];
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    user.balance += reward;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward,
+      balance: user.balance,
+      energy: user.energy,
+      freeTries: user.freeTries
+    });
+
+  } catch (e) {
+    console.error("OPEN ERROR:", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= DAILY BONUS ================= */
+app.post("/api/daily", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    regenEnergy(user);
+
+    const today = todayStr();
+    if (user.lastDaily === today)
+      return res.json({ error: "COME_BACK_TOMORROW" });
+
+    user.balance += 500;
+    user.energy = Math.min(
+      user.energy + 20,
+      getMaxEnergy(user)
+    );
+    user.lastDaily = today;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      balance: user.balance,
+      energy: user.energy
+    });
+
+  } catch (e) {
+    console.error("DAILY ERROR:", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= WATCH ADS ================= */
+app.post("/api/ads/watch", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    regenEnergy(user);
+
+    const today = todayStr();
+    if (user.lastAdDay !== today) {
+      user.lastAdDay = today;
+      user.adsWatchedToday = 0;
+    }
+
+    if (user.adsWatchedToday >= MAX_ADS_PER_DAY)
+      return res.json({ error: "DAILY_AD_LIMIT" });
+
+    user.energy = Math.min(
+      user.energy + ENERGY_PER_AD,
+      getMaxEnergy(user)
+    );
+    user.balance += 100;
+    user.adsWatchedToday++;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy,
+      balance: user.balance
+    });
+
+  } catch (e) {
+    console.error("ADS ERROR:", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= CONVERT ================= */
+app.post("/api/convert", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    if (user.balance < CONVERT_RATE)
+      return res.json({ error: "INSUFFICIENT_BALANCE" });
+
+    user.balance -= CONVERT_RATE;
+    user.tokens += 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      balance: user.balance,
+      tokens: user.tokens
+    });
+
+  } catch (e) {
+    console.error("CONVERT ERROR:", e);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= ROOT ================= */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public/index.html"));
+});
+
+/* ================= START ================= */
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () =>
+  console.log(`🚀 Server running on port ${PORT}`)
+);
