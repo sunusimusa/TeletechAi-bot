@@ -49,56 +49,6 @@ function animateBox(box, reward) {
   }, 1500);
 }
 
-/* ================= OPEN BOX UI ================= */
-async function openBoxUI(box, type) {
-  if (openingLocked) return;
-
-  if (!navigator.onLine) {
-    playSound("errorSound");
-    alert("📡 Internet required");
-    return;
-  }
-
-  openingLocked = true;
-  playSound("clickSound");
-
-  try {
-    const res = await fetch("/api/open", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type })
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      playSound("errorSound");
-      alert("❌ " + data.error);
-      openingLocked = false;
-      return;
-    }
-
-    // 🎁 animation + sound
-    animateBox(box, data.reward);
-
-    // 🔄 update global state (index.js owns truth)
-    balance = data.balance;
-    energy = data.energy;
-    freeTries = data.freeTries;
-
-    setTimeout(() => {
-      updateUI(); // from index.js
-      openingLocked = false;
-    }, 600);
-
-  } catch (e) {
-    playSound("errorSound");
-    alert("❌ Network error");
-    openingLocked = false;
-  }
-}
-
 /* ================= UI WRAPPERS ================= */
 async function dailyBonusUI() {
   playSound("winSound");
