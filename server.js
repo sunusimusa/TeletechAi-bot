@@ -202,7 +202,7 @@ app.post("/api/open", async (req, res) => {
   }
 });
 
-/* ================= DAILY BONUS ================= */
+// ===== DAILY BONUS (24h cooldown) =====
 app.post("/api/daily", async (req, res) => {
   try {
     const sid = req.cookies.sid;
@@ -211,46 +211,34 @@ app.post("/api/daily", async (req, res) => {
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const today = new Date().toISOString().slice(0, 10);
+    const now = Date.now();
+    const COOLDOWN = 24 * 60 * 60 * 1000; // 24 hours
 
-    // ❌ already claimed today
-    if (user.lastDaily === today) {
-      return res.json({ error: "COME_BACK_TOMORROW" });
+    // ⏳ cooldown check
+    if (user.lastDaily && now - user.lastDaily < COOLDOWN) {
+      return res.json({
+        error: "COOLDOWN",
+        remaining: COOLDOWN - (now - user.lastDaily)
+      });
     }
 
-    // 🎁 rewards (can scale later)
-    let rewardBalance = 500;
-    let rewardEnergy = 20;
+    // 🎁 rewards
+    const rewardBalance = 500;
+    const rewardEnergy = 20;
 
-    if (user.proLevel >= 4) {
-      rewardBalance = 2000;
-      rewardEnergy = 100;
-    } else if (user.proLevel >= 3) {
-      rewardBalance = 1200;
-      rewardEnergy = 60;
-    } else if (user.proLevel >= 2) {
-      rewardBalance = 900;
-      rewardEnergy = 40;
-    } else if (user.proLevel >= 1) {
-      rewardBalance = 700;
-      rewardEnergy = 30;
-    }
-
-    // ⚡ apply rewards
-    const maxEnergy = getMaxEnergy(user);
     user.balance += rewardBalance;
-    user.energy = Math.min(user.energy + rewardEnergy, maxEnergy);
-    user.lastDaily = today;
+    user.energy = Math.min(user.energy + rewardEnergy, getMaxEnergy(user));
+    user.lastDaily = now;
 
     await user.save();
 
     res.json({
       success: true,
-      rewardBalance,
-      rewardEnergy,
       balance: user.balance,
       energy: user.energy,
-      maxEnergy
+      rewardBalance,
+      rewardEnergy,
+      nextAt: now + COOLDOWN
     });
 
   } catch (e) {
