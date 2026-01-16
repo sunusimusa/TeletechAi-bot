@@ -190,15 +190,11 @@ async function convertBalance() {
   }
 }
 
-async function openBox(type, boxEl = null) {
-  // 🌐 internet check
+async function openBox(type, boxEl) {
   if (!navigator.onLine) {
-    playSound("errorSound");
     alert("📡 Internet required");
     return;
   }
-
-  // 🔒 anti double click
   if (openingLocked) return;
   openingLocked = true;
 
@@ -210,46 +206,31 @@ async function openBox(type, boxEl = null) {
       body: JSON.stringify({ type })
     });
 
-    // ❗ server error (500 / 401 / 404)
-    if (!res.ok) {
-      console.error("OPEN BOX HTTP ERROR:", res.status);
-      throw new Error("SERVER_ERROR");
-    }
+    if (!res.ok) throw new Error("SERVER");
 
     const data = await res.json();
-
-    // ❌ logical error from server
     if (data.error) {
       playSound("errorSound");
       alert("❌ " + data.error);
       return;
     }
 
-    // 🔄 STATE UPDATE (SERVER = SOURCE OF TRUTH)
+    // 🔄 STATE
     balance   = data.balance;
     energy    = data.energy;
     freeTries = data.freeTries;
 
-    // 🎁 UI animation (SAFE)
-    if (boxEl && typeof animateBox === "function") {
-      try {
-        animateBox(boxEl, data.reward);
-      } catch (uiErr) {
-        console.warn("ANIMATION ERROR (ignored):", uiErr);
-      }
+    // 🎁 UI (script.js)
+    if (boxEl) {
+      animateBox(boxEl, data.reward);
     }
 
-    // ⏳ jira animation kafin update UI
-    setTimeout(() => {
-      updateUI();
-    }, 600);
+    setTimeout(updateUI, 600);
 
-  } catch (err) {
-    console.error("OPEN BOX NETWORK ERROR:", err);
+  } catch (e) {
     playSound("errorSound");
     alert("❌ Network error");
   } finally {
-    // 🔓 koyaushe a buɗe lock
     openingLocked = false;
   }
 }
