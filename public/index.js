@@ -210,28 +210,33 @@ async function openBox(type, boxEl = null) {
       body: JSON.stringify({ type })
     });
 
-    // ❗ idan server bai bada response lafiya ba
+    // ❗ server error (500 / 401 / 404)
     if (!res.ok) {
-      throw new Error("SERVER_DOWN");
+      console.error("OPEN BOX HTTP ERROR:", res.status);
+      throw new Error("SERVER_ERROR");
     }
 
     const data = await res.json();
 
-    // ❌ server logical error
+    // ❌ logical error from server
     if (data.error) {
       playSound("errorSound");
       alert("❌ " + data.error);
       return;
     }
 
-    // 🔄 UPDATE STATE (SERVER = SOURCE OF TRUTH)
+    // 🔄 STATE UPDATE (SERVER = SOURCE OF TRUTH)
     balance   = data.balance;
     energy    = data.energy;
     freeTries = data.freeTries;
 
-    // 🎁 animation + sound (UI only)
-    if (boxEl) {
-      animateBox(boxEl, data.reward);
+    // 🎁 UI animation (SAFE)
+    if (boxEl && typeof animateBox === "function") {
+      try {
+        animateBox(boxEl, data.reward);
+      } catch (uiErr) {
+        console.warn("ANIMATION ERROR (ignored):", uiErr);
+      }
     }
 
     // ⏳ jira animation kafin update UI
@@ -244,7 +249,7 @@ async function openBox(type, boxEl = null) {
     playSound("errorSound");
     alert("❌ Network error");
   } finally {
-    // 🔓 tabbatar an buɗe lock koyaushe
+    // 🔓 koyaushe a buɗe lock
     openingLocked = false;
   }
 }
