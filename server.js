@@ -102,42 +102,40 @@ app.post("/api/user", async (req, res) => {
     let user = null;
     let sid = req.cookies.sid;
 
-    // 🔎 ref daga URL
-    const ref = req.query.ref || null;
-
-    // 1) idan akwai session
+    // 1. find by session
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
-    // 2) idan babu user → ƙirƙiri sabo
+    // 2. create new user
     if (!user) {
       sid = crypto.randomUUID();
 
+      // 🔑 karɓi referral daga URL
+      const ref = req.query.ref || null;
+
       user = await User.create({
-        userId: "USER_" + crypto.randomUUID().slice(0, 8),
+        userId: "USER_" + Date.now(),
         sessionId: sid,
         walletAddress: makeWallet(),
         energy: 100,
         freeTries: 3,
-        referredBy: ref,
-        joinedByRef: !!ref
+        referredBy: ref && ref !== "null" ? ref : null
       });
 
-      // 🍪 set cookie
       res.cookie("sid", sid, {
         httpOnly: true,
         sameSite: "lax",
         secure: process.env.NODE_ENV === "production"
       });
 
-      // 🤝 handle referral ONCE
-      if (ref) {
-        const refUser = await User.findOne({ userId: ref });
-        if (refUser) {
-          refUser.referralsCount += 1;
-          refUser.balance += 500; // 🎁 referral bonus
-          await refUser.save();
+      // 🎁 referral bonus (sau ɗaya)
+      if (ref && ref !== "null") {
+        const inviter = await User.findOne({ userId: ref });
+        if (inviter) {
+          inviter.referralsCount += 1;
+          inviter.balance += 500; // referral bonus
+          await inviter.save();
         }
       }
     }
