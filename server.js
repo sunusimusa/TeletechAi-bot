@@ -167,6 +167,7 @@ app.post("/api/user", async (req, res) => {
 app.post("/api/open", async (req, res) => {
   try {
     const sid = req.cookies.sid;
+
     if (!sid) {
       return res.status(401).json({ error: "NO_SESSION" });
     }
@@ -179,7 +180,7 @@ app.post("/api/open", async (req, res) => {
     // ⚡ auto energy regen
     regenEnergy(user);
 
-    // 🎟️ check free tries / energy
+    // 🎟️ cost
     const OPEN_COST = 10;
 
     if (user.freeTries > 0) {
@@ -190,19 +191,20 @@ app.post("/api/open", async (req, res) => {
       return res.json({ error: "NO_ENERGY" });
     }
 
+    // 🧱 SAFE TYPE
+    const type = req.body?.type || "silver";
+
     // 🎁 rewards
     let rewards = [0, 50, 100];
-    if (req.body.type === "gold") rewards = [100, 200, 500];
-    if (req.body.type === "diamond") rewards = [300, 500, 1000];
+    if (type === "gold") rewards = [100, 200, 500];
+    if (type === "diamond") rewards = [300, 500, 1000];
 
-    const reward =
-      rewards[Math.floor(Math.random() * rewards.length)];
-
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
 
     await user.save();
 
-    // ✅ RESPONSE (JSON KAWAI)
+    // ✅ JSON RESPONSE ONLY
     res.json({
       success: true,
       reward,
