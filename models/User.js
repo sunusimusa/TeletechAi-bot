@@ -1,8 +1,9 @@
+// models/User.js
 import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
-    /* ================= IDENTITY ================= */
+    /* ===== CORE ID ===== */
     userId: {
       type: String,
       required: true,
@@ -10,11 +11,11 @@ const UserSchema = new mongoose.Schema(
       index: true
     },
 
-    // OPTIONAL – Telegram (safe, ba zai yi duplicate error ba)
     telegramId: {
       type: String,
+      default: null,
       unique: true,
-      sparse: true // ✅ MUHIMMI
+      sparse: true // ✅ yana hana duplicate null
     },
 
     username: {
@@ -22,135 +23,46 @@ const UserSchema = new mongoose.Schema(
       default: ""
     },
 
-    sessionId: {
-      type: String,
-      unique: true,
-      sparse: true // session ba dole ba
-    },
-
-    /* ================= WALLET ================= */
-    walletAddress: {
-      type: String,
-      unique: true,
-      sparse: true
-    },
-
-    /* ================= REFERRAL ================= */
-    referredBy: {
-      type: String,
-      default: null
-    },
-
-    referrals: {
-      type: [String],
-      default: []
-    },
-
-    referralsCount: {
-      type: Number,
-      default: 0
-    },
-
-    joinedByRef: {
-      type: Boolean,
-      default: false
-    },
-
-    /* ================= GAME ================= */
-    balance: {
-      type: Number,
-      default: 0
-    },
-
-    tokens: {
-      type: Number,
-      default: 0
-    },
-
-    energy: {
-      type: Number,
-      default: 100
-    },
-
-    freeTries: {
-      type: Number,
-      default: 3
-    },
-
-    lastOpenAt: {
-      type: Number,
-      default: 0
-    },
-
-    lastConvertAt: {
-      type: Number,
-      default: 0
-    },
-
-    /* ================= ROLE / PRO ================= */
+    /* ===== ROLE / PRO ===== */
     role: {
       type: String,
       enum: ["user", "founder"],
       default: "user"
     },
+    proLevel: { type: Number, default: 0 },
 
-    proLevel: {
-      type: Number,
-      default: 0 // 0–3 user, 4 founder
-    },
-
-    /* ================= ADS ================= */
-    adsWatchedToday: {
-      type: Number,
-      default: 0
-    },
-
-    lastAdDay: {
+    /* ===== WALLET ===== */
+    walletAddress: {
       type: String,
-      default: ""
+      default: null,
+      unique: true,
+      sparse: true
     },
 
-    lastAdAt: {
-      type: Number,
-      default: 0
-    },
+    /* ===== GAME ===== */
+    balance: { type: Number, default: 0 },
+    energy: { type: Number, default: 100 },
+    freeTries: { type: Number, default: 3 },
+    tokens: { type: Number, default: 0 },
 
-    /* ================= DAILY ================= */
-    dailyStreak: {
-      type: Number,
-      default: 0
-    },
+    lastEnergyAt: { type: Number, default: Date.now },
+    lastOpenAt: { type: Number, default: 0 },
+    lastConvertAt: { type: Number, default: 0 },
 
-    lastDaily: {
-      type: String,
-      default: ""
-    },
+    /* ===== REFERRAL ===== */
+    referredBy: { type: String, default: null },
+    referralsCount: { type: Number, default: 0 },
 
-    /* ================= META ================= */
+    /* ===== ADS / DAILY ===== */
+    adsWatchedToday: { type: Number, default: 0 },
+    lastAdDay: { type: String, default: "" },
+    lastDaily: { type: String, default: "" },
+
+    /* ===== META ===== */
     createdFrom: {
       type: String,
-      enum: ["web", "playstore", "telegram"],
+      enum: ["web", "telegram"],
       default: "web"
-    },
-
-    lastLogin: {
-      type: Date,
-      default: Date.now
-    },
-
-    lastSyncAt: {
-      type: Number,
-      default: 0
-    },
-
-    isOnline: {
-      type: Boolean,
-      default: false
-    },
-
-    lastSeen: {
-      type: Number,
-      default: 0
     }
   },
   { timestamps: true }
