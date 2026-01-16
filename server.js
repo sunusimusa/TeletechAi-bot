@@ -102,12 +102,12 @@ app.post("/api/user", async (req, res) => {
     let user = null;
     let sid = req.cookies.sid;
 
-    // 1️⃣ if cookie exists → find user
+    // 1️⃣ idan cookie yana nan → nemo user
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
-    // 2️⃣ create new user if not found
+    // 2️⃣ idan babu → ƙirƙiri sabon user
     if (!user) {
       sid = crypto.randomUUID();
 
@@ -122,14 +122,15 @@ app.post("/api/user", async (req, res) => {
       res.cookie("sid", sid, {
         httpOnly: true,
         sameSite: "lax",
-        secure: false
         secure: process.env.NODE_ENV === "production"
       });
     }
 
+    // ⚡ auto energy regen
     regenEnergy(user);
     await user.save();
 
+    // 📦 response
     res.json({
       success: true,
       userId: user.userId,
