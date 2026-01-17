@@ -113,18 +113,27 @@ app.post("/api/ads/watch", async (req, res) => {
 app.post("/api/open", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.json({ error: "NO_SESSION" });
+    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.json({ error: "NO_USER" });
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
 
-    if (user.energy <= 0) {
-      return res.json({ error: "NO_ENERGY" });
+    let usedFree = false;
+    
+    // 🎁 FREE BOX FIRST
+    if (user.freeBox > 0) {
+      user.freeBox -= 1;
+    } else {
+      if (user.energy < 1) {
+   return res.json({ error: "NO_ENERGY" });
     }
+   user.energy -= 1;
+  }
 
-    user.energy -= 1;
 
-    const reward = Math.random() < 0.7 ? 0 : 100;
+    // 🎁 REWARD
+    const rewards = [0, 50, 100, 200];
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
 
     await user.save();
@@ -133,10 +142,13 @@ app.post("/api/open", async (req, res) => {
       success: true,
       reward,
       balance: user.balance,
-      energy: user.energy
+      energy: user.energy,
+      freeBox: user.freeBox,
+      usedFree
     });
 
-  } catch {
+  } catch (err) {
+    console.error("OPEN ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
