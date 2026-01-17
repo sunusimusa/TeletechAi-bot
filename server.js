@@ -51,17 +51,24 @@ function createUser() {
 app.post("/api/user", async (req, res) => {
   try {
     let sid = req.cookies.sid;
-    let user = null;
+    let user;
 
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
     if (!user) {
-      const data = createUser();
-      user = await User.create(data);
+      sid = crypto.randomUUID();
 
-      res.cookie("sid", user.sessionId, {
+      user = await User.create({
+        userId: "USER_" + Date.now(),
+        sessionId: sid,
+        balance: 0,
+        energy: 0,
+        referralsCount: 0
+      });
+
+      res.cookie("sid", sid, {
         httpOnly: true,
         sameSite: "none",
         secure: true
@@ -70,12 +77,13 @@ app.post("/api/user", async (req, res) => {
 
     res.json({
       success: true,
+      userId: user.userId,
       balance: user.balance,
-      energy: user.energy
+      energy: user.energy,
+      referralsCount: user.referralsCount
     });
 
-  } catch (err) {
-    console.error("USER ERROR:", err);
+  } catch (e) {
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
