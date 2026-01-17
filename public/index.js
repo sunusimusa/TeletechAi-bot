@@ -112,7 +112,7 @@ async function watchAd() {
 /* ================= OPEN BOX ================= */
 async function openBox(boxEl) {
   if (!USER) {
-    showStatus("⏳ Initializing user...");
+    showStatus("⏳ Initializing...");
     return;
   }
 
@@ -132,23 +132,13 @@ async function openBox(boxEl) {
       return;
     }
 
-    // 🔄 UPDATE USER STATE
     USER.balance = data.balance;
-    USER.energy  = data.energy;
+    USER.freeTries = data.freeTries;
 
-    if (typeof data.freeTries === "number") {
-      USER.freeTries = data.freeTries;
+    if (data.usedFree) {
+      showStatus(`🎁 Free Open Used (${USER.freeTries} left)`);
     }
 
-    // 🎁 FREE OPEN LOG
-    if (data.usedFree === true) {
-      console.log("🎁 Free box used");
-      showStatus("🎁 Free Open Used!");
-    } else {
-      hideStatus();
-    }
-
-    // 🎬 ANIMATION
     if (typeof animateBox === "function") {
       animateBox(boxEl, data.reward);
     }
@@ -156,7 +146,6 @@ async function openBox(boxEl) {
     setTimeout(updateUI, 600);
 
   } catch (err) {
-    console.error("OPEN BOX ERROR:", err);
     showStatus("❌ Network error");
   } finally {
     opening = false;
