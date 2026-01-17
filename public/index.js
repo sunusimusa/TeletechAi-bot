@@ -91,14 +91,20 @@ async function openBox(boxEl) {
 
 /* ================= WATCH AD ================= */
 async function watchAd() {
-  const res = await fetch("/api/watch-ad", {
+  if (!USER) {
+    alert("User not initialized");
+    return;
+  }
+
+  const res = await fetch("/api/ads/watch", {
     method: "POST",
     credentials: "include"
   });
-  const data = await res.json();
-  if (!data.success) return alert("Ad error");
 
-  energy = data.energy;
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  USER.energy = data.energy;
   updateUI();
 }
 
