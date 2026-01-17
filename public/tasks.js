@@ -1,135 +1,79 @@
-/* =====================================================
-   TASKS PAGE ONLY (NO GAME LOGIC HERE)
-   SERVER = SOURCE OF TRUTH
-===================================================== */
+let USER = null;
 
-/* ================= CONFIG ================= */
-const YOUTUBE_CHANNEL = "https://youtube.com/@Sunusicrypto";
-const TELEGRAM_CHAT   = "https://t.me/tele_tap_ai";
-const TELEGRAM_UPDATE = "https://t.me/TeleAIupdates";
+// 🔑 tabbatar da user
+async function initTasks() {
+  try {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      credentials: "include"
+    });
 
-/* ================= GLOBAL ================= */
-const userId = localStorage.getItem("userId");
-const msg = document.getElementById("taskMsg");
+    const data = await res.json();
+    if (!data.success) throw "NO_USER";
+
+    USER = data;
+
+  } catch {
+    alert("❌ User not initialized");
+  }
+}
+
+initTasks();
 
 /* ================= WATCH AD ================= */
-let adRunning = false;
-
 async function watchAd() {
-  if (!navigator.onLine) {
-    alert("📡 Internet required");
+  if (!USER) {
+    alert("User not initialized");
     return;
   }
 
-  if (!userId) {
-    alert("❌ User not initialized");
-    return;
-  }
-
-  if (adRunning) return;
-  adRunning = true;
-
-  const btn = document.getElementById("watchAdBtn");
   const status = document.getElementById("adStatus");
-
-  if (!btn || !status) return;
-
-  btn.disabled = true;
   status.classList.remove("hidden");
+  status.innerText = "⏳ Watching ad...";
 
-  let t = 30;
-  status.innerText = `⏳ Watching ad... ${t}s`;
+  try {
+    const res = await fetch("/api/ads/watch", {
+      method: "POST",
+      credentials: "include"
+    });
 
-  const timer = setInterval(async () => {
-    t--;
-    status.innerText = `⏳ Watching ad... ${t}s`;
-
-    if (t <= 0) {
-      clearInterval(timer);
-
-      try {
-        const res = await fetch("/api/ads/watch", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId })
-        });
-
-        const data = await res.json();
-
-        if (data.error) {
-          if (data.error === "DAILY_AD_LIMIT") {
-            status.innerText = "🚫 Daily ad limit reached";
-          } else if (data.error === "WAIT_30_SECONDS") {
-            status.innerText = "⏳ Please wait before next ad";
-          } else if (data.error === "USER_NOT_FOUND") {
-            status.innerText = "🔄 Please reopen the app";
-          } else {
-            status.innerText = "❌ Action failed";
-          }
-        } else {
-          status.innerText = "✅ Reward added (⚡ +20)";
-        }
-
-      } catch (e) {
-        status.innerText = "❌ Network error";
-      }
-
-      setTimeout(() => {
-        status.classList.add("hidden");
-        btn.disabled = false;
-        adRunning = false;
-      }, 2500);
+    const data = await res.json();
+    if (data.error) {
+      status.innerText = "❌ " + data.error;
+      return;
     }
-  }, 1000);
+
+    status.innerText = "✅ Energy added!";
+  } catch {
+    status.innerText = "❌ Network error";
+  }
 }
 
-/* ================= SOCIAL LINKS ================= */
+/* ================= YOUTUBE ================= */
 function openYouTube() {
-  window.open(YOUTUBE_CHANNEL, "_blank");
-  showMsg("▶️ YouTube opened. Come back to claim.");
+  window.open("https://youtube.com/@Sunusicrypto", "_blank");
 }
 
-function openTelegramChat() {
-  window.open(TELEGRAM_CHAT, "_blank");
-  showMsg("💬 Telegram chat opened.");
-}
-
-function openTelegramUpdate() {
-  window.open(TELEGRAM_UPDATE, "_blank");
-  showMsg("📢 Update channel opened.");
-}
-
-/* ================= CLAIM SOCIAL TASK ================= */
-async function claimTask(type) {
-  if (!userId) {
-    alert("❌ User not initialized");
+async function claimYouTubeReward() {
+  if (!USER) {
+    alert("User not initialized");
     return;
   }
 
   try {
-    const res = await fetch("/api/task/claim", {
+    const res = await fetch("/api/task/youtube", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, type })
+      credentials: "include"
     });
 
     const data = await res.json();
-
     if (data.error) {
-      alert("❌ " + data.error);
+      alert(data.error);
       return;
     }
 
-    alert("✅ Task completed + reward added!");
-
-  } catch (e) {
+    alert("✅ +300 Balance added!");
+  } catch {
     alert("❌ Network error");
   }
-}
-
-/* ================= HELPERS ================= */
-function showMsg(text) {
-  if (!msg) return;
-  msg.innerText = text;
-  setTimeout(() => (msg.innerText = ""), 3000);
 }
