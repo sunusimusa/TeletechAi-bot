@@ -14,52 +14,55 @@
 </head>
 <body>
 
+  <!-- ===== TITLE ===== -->
   <h2 class="title">🎁 Lucky Box Game</h2>
 
-  <!-- 🔊 SOUNDS -->
+  <!-- ===== SOUNDS ===== -->
   <audio id="clickSound" src="/sounds/click.mp3" preload="auto"></audio>
   <audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
   <audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
   <audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
 
-  <!-- 📦 SINGLE BOX -->
-  <div class="box" 
-    onclick="openBox(this)">
-  <span class="box-label">OPEN BOX</
-  span>
+  <!-- ===== SINGLE BOX ===== -->
+  <div class="box" onclick="openBox(this)">
+    <span class="box-label">OPEN BOX</span>
+    <!-- reward text will be injected by script.js -->
   </div>
 
-  <!-- ⚠️ OFFLINE -->
+  <!-- ===== STATUS MESSAGE ===== -->
+  <p id="statusMsg" class="hidden"></p>
+
+  <!-- ===== OFFLINE MESSAGE ===== -->
   <p id="offlineMsg" class="hidden" style="color: orange;">
     ⚠️ You are offline. Connect to internet to continue.
   </p>
 
-  <!-- ⚡ ENERGY BAR -->
+  <!-- ===== ENERGY BAR ===== -->
   <div class="energy-bar">
     <div id="energyFill"></div>
   </div>
 
-  <!-- 📊 STATS -->
+  <!-- ===== STATS ===== -->
   <p id="balance">Balance: 0</p>
   <p id="energy">Energy: 0</p>
 
-  <!-- 📢 TASKS / ADS -->
+  <!-- ===== TASKS / ADS ===== -->
   <button class="primary-btn" onclick="location.href='/tasks.html'">
     📺 Watch Ads → Get Energy
   </button>
 
-  <!-- 🔗 REFERRAL -->
+  <!-- ===== REFERRAL ===== -->
   <button class="secondary-btn" onclick="location.href='/referral.html'">
     👥 Referral Program
   </button>
 
-  <!-- 📜 LEGAL -->
+  <!-- ===== LEGAL ===== -->
   <p class="legal-text">
     <a href="/privacy.html">Privacy Policy</a> ·
     <a href="/terms.html">Terms of Service</a>
   </p>
 
-  <!-- 📜 AGREEMENT -->
+  <!-- ===== AGREEMENT MODAL ===== -->
   <div id="agreementModal" class="agree-modal hidden">
     <div class="agree-box">
       <p>By using this app you agree to our Terms & Privacy.</p>
@@ -67,7 +70,7 @@
     </div>
   </div>
 
-  <!-- 🧠 SERVICE WORKER -->
+  <!-- ===== SERVICE WORKER ===== -->
   <script>
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
@@ -77,8 +80,9 @@
     }
   </script>
 
-  <!-- SCRIPTS -->
+  <!-- ===== SCRIPTS ===== -->
   <script src="/index.js"></script>
   <script src="/script.js"></script>
+
 </body>
 </html>
