@@ -81,17 +81,25 @@ app.post("/api/user", async (req, res) => {
 app.post("/api/ads/watch", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.json({ error: "NO_SESSION" });
+    if (!sid) {
+      return res.json({ error: "NO_SESSION" });
+    }
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.json({ error: "NO_USER" });
+    if (!user) {
+      return res.json({ error: "NO_USER" });
+    }
 
-    user.energy += 1; // 🔋 energy from ad
+    user.energy += 1;
     await user.save();
 
-    res.json({ success: true, energy: user.energy });
+    res.json({
+      success: true,
+      energy: user.energy
+    });
 
-  } catch {
+  } catch (err) {
+    console.error("ADS ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
