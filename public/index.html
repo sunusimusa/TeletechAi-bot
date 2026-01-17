@@ -5,7 +5,7 @@
   <title>Lucky Box Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- STYLES -->
+  <!-- STYLE -->
   <link rel="stylesheet" href="style.css" />
 
   <!-- PWA -->
@@ -14,57 +14,26 @@
 </head>
 <body>
 
-  <h2>🎁 Lucky Box Game</h2>
+  <h2 class="title">🎁 Lucky Box Game</h2>
 
   <!-- 🔊 SOUNDS -->
   <audio id="clickSound" src="/sounds/click.mp3" preload="auto"></audio>
-<audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
-<audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
-<audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
-  
+  <audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
+  <audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
+  <audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
 
-  <!-- 📦 GAME BOXES -->
-  <div class="boxes">
-
-  <div class="box silver" onclick="openBox(this, 'silver')">
-    <span class="box-title">Silver</span>
-    <div class="reward hidden"></div>
+  <!-- 📦 SINGLE BOX -->
+  <div class="box-wrapper">
+    <div class="box" onclick="openBox(this)">
+      <span class="box-title">OPEN BOX</span>
+      <div class="reward hidden"></div>
+    </div>
   </div>
 
-  <div class="box gold" onclick="openBox(this, 'gold')">
-    <span class="box-title">Gold</span>
-    <div class="reward hidden"></div>
-  </div>
-
-  <div class="box diamond" onclick="openBox(this, 'diamond')">
-    <span class="box-title">Diamond</span>
-    <div class="reward hidden"></div>
-  </div>
-
-  <!-- layi na biyu -->
-  <div class="box silver" onclick="openBox(this, 'silver')">
-    <span class="box-title">Silver</span>
-    <div class="reward hidden"></div>
-  </div>
-
-  <div class="box gold" onclick="openBox(this, 'gold')">
-    <span class="box-title">Gold</span>
-    <div class="reward hidden"></div>
-  </div>
-
-  <div class="box diamond" onclick="openBox(this, 'diamond')">
-    <span class="box-title">Diamond</span>
-    <div class="reward hidden"></div>
-  </div>
-
-  </div>
-
-  <p id="offlineMsg" class="hidden"
-    style="color:orange;">
-  ⚠️ You are offline. Connect to
-  internet to continue.
+  <!-- ⚠️ OFFLINE -->
+  <p id="offlineMsg" class="hidden" style="color: orange;">
+    ⚠️ You are offline. Connect to internet to continue.
   </p>
-  
 
   <!-- ⚡ ENERGY BAR -->
   <div class="energy-bar">
@@ -73,63 +42,28 @@
 
   <!-- 📊 STATS -->
   <p id="balance">Balance: 0</p>
-  <p id="tokens">Tokens: 0</p>
-  <p id="freeTries">Free tries: 0</p>
-  <p id="energy">Energy: 0 / 0</p>
+  <p id="energy">Energy: 0</p>
 
-  <!-- 📢 TASKS -->
-  <button onclick="location.href='/tasks.html'">
-    📢 Tasks & Ads
+  <!-- 📢 TASKS / ADS -->
+  <button class="primary-btn" onclick="location.href='/tasks.html'">
+    📺 Watch Ads → Get Energy
   </button>
 
-  <p id="taskMsg"></p>
-
-  <!-- 🎁 DAILY -->
-  <button onclick="claimDaily()">🎁 Daily Bonus</button>
-
-  
-  <!-- 🚀 PRO -->
-  <h3>🚀 PRO Upgrade</h3>
-  <button onclick="upgradePro(1)">🚀 Upgrade to PRO (5 TOKEN)</button>
-  <button onclick="upgradePro(2)">🚀 PRO Level 2 (10 TOKEN)</button>
-  <button onclick="upgradePro(3)">👑 PRO Level 3 (20 TOKEN)</button>
-
-  <!-- 👑 PRO BADGE -->
-  <div id="proBadge" class="pro-badge hidden"></div>
-
-  <!-- 👑 FOUNDER -->
-  <div id="founderActions" class="hidden">
-    <h3>👑 Founder Dashboard</h3>
-    <button onclick="openFounderStats()">View Global Stats</button>
-  </div>
-
-  <!-- 🔻 BOTTOM MENU -->
-  <div class="bottom-menu">
-    <a href="/referral.html">Referral</a>
-
-    <button class="gold" onclick="openFounderStats()">👑 Founder</button>
-
-    <button onclick="openWallet()">👜 My Wallet</button>
-  </div>
-
-  <button onclick="openLeaderboard()">🏆
-  Leaderboard</button>
-
-  <!-- 🗺️ ROADMAP -->
-  <button onclick="location.href='/roadmap.html'">
-    🗺️ Roadmap
+  <!-- 🔗 REFERRAL -->
+  <button class="secondary-btn" onclick="location.href='/referral.html'">
+    👥 Referral Program
   </button>
 
   <!-- 📜 LEGAL -->
   <p class="legal-text">
-    <a href="/privacy.html">Privacy</a> ·
-    <a href="/terms.html">Terms</a>
+    <a href="/privacy.html">Privacy Policy</a> ·
+    <a href="/terms.html">Terms of Service</a>
   </p>
 
   <!-- 📜 AGREEMENT -->
   <div id="agreementModal" class="agree-modal hidden">
     <div class="agree-box">
-      <p>By using this app you agree to Terms & Privacy.</p>
+      <p>By using this app you agree to our Terms & Privacy.</p>
       <button id="agreeBtn">✅ I Agree</button>
     </div>
   </div>
@@ -139,13 +73,13 @@
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker
         .register("/service-worker.js")
-        .then(() => console.log("✅ App ready for install"))
+        .then(() => console.log("✅ App ready"))
         .catch(err => console.error("❌ SW error", err));
     }
   </script>
 
-  <!-- MAIN SCRIPT -->
+  <!-- SCRIPTS -->
   <script src="/index.js"></script>
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
-      </html>
+</html>
