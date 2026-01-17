@@ -40,12 +40,10 @@ app.post("/api/user", async (req, res) => {
     let sid = req.cookies.sid;
     let user = null;
 
-    // 1️⃣ find user by session
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
-    // 2️⃣ create user automatically if not found
     if (!user) {
       sid = crypto.randomUUID();
 
@@ -53,24 +51,24 @@ app.post("/api/user", async (req, res) => {
         userId: "USER_" + Date.now(),
         sessionId: sid,
         balance: 0,
-        energy: 0
+        energy: 0,
+        freeTries: 5   // 🎁 FREE OPEN ×5
       });
 
-      // 🍪 set cookie
       res.cookie("sid", sid, {
         httpOnly: true,
-        sameSite: "lax",   // ✅ daidai
-        secure: true,      // Render = https
+        sameSite: "lax",
+        secure: true,
         path: "/"
       });
     }
 
-    // 3️⃣ RESPONSE (KO DA TSOHO KO SABO)
     res.json({
       success: true,
       userId: user.userId,
       balance: user.balance,
-      energy: user.energy
+      energy: user.energy,
+      freeTries: user.freeTries
     });
 
   } catch (err) {
@@ -113,29 +111,27 @@ app.post("/api/ads/watch", async (req, res) => {
 app.post("/api/open", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
+    if (!sid) return res.json({ error: "NO_SESSION" });
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
     let usedFree = false;
-    
-    // 🎁 FREE BOX FIRST
-    if (user.freeBox > 0) {
-      user.freeBox -= 1;
+
+    // 🎁 FREE OPEN
+    if (user.freeTries > 0) {
+      user.freeTries -= 1;
+      usedFree = true;
     } else {
-      if (user.energy < 1) {
-   return res.json({ error: "NO_ENERGY" });
+      return res.json({ error: "NO_FREE_TRIES" });
     }
-   user.energy -= 1;
-  }
 
+    // 🎁 reward (simple)
+    const rewards = [0, 50, 100];
+    const reward =
+      rewards[Math.floor(Math.random() * rewards.length)];
 
-    // 🎁 REWARD
-    const rewards = [0, 50, 100, 200];
-    const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
-
     await user.save();
 
     res.json({
@@ -143,8 +139,8 @@ app.post("/api/open", async (req, res) => {
       reward,
       balance: user.balance,
       energy: user.energy,
-      freeBox: user.freeBox,
-      usedFree: usedFree // true / false
+      freeTries: user.freeTries,
+      usedFree
     });
 
   } catch (err) {
