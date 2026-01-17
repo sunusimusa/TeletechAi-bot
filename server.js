@@ -56,11 +56,13 @@ app.post("/api/user", async (req, res) => {
       });
 
       // ⚠️ SIMPLE COOKIE
-      res.cookie("sid", sid, {
-        httpOnly: true,
-        sameSite: "lax"
-      });
-    }
+     res.cookie("sid", sid, {
+       httpOnly: true,
+       sameSite: "lax",   // 🔴 KA CANZA DAGA "none"
+       secure: true,
+       path: "/"
+     });
+
 
     res.json({
       success: true,
