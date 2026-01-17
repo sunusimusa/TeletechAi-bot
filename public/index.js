@@ -139,3 +139,7 @@ async function openBox(boxEl) {
     opening = false;
   }
 }
+
+if (data.usedFree) {
+  console.log("🎁 Free box used");
+}
