@@ -123,9 +123,21 @@ async function openBox(boxEl) {
       return;
     }
 
+    // 🔄 UPDATE USER STATE
     USER.balance = data.balance;
-    USER.energy = data.energy;
+    USER.energy  = data.energy;
 
+    if (typeof data.freeTries === "number") {
+      USER.freeTries = data.freeTries;
+    }
+
+    // 🎁 LOG FREE BOX
+    if (data.usedFree === true) {
+      console.log("🎁 Free box used");
+      showStatus("🎁 Free Open Used!");
+    }
+
+    // 🎬 ANIMATION
     if (typeof animateBox === "function") {
       animateBox(boxEl, data.reward);
     }
@@ -138,8 +150,4 @@ async function openBox(boxEl) {
   } finally {
     opening = false;
   }
-}
-
-if (data.usedFree) {
-  console.log("🎁 Free box used");
 }
