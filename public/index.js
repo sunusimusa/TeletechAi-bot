@@ -3,10 +3,36 @@ let energy = 0;
 let opening = false;
 
 /* ================= INIT ================= */
-document.addEventListener("DOMContentLoaded", () => {
-  syncUser();
-  handleOffline();
-});
+let USER = null;
+
+document.addEventListener("DOMContentLoaded", init);
+
+async function init() {
+  try {
+    const res = await fetch("/api/user", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+    if (!data.success) throw "INIT_FAILED";
+
+    USER = data; // 🔑 MUHIMMI
+
+    updateUI();
+
+  } catch {
+    alert("❌ User not initialized");
+  }
+}
+
+function updateUI() {
+  document.getElementById("balance").innerText =
+    "Balance: " + USER.balance;
+
+  document.getElementById("energy").innerText =
+    "Energy: " + USER.energy;
+}
 
 function handleOffline() {
   const msg = document.getElementById("offlineMsg");
