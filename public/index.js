@@ -1,9 +1,9 @@
 let balance = 0;
 let energy = 0;
 let opening = false;
+let USER = null;
 
 /* ================= INIT ================= */
-let USER = null;
 
 document.addEventListener("DOMContentLoaded", init);
 
