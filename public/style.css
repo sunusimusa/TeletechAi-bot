@@ -1,4 +1,4 @@
-/* ================= GLOBAL ================= */
+/* ================= RESET ================= */
 * {
   box-sizing: border-box;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -12,249 +12,32 @@ body {
   color: #fff;
 
   background:
-    radial-gradient(circle at top, rgba(255,215,0,.22), transparent 60%),
-    radial-gradient(circle at bottom, rgba(255,140,0,.15), transparent 60%),
+    radial-gradient(circle at top, rgba(255,215,0,.18), transparent 60%),
+    radial-gradient(circle at bottom, rgba(255,140,0,.12), transparent 60%),
     linear-gradient(180deg, #140900, #050300);
 }
 
-/* ================= HEADINGS ================= */
-h2, h3 {
+/* ================= TITLE ================= */
+h2 {
   color: #ffd700;
-  margin-bottom: 12px;
-  letter-spacing: .4px;
+  margin: 12px 0 20px;
+  letter-spacing: .5px;
 }
 
-/* ================= BOXES ================= */
-.boxes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr); /* 3 a kowane layi */
-  gap: 14px;
-  max-width: 340px; /* 🔧 rage kadan domin 6 su zauna daidai */
-  margin: 18px auto;
-  padding: 16px;
-  border-radius: 22px;
-  background: rgba(0,0,0,.35);
-}
-
-.box {
-  width: 100px;
-  height: 100px;
-  border-radius: 18px;
-  cursor: pointer;
-  position: relative;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  background: linear-gradient(145deg, #2a1a00, #120800);
-  border: 2px solid rgba(255,215,0,.35);
-  box-shadow: 0 10px 28px rgba(0,0,0,.85);
-
-  transition: transform .2s ease, box-shadow .2s ease;
-}
-
-.box:active {
-  transform: scale(.95);
-}
-
-.box-img {
-  width: 80%;
-  transition: .3s ease;
-}
-
-/* OPENED EFFECT */
-.box.opened .box-img {
-  opacity: 0;
-  transform: scale(.7);
-}
-
-.box.opened {
-  background: linear-gradient(145deg, #ffd700, #ffb300);
-}
-
-/* BOX TYPES */
-.box.silver.opened {
-  box-shadow: 0 0 25px #cfd8dc;
-}
-
-.box.gold.opened {
-  box-shadow: 0 0 35px gold;
-}
-
-.box.diamond.opened {
-  box-shadow: 0 0 45px cyan, 0 0 80px #00ffff;
-}
-
-/* ================= REWARD ================= */
-.reward {
-  position: absolute;
-  font-weight: 800;
-  font-size: 16px;
-  color: gold;
-  animation: pop .6s ease;
-}
-
-@keyframes pop {
-  from { transform: scale(.6); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
-}
-
-/* ================= BUTTONS ================= */
-button {
-  background: linear-gradient(135deg, #ffd700, #ff9800);
-  color: #000;
-  border: none;
-  border-radius: 16px;
-  padding: 12px 18px;
-  margin: 8px 0;
-  font-size: 14px;
-  font-weight: 700;
-  cursor: pointer;
-  box-shadow: 0 0 26px rgba(255,215,0,.7), 0 12px 30px rgba(0,0,0,.85);
-}
-
-button:active {
-  transform: scale(.96);
-}
-
-/* ================= ENERGY ================= */
-.energy-bar {
-  width: 100%;
-  max-width: 320px;
-  height: 10px;
-  margin: 12px auto;
-  border-radius: 999px;
-  background: #2a1a00;
-  overflow: hidden;
-}
-
-#energyFill {
-  height: 100%;
-  width: 0%;
-  background: linear-gradient(90deg, #ffd700, #ff9800);
-}
-
-/* ================= BADGE ================= */
-.pro-badge {
-  display: inline-block;
-  background: linear-gradient(135deg, #ffd700, #ff9800);
-  color: #000;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  margin-bottom: 8px;
-}
-
-/* ================= SECTIONS ================= */
-.energy-shop,
-.withdraw-box,
-.tasks,
-.wallet-box,
-.pro-upgrade-box {
-  background: linear-gradient(145deg, #2a1a00, #140a00);
-  padding: 16px;
-  border-radius: 18px;
-  margin: 16px auto;
-  max-width: 380px;
-  box-shadow: 0 14px 35px rgba(0,0,0,.9);
-}
-
-/* ================= TEXT & LINKS ================= */
-p {
-  color: #ffe082;
-  margin: 6px 0;
-}
-
-a {
-  color: #ffd700;
-  font-weight: 600;
-  text-decoration: none;
-}
-
-/* ================= AGREEMENT ================= */
-.agree-modal {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.8);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-}
-
-.agree-box {
-  background: linear-gradient(145deg, #2a1a00, #140a00);
-  padding: 24px;
-  border-radius: 20px;
-  max-width: 320px;
-  box-shadow: 0 0 35px rgba(255,215,0,.7), 0 20px 50px rgba(0,0,0,.95);
-}
-
-/* ================= WALLET ================= */
-.wallet-card {
-  background: #0f172a;
-  border-radius: 22px;
-  padding: 18px;
-  max-width: 380px;
-  margin: auto;
-  box-shadow: 0 20px 50px rgba(0,0,0,.6);
-}
-
-.address-box {
-  background: #020617;
-  padding: 12px;
-  border-radius: 14px;
-  word-break: break-all;
-  font-size: 13px;
-}
-
-/* ================= ROADMAP ================= */
-.roadmap {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.step {
-  padding: 14px;
-  border-radius: 12px;
-  background: #1c1c1c;
-}
-
-.step.completed {
-  border-left: 6px solid #00c853;
-}
-
-.step.active {
-  border-left: 6px solid #ffb300;
-}
-
-.step.locked {
-  border-left: 6px solid #555;
-  opacity: .6;
-}
-
-/* ================= HELPERS ================= */
-.hidden {
-  display: none !important;
-  }
-
-.boxes {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  max-width: 360px;
+/* ================= BOX AREA ================= */
+.box-area {
+  max-width: 260px;
   margin: 20px auto;
-  padding: 16px;
-  border-radius: 20px;
+  padding: 20px;
+  border-radius: 24px;
   background: rgba(0,0,0,.35);
+  box-shadow: 0 15px 40px rgba(0,0,0,.85);
 }
 
+/* ================= BOX ================= */
 .box {
-  height: 90px;
-  border-radius: 16px;
+  height: 140px;
+  border-radius: 22px;
   cursor: pointer;
   position: relative;
 
@@ -264,64 +47,104 @@ a {
 
   background: linear-gradient(145deg, #2a1a00, #120800);
   border: 2px solid rgba(255,215,0,.4);
+  box-shadow: 0 12px 30px rgba(0,0,0,.85);
 
+  font-size: 18px;
   font-weight: 800;
-  font-size: 16px;
   color: #ffd700;
 
   transition: transform .15s ease, box-shadow .15s ease;
 }
 
 .box:active {
-  transform: scale(0.96);
+  transform: scale(.95);
 }
 
-/* box types */
-.box.silver { color: #e0e0e0; }
-.box.gold { color: #ffd700; }
-.box.diamond { color: #7ffcff; }
-
-/* opened */
+/* OPEN EFFECT */
 .box.opened {
   background: linear-gradient(145deg, #ffd700, #ffb300);
   color: #000;
+  box-shadow: 0 0 40px rgba(255,215,0,.9);
 }
 
+/* ================= REWARD ================= */
 .reward {
   position: absolute;
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 900;
-  animation: pop .4s ease;
+  animation: pop .45s ease;
 }
 
 @keyframes pop {
   from { transform: scale(.7); opacity: 0; }
-  to { transform: scale(1); opacity: 1; }
+  to   { transform: scale(1); opacity: 1; }
 }
 
-.hidden {
-  display: none;
+/* ================= ENERGY ================= */
+.energy-bar {
+  width: 100%;
+  max-width: 280px;
+  height: 10px;
+  margin: 16px auto;
+  border-radius: 999px;
+  background: #2a1a00;
+  overflow: hidden;
 }
 
+#energyFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #ffd700, #ff9800);
+  transition: width .3s ease;
+}
+
+/* ================= STATS ================= */
+p {
+  margin: 6px 0;
+  color: #ffe082;
+  font-weight: 600;
+}
+
+/* ================= BUTTONS ================= */
+button {
+  width: 100%;
+  max-width: 280px;
+  margin: 10px auto;
+  padding: 14px;
+
+  background: linear-gradient(135deg, #ffd700, #ff9800);
+  color: #000;
+  border: none;
+  border-radius: 18px;
+
+  font-size: 15px;
+  font-weight: 800;
+  cursor: pointer;
+
+  box-shadow:
+    0 0 22px rgba(255,215,0,.7),
+    0 14px 30px rgba(0,0,0,.85);
+
+  transition: transform .15s ease, opacity .15s ease;
+}
+
+button:active {
+  transform: scale(.96);
+}
+
+button.secondary {
+  background: linear-gradient(135deg, #333, #111);
+  color: #ffd700;
+  box-shadow: 0 10px 26px rgba(0,0,0,.8);
+}
+
+/* ================= OFFLINE ================= */
 body.offline button {
-  opacity: 0.6;
+  opacity: .6;
   pointer-events: none;
 }
 
-.leaderboard {
-  list-style: none;
-  padding: 0;
-}
-
-.leaderboard li {
-  display: flex;
-  justify-content: space-between;
-  padding: 10px;
-  margin: 5px 0;
-  background: #1c1200;
-  border-radius: 8px;
-}
-
-.tabs button {
-  margin: 5px;
+/* ================= HELPERS ================= */
+.hidden {
+  display: none !important;
 }
