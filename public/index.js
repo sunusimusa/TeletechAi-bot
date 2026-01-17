@@ -10,8 +10,6 @@ let opening = false;
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
-  handleOffline();
-
   try {
     const res = await fetch("/api/user", {
       method: "POST",
@@ -19,7 +17,15 @@ async function init() {
     });
 
     const data = await res.json();
-    if (!data.success) throw "INIT_FAILED";
+
+    // ❗ idan babu session, sake init
+    if (!data.success) {
+      await fetch("/api/user", {
+        method: "POST",
+        credentials: "include"
+      });
+      return init();
+    }
 
     balance = data.balance;
     energy = data.energy;
@@ -27,7 +33,8 @@ async function init() {
     updateUI();
 
   } catch {
-    alert("❌ User not initialized");
+    // ❌ kar a nuna error ga user
+    console.log("Re-initializing user…");
   }
 }
 
