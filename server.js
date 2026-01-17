@@ -10,6 +10,20 @@ dotenv.config();
 
 const app = express();
 
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// 🔥 SERVE FRONTEND
+app.use(express.static(path.join(__dirname, "public")));
+
+// 🔥 ROOT ROUTE
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
+
 /* ================= CORE MIDDLEWARE ================= */
 app.use(express.json());
 app.use(cookieParser());
@@ -18,6 +32,7 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
+
 
 /* ================= DB ================= */
 mongoose.connect(process.env.MONGO_URI)
