@@ -214,7 +214,6 @@ async function openBox(type, boxEl) {
     const data = await res.json();
 
     if (data.error) {
-      playSound("errorSound");
       alert("❌ " + data.error);
       return;
     }
@@ -236,7 +235,6 @@ async function openBox(type, boxEl) {
 
   } catch (err) {
     console.error("OPEN BOX FETCH ERROR:", err);
-    playSound("errorSound");
     alert("❌ Network error");
   } finally {
     openingLocked = false;
