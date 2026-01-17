@@ -4,27 +4,19 @@ import cors from "cors";
 import dotenv from "dotenv";
 import crypto from "crypto";
 import cookieParser from "cookie-parser";
+import path from "path";
+import { fileURLToPath } from "url";
 import User from "./models/User.js";
 
 dotenv.config();
 
 const app = express();
 
-import path from "path";
-import { fileURLToPath } from "url";
-
+/* ================= PATH ================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// 🔥 SERVE FRONTEND
-app.use(express.static(path.join(__dirname, "public")));
-
-// 🔥 ROOT ROUTE
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
-/* ================= CORE MIDDLEWARE ================= */
+/* ================= MIDDLEWARE ================= */
 app.use(express.json());
 app.use(cookieParser());
 
@@ -33,6 +25,12 @@ app.use(cors({
   credentials: true
 }));
 
+/* ================= STATIC ================= */
+app.use(express.static(path.join(__dirname, "public")));
+
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 /* ================= DB ================= */
 mongoose.connect(process.env.MONGO_URI)
@@ -40,28 +38,13 @@ mongoose.connect(process.env.MONGO_URI)
   .catch(err => console.error("❌ MongoDB error", err));
 
 /* ================= HELPERS ================= */
-function makeWallet() {
-  return "TTECH-" + crypto.randomBytes(4).toString("hex").toUpperCase();
-}
-
-function getMaxEnergy(user) {
-  if (user.proLevel >= 4) return 999;
-  if (user.proLevel >= 3) return 300;
-  if (user.proLevel >= 2) return 200;
-  if (user.proLevel >= 1) return 150;
-  return 100;
-}
-
-function regenEnergy(user) {
-  const now = Date.now();
-  const last = user.lastEnergyAt || now;
-  const interval = 5 * 60 * 1000; // 5 min
-
-  const gained = Math.floor((now - last) / interval);
-  if (gained > 0) {
-    user.energy = Math.min(user.energy + gained, getMaxEnergy(user));
-    user.lastEnergyAt = last + gained * interval;
-  }
+function createUser() {
+  return {
+    userId: "USER_" + crypto.randomUUID().slice(0, 8),
+    sessionId: crypto.randomUUID(),
+    balance: 0,
+    energy: 0, // ❗ energy daga ads kawai
+  };
 }
 
 /* ================= API USER ================= */
@@ -75,38 +58,20 @@ app.post("/api/user", async (req, res) => {
     }
 
     if (!user) {
-      sid = crypto.randomUUID();
+      const data = createUser();
+      user = await User.create(data);
 
-      user = await User.create({
-        userId: "USER_" + Date.now(),
-        sessionId: sid,
-        walletAddress: makeWallet(),
-        energy: 100,
-        freeTries: 3
-      });
-
-      // 🔥 COOKIE (MUHIMMI)
-      res.cookie("sid", sid, {
+      res.cookie("sid", user.sessionId, {
         httpOnly: true,
         sameSite: "none",
         secure: true
       });
     }
 
-    regenEnergy(user);
-    await user.save();
-
     res.json({
       success: true,
-      userId: user.userId,
-      wallet: user.walletAddress,
       balance: user.balance,
-      tokens: user.tokens,
-      energy: user.energy,
-      freeTries: user.freeTries,
-      proLevel: user.proLevel,
-      role: user.role,
-      maxEnergy: getMaxEnergy(user)
+      energy: user.energy
     });
 
   } catch (err) {
@@ -124,23 +89,15 @@ app.post("/api/open", async (req, res) => {
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
 
-    regenEnergy(user);
-
-    const COST = 10;
-    if (user.freeTries > 0) {
-      user.freeTries--;
-    } else if (user.energy >= COST) {
-      user.energy -= COST;
-    } else {
+    if (user.energy < 1) {
       return res.json({ error: "NO_ENERGY" });
     }
 
-    const type = req.body?.type || "silver";
+    // 🔥 consume energy
+    user.energy -= 1;
 
-    let rewards = [0, 50, 100];
-    if (type === "gold") rewards = [100, 200, 500];
-    if (type === "diamond") rewards = [300, 500, 1000];
-
+    // 🎁 reward (simple & safe)
+    const rewards = [0, 50, 100];
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
 
@@ -150,8 +107,7 @@ app.post("/api/open", async (req, res) => {
       success: true,
       reward,
       balance: user.balance,
-      energy: user.energy,
-      freeTries: user.freeTries
+      energy: user.energy
     });
 
   } catch (err) {
@@ -160,8 +116,32 @@ app.post("/api/open", async (req, res) => {
   }
 });
 
+/* ================= API WATCH AD ================= */
+app.post("/api/watch-ad", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+
+    // 🎬 reward energy
+    user.energy += 1;
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy
+    });
+
+  } catch (err) {
+    console.error("AD ERROR:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= START ================= */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () =>
-  console.log("🚀 Server running on", PORT)
-);
+app.listen(PORT, () => {
+  console.log("🚀 Server running on", PORT);
+});
