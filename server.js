@@ -1,20 +1,11 @@
 import express from "express";
 import mongoose from "mongoose";
 import cors from "cors";
-import dotenv from "dotenv";
-import crypto from "crypto";
 import cookieParser from "cookie-parser";
-import path from "path";
-import { fileURLToPath } from "url";
+import crypto from "crypto";
 import User from "./models/User.js";
 
-dotenv.config();
-
 const app = express();
-
-/* ================= PATH ================= */
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
@@ -25,38 +16,22 @@ app.use(cors({
   credentials: true
 }));
 
-/* ================= STATIC ================= */
-app.use(express.static(path.join(__dirname, "public")));
-
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
-
 /* ================= DB ================= */
 mongoose.connect(process.env.MONGO_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB error", err));
 
-/* ================= HELPERS ================= */
-function createUser() {
-  return {
-    userId: "USER_" + crypto.randomUUID().slice(0, 8),
-    sessionId: crypto.randomUUID(),
-    balance: 0,
-    energy: 0, // ❗ energy daga ads kawai
-  };
-}
-
 /* ================= API USER ================= */
 app.post("/api/user", async (req, res) => {
   try {
     let sid = req.cookies.sid;
-    let user;
+    let user = null;
 
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
+    // 🔥 create user automatically
     if (!user) {
       sid = crypto.randomUUID();
 
@@ -64,49 +39,64 @@ app.post("/api/user", async (req, res) => {
         userId: "USER_" + Date.now(),
         sessionId: sid,
         balance: 0,
-        energy: 0,
-        referralsCount: 0
+        energy: 0
       });
 
+      // ⚠️ SIMPLE COOKIE
       res.cookie("sid", sid, {
         httpOnly: true,
-        sameSite: "none",
-        secure: true
+        sameSite: "lax"
       });
     }
 
     res.json({
       success: true,
-      userId: user.userId,
       balance: user.balance,
       energy: user.energy,
-      referralsCount: user.referralsCount
+      userId: user.userId
     });
 
-  } catch (e) {
+  } catch (err) {
+    console.error("USER ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
-/* ================= API OPEN BOX ================= */
+/* ================= WATCH AD ================= */
+app.post("/api/ads/watch", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) return res.json({ error: "NO_SESSION" });
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.json({ error: "NO_USER" });
+
+    user.energy += 1; // 🔋 energy from ad
+    await user.save();
+
+    res.json({ success: true, energy: user.energy });
+
+  } catch {
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
+    if (!sid) return res.json({ error: "NO_SESSION" });
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+    if (!user) return res.json({ error: "NO_USER" });
 
-    if (user.energy < 1) {
+    if (user.energy <= 0) {
       return res.json({ error: "NO_ENERGY" });
     }
 
-    // 🔥 consume energy
     user.energy -= 1;
 
-    // 🎁 reward (simple & safe)
-    const rewards = [0, 50, 100];
-    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+    const reward = Math.random() < 0.7 ? 0 : 100;
     user.balance += reward;
 
     await user.save();
@@ -118,38 +108,12 @@ app.post("/api/open", async (req, res) => {
       energy: user.energy
     });
 
-  } catch (err) {
-    console.error("OPEN ERROR:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
-/* ================= API WATCH AD ================= */
-app.post("/api/watch-ad", async (req, res) => {
-  try {
-    const sid = req.cookies.sid;
-    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
-
-    const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
-
-    // 🎬 reward energy
-    user.energy += 1;
-    await user.save();
-
-    res.json({
-      success: true,
-      energy: user.energy
-    });
-
-  } catch (err) {
-    console.error("AD ERROR:", err);
+  } catch {
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
 /* ================= START ================= */
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log("🚀 Server running on", PORT);
-});
+app.listen(3000, () =>
+  console.log("🚀 Server running")
+);
