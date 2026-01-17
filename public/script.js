@@ -1,3 +1,7 @@
+/* =====================================================
+   SCRIPT.JS – UI + SOUND ONLY
+===================================================== */
+
 function playSound(id) {
   const s = document.getElementById(id);
   if (!s) return;
@@ -5,9 +9,9 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-// 🔓 Android sound unlock
+// 🔓 Android / Play Store unlock
 document.addEventListener("click", () => {
-  ["winSound", "loseSound"].forEach(id => {
+  ["winSound", "loseSound", "errorSound"].forEach(id => {
     const s = document.getElementById(id);
     if (s) {
       s.play().then(() => {
@@ -18,6 +22,7 @@ document.addEventListener("click", () => {
   });
 }, { once: true });
 
+/* ================= BOX ANIMATION ================= */
 function animateBox(box, reward) {
   const rewardEl = box.querySelector(".reward");
   if (!rewardEl) return;
@@ -25,7 +30,7 @@ function animateBox(box, reward) {
   box.classList.add("opened");
 
   if (reward > 0) {
-    rewardEl.textContent = `+${reward}`;
+    rewardEl.textContent = `+${reward}`; // ✅ GYARA
     playSound("winSound");
   } else {
     rewardEl.textContent = "Empty";
