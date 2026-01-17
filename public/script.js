@@ -1,6 +1,6 @@
 /* =====================================================
-   SCRIPT.JS – UI + ANIMATION + SOUND (SAFE)
-   ANDROID WEBVIEW READY
+   SCRIPT.JS – UI + ANIMATION + SOUND (FINAL)
+   ANDROID WEBVIEW & PWA SAFE
 ===================================================== */
 
 /* ================= SOUND ================= */
@@ -9,54 +9,59 @@ function playSound(id) {
   if (!s) return;
 
   try {
+    s.pause();
     s.currentTime = 0;
     s.play().catch(() => {});
-  } catch {}
+  } catch (e) {
+    // shiru – Android ba zai yarda ba sai unlock
+  }
 }
 
-/* 🔓 ANDROID UNLOCK (ONCE) */
-document.addEventListener("click", () => {
-  ["winSound", "loseSound"].forEach(id => {
-    const s = document.getElementById(id);
-    if (!s) return;
+/* 🔓 ANDROID / WEBVIEW AUDIO UNLOCK (ONCE) */
+document.addEventListener(
+  "click",
+  () => {
+    ["winSound", "loseSound"].forEach(id => {
+      const s = document.getElementById(id);
+      if (!s) return;
 
-    s.play()
-      .then(() => {
-        s.pause();
-        s.currentTime = 0;
-      })
-      .catch(() => {});
-  });
-}, { once: true });
+      s.play()
+        .then(() => {
+          s.pause();
+          s.currentTime = 0;
+        })
+        .catch(() => {});
+    });
+  },
+  { once: true }
+);
 
 /* ================= BOX ANIMATION ================= */
 function animateBox(box, reward) {
   if (!box) return;
 
-  let rewardEl = box.querySelector(".reward");
-
-  // idan babu reward div, mu ƙirƙira
-  if (!rewardEl) {
-    rewardEl = document.createElement("div");
-    rewardEl.className = "reward hidden";
-    box.appendChild(rewardEl);
+  // tabbata OPEN BOX label ya kasance
+  let label = box.querySelector(".box-label");
+  if (!label) {
+    label = document.createElement("span");
+    label.className = "box-label";
+    label.innerText = "OPEN BOX";
+    box.innerHTML = "";
+    box.appendChild(label);
   }
 
   box.classList.add("opened");
 
   if (reward > 0) {
-    rewardEl.innerText = "+" + reward;
+    label.innerText = "+" + reward;
     playSound("winSound");
   } else {
-    rewardEl.innerText = "Empty";
+    label.innerText = "EMPTY";
     playSound("loseSound");
   }
 
-  rewardEl.classList.remove("hidden");
-
   setTimeout(() => {
-    rewardEl.classList.add("hidden");
-    rewardEl.innerText = "";
+    label.innerText = "OPEN BOX";
     box.classList.remove("opened");
-  }, 1000);
+  }, 1200);
 }
