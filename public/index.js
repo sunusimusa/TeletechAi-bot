@@ -89,25 +89,6 @@ async function openBox(boxEl) {
   }
 }
 
-/* ================= WATCH AD ================= */
-async function watchAd() {
-  if (!USER) {
-    alert("User not initialized");
-    return;
-  }
-
-  const res = await fetch("/api/ads/watch", {
-    method: "POST",
-    credentials: "include"
-  });
-
-  const data = await res.json();
-  if (data.error) return alert(data.error);
-
-  USER.energy = data.energy;
-  updateUI();
-}
-
 /* ================= UI ================= */
 function updateUI() {
   document.getElementById("balance").innerText = `Balance: ${balance}`;
