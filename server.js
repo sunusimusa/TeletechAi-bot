@@ -84,15 +84,18 @@ app.post("/api/ads/watch", async (req, res) => {
   try {
     const sid = req.cookies.sid;
     if (!sid) {
-      return res.json({ error: "NO_SESSION" });
+      return res.status(401).json({ error: "NO_SESSION" });
     }
 
     const user = await User.findOne({ sessionId: sid });
     if (!user) {
-      return res.json({ error: "NO_USER" });
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
     }
 
-    user.energy += 1;
+    // 🎥 REWARD FROM AD
+    const ENERGY_REWARD = 5;
+    user.energy += ENERGY_REWARD;
+
     await user.save();
 
     res.json({
