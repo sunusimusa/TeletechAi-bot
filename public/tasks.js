@@ -1,13 +1,15 @@
 /* =====================================================
-   TASKS & ADS – FINAL CLEAN SCRIPT
+   TASKS & ADS – GLOBAL SAFE SCRIPT
    FILE: public/tasks.js
-   DEPENDS ONLY ON SERVER API
+   STABLE FOR RENDER + WEBVIEW
 ===================================================== */
 
 let USER = null;
+let INIT_TRIES = 0;
+const MAX_INIT_TRIES = 5;
 
-/* ================= INIT USER ================= */
-async function initTasks() {
+/* ================= GLOBAL USER INIT ================= */
+async function initUser() {
   try {
     const res = await fetch("/api/user", {
       method: "POST",
@@ -21,28 +23,46 @@ async function initTasks() {
     }
 
     USER = data;
-    console.log("✅ User initialized for tasks");
+    console.log("✅ User initialized (tasks)");
+
+    return true;
 
   } catch (err) {
-    console.error("TASK INIT ERROR:", err);
-    alert("❌ User not initialized");
+    INIT_TRIES++;
+    console.warn("⏳ Waiting for user session...", INIT_TRIES);
+
+    if (INIT_TRIES < MAX_INIT_TRIES) {
+      // 🔁 retry bayan 1s
+      setTimeout(initUser, 1000);
+    } else {
+      showStatus("❌ Unable to initialize user. Reload app.");
+    }
+
+    return false;
   }
 }
 
-initTasks();
+/* ================= DOM READY ================= */
+document.addEventListener("DOMContentLoaded", () => {
+  initUser();
+});
+
+/* ================= HELPERS ================= */
+function showStatus(text) {
+  const el = document.getElementById("adStatus");
+  if (!el) return;
+  el.classList.remove("hidden");
+  el.innerText = text;
+}
 
 /* ================= WATCH AD ================= */
 async function watchAd() {
   if (!USER) {
-    alert("❌ User not initialized");
+    showStatus("⏳ Initializing user, please wait...");
     return;
   }
 
-  const status = document.getElementById("adStatus");
-  if (status) {
-    status.classList.remove("hidden");
-    status.innerText = "⏳ Watching ad...";
-  }
+  showStatus("⏳ Watching ad...");
 
   try {
     const res = await fetch("/api/ads/watch", {
@@ -53,15 +73,18 @@ async function watchAd() {
     const data = await res.json();
 
     if (data.error) {
-      if (status) status.innerText = "❌ " + data.error;
+      showStatus("❌ " + data.error);
       return;
     }
 
-    if (status) status.innerText = "✅ Energy added successfully!";
+    // 🔄 sabunta USER state
+    USER.energy = data.energy ?? USER.energy;
+
+    showStatus("✅ Energy added!");
 
   } catch (err) {
     console.error("WATCH AD ERROR:", err);
-    if (status) status.innerText = "❌ Network error";
+    showStatus("❌ Network error");
   }
 }
 
@@ -72,7 +95,7 @@ function openYouTube() {
 
 async function claimYouTubeReward() {
   if (!USER) {
-    alert("❌ User not initialized");
+    showStatus("⏳ Initializing user...");
     return;
   }
 
@@ -85,14 +108,15 @@ async function claimYouTubeReward() {
     const data = await res.json();
 
     if (data.error) {
-      alert("❌ " + data.error);
+      showStatus("❌ " + data.error);
       return;
     }
 
-    alert("✅ +300 Balance added!");
+    USER.balance = data.balance ?? USER.balance;
+    showStatus("✅ +300 Balance added!");
 
   } catch (err) {
     console.error("YOUTUBE TASK ERROR:", err);
-    alert("❌ Network error");
+    showStatus("❌ Network error");
   }
 }
