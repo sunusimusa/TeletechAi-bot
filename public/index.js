@@ -1,13 +1,17 @@
+/* =====================================================
+   INDEX.JS – GAME LOGIC ONLY
+===================================================== */
+
 let balance = 0;
 let energy = 0;
 let opening = false;
-let USER = null;
 
 /* ================= INIT ================= */
-
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
+  handleOffline();
+
   try {
     const res = await fetch("/api/user", {
       method: "POST",
@@ -17,7 +21,8 @@ async function init() {
     const data = await res.json();
     if (!data.success) throw "INIT_FAILED";
 
-    USER = data; // 🔑 MUHIMMI
+    balance = data.balance;
+    energy = data.energy;
 
     updateUI();
 
@@ -26,14 +31,7 @@ async function init() {
   }
 }
 
-function updateUI() {
-  document.getElementById("balance").innerText =
-    "Balance: " + USER.balance;
-
-  document.getElementById("energy").innerText =
-    "Energy: " + USER.energy;
-}
-
+/* ================= OFFLINE ================= */
 function handleOffline() {
   const msg = document.getElementById("offlineMsg");
   if (!msg) return;
@@ -41,20 +39,6 @@ function handleOffline() {
 }
 window.addEventListener("online", handleOffline);
 window.addEventListener("offline", handleOffline);
-
-/* ================= SYNC USER ================= */
-async function syncUser() {
-  const res = await fetch("/api/user", {
-    method: "POST",
-    credentials: "include"
-  });
-  const data = await res.json();
-  if (!data.success) return;
-
-  balance = data.balance;
-  energy = data.energy;
-  updateUI();
-}
 
 /* ================= OPEN BOX ================= */
 async function openBox(boxEl) {
@@ -76,6 +60,7 @@ async function openBox(boxEl) {
     balance = data.balance;
     energy = data.energy;
 
+    // 🎁 UI animation (script.js)
     if (typeof animateBox === "function") {
       animateBox(boxEl, data.reward);
     }
@@ -83,7 +68,7 @@ async function openBox(boxEl) {
     setTimeout(updateUI, 600);
 
   } catch {
-    alert("Network error");
+    alert("❌ Network error");
   } finally {
     opening = false;
   }
@@ -98,4 +83,4 @@ function updateUI() {
   if (bar) {
     bar.style.width = Math.min(energy * 10, 100) + "%";
   }
-}
+                          }
