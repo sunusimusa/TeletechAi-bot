@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Referral</title>
+  <title>Referral Program</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <link rel="stylesheet" href="/style.css" />
@@ -17,27 +17,29 @@
       Invite friends and earn rewards when they join the game.
     </p>
 
-    <!-- REF LINK -->
+    <!-- ===== REFERRAL LINK ===== -->
     <div class="card">
       <label>Your Referral Link</label>
+
       <input
         type="text"
         id="refLink"
         readonly
         value="Loading..."
       />
+
       <button onclick="copyRef()">📋 Copy Link</button>
     </div>
 
-    <!-- STATS -->
+    <!-- ===== STATS ===== -->
     <div class="card">
-      <p>👥 Total Referrals:</p>
+      <p>👥 Total Referrals</p>
       <h3 id="refCount">0</h3>
     </div>
 
-    <!-- INFO -->
+    <!-- ===== INFO ===== -->
     <div class="info">
-      <p>🎁 Reward per referral:</p>
+      <p>🎁 Reward per referral</p>
       <ul>
         <li>+500 Balance</li>
         <li>More rewards coming soon 🚀</li>
@@ -48,28 +50,50 @@
 
   </div>
 
-  <!-- MAIN LOGIC -->
-  <script src="/index.js"></script>
+  <!-- ===== REFERRAL SCRIPT (STANDALONE) ===== -->
+  <script>
+    let USER = null;
 
-  <!-- REFERRAL PAGE SCRIPT -->
-<script>
-async function loadReferral() {
-  const res = await fetch("/api/user", {
-    method: "POST",
-    credentials: "include"
-  });
+    async function initReferral() {
+      try {
+        const res = await fetch("/api/user", {
+          method: "POST",
+          credentials: "include"
+        });
 
-  const data = await res.json();
-  if (!data.success) return;
+        const data = await res.json();
+        if (!data.success) throw "NO_USER";
 
-  const link =
-    location.origin + "/?ref=" + data.userId;
+        USER = data;
 
-  document.getElementById("refLink").value = link;
-}
+        const link =
+          window.location.origin + "/?ref=" + USER.userId;
 
-loadReferral();
-</script>
+        document.getElementById("refLink").value = link;
+
+        document.getElementById("refCount").innerText =
+          USER.referralsCount || 0;
+
+      } catch (err) {
+        alert("❌ User not initialized");
+        console.error("REF INIT ERROR:", err);
+      }
+    }
+
+    function copyRef() {
+      const input = document.getElementById("refLink");
+      input.select();
+      input.setSelectionRange(0, 99999);
+      document.execCommand("copy");
+      alert("✅ Referral link copied");
+    }
+
+    function goBack() {
+      window.location.href = "/";
+    }
+
+    initReferral();
+  </script>
 
 </body>
 </html>
