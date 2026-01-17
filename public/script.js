@@ -1,8 +1,3 @@
-/* =====================================================
-   LUCKY BOX – FINAL CLEAN SCRIPT.JS
-   UI + ANIMATION + SOUND ONLY
-===================================================== */
-
 /* ================= SOUND ================= */
 function playSound(id) {
   const s = document.getElementById(id);
@@ -11,9 +6,9 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-// 🔓 ANDROID AUDIO UNLOCK (MUHIMMI)
+/* 🔓 ANDROID UNLOCK */
 document.addEventListener("click", () => {
-  ["winSound", "loseSound"].forEach(id => {
+  ["winSound", "loseSound", "errorSound"].forEach(id => {
     const s = document.getElementById(id);
     if (s) {
       s.play().then(() => {
@@ -46,20 +41,4 @@ function animateBox(box, reward) {
     rewardEl.textContent = "";
     box.classList.remove("opened");
   }, 1500);
-}
-
-/* ================= UI WRAPPERS ================= */
-async function dailyBonusUI() {
-  playSound("winSound");
-  await dailyBonus(); // index.js
-}
-
-async function watchAdUI() {
-  playSound("clickSound");
-  await watchAd(); // index.js
-}
-
-/* ================= EXTERNAL LINKS ================= */
-function linkTelegram() {
-  window.open("https://t.me/TeleTechAiBot", "_blank");
 }
