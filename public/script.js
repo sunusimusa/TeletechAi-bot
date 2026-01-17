@@ -1,4 +1,3 @@
-/* ================= SOUND ================= */
 function playSound(id) {
   const s = document.getElementById(id);
   if (!s) return;
@@ -6,9 +5,9 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-/* 🔓 ANDROID UNLOCK */
+// 🔓 Android sound unlock
 document.addEventListener("click", () => {
-  ["winSound", "loseSound", "errorSound"].forEach(id => {
+  ["winSound", "loseSound"].forEach(id => {
     const s = document.getElementById(id);
     if (s) {
       s.play().then(() => {
@@ -19,7 +18,6 @@ document.addEventListener("click", () => {
   });
 }, { once: true });
 
-/* ================= BOX ANIMATION ================= */
 function animateBox(box, reward) {
   const rewardEl = box.querySelector(".reward");
   if (!rewardEl) return;
@@ -40,5 +38,5 @@ function animateBox(box, reward) {
     rewardEl.classList.add("hidden");
     rewardEl.textContent = "";
     box.classList.remove("opened");
-  }, 1500);
+  }, 1200);
 }
