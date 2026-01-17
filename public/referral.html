@@ -52,44 +52,24 @@
   <script src="/index.js"></script>
 
   <!-- REFERRAL PAGE SCRIPT -->
-  <script>
-    async function loadReferral() {
-      try {
-        const res = await fetch("/api/user", {
-          method: "POST",
-          credentials: "include"
-        });
+<script>
+async function loadReferral() {
+  const res = await fetch("/api/user", {
+    method: "POST",
+    credentials: "include"
+  });
 
-        const data = await res.json();
-        if (!data.success) return;
+  const data = await res.json();
+  if (!data.success) return;
 
-        const refLink = `${location.origin}/?ref=${data.userId}`;
-        document.getElementById("refLink").value = refLink;
+  const link =
+    location.origin + "/?ref=" + data.userId;
 
-        // referralsCount idan kana turawa daga server
-        if (data.referralsCount !== undefined) {
-          document.getElementById("refCount").innerText =
-            data.referralsCount;
-        }
+  document.getElementById("refLink").value = link;
+}
 
-      } catch (e) {
-        console.error("REFERRAL LOAD ERROR", e);
-      }
-    }
-
-    function copyRef() {
-      const i = document.getElementById("refLink");
-      i.select();
-      document.execCommand("copy");
-      alert("✅ Referral link copied");
-    }
-
-    function goBack() {
-      location.href = "/";
-    }
-
-    document.addEventListener("DOMContentLoaded", loadReferral);
-  </script>
+loadReferral();
+</script>
 
 </body>
 </html>
