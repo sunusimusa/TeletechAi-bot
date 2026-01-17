@@ -1,7 +1,6 @@
 /* =====================================================
    LUCKY BOX – FINAL CLEAN SCRIPT.JS
    UI + ANIMATION + SOUND ONLY
-   (DEPENDS ON index.js STATE)
 ===================================================== */
 
 /* ================= SOUND ================= */
@@ -12,9 +11,9 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-// 🔓 Android unlock (MUHIMMI)
+// 🔓 ANDROID AUDIO UNLOCK (MUHIMMI)
 document.addEventListener("click", () => {
-  ["winSound", "loseSound", "errorSound"].forEach(id => {
+  ["winSound", "loseSound"].forEach(id => {
     const s = document.getElementById(id);
     if (s) {
       s.play().then(() => {
