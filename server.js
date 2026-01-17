@@ -40,11 +40,12 @@ app.post("/api/user", async (req, res) => {
     let sid = req.cookies.sid;
     let user = null;
 
+    // 1️⃣ find user by session
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
-    // 🔥 create user automatically
+    // 2️⃣ create user automatically if not found
     if (!user) {
       sid = crypto.randomUUID();
 
@@ -55,20 +56,21 @@ app.post("/api/user", async (req, res) => {
         energy: 0
       });
 
-      // ⚠️ SIMPLE COOKIE
-     res.cookie("sid", sid, {
-       httpOnly: true,
-       sameSite: "lax",   // 🔴 KA CANZA DAGA "none"
-       secure: true,
-       path: "/"
-     });
+      // 🍪 set cookie
+      res.cookie("sid", sid, {
+        httpOnly: true,
+        sameSite: "lax",   // ✅ daidai
+        secure: true,      // Render = https
+        path: "/"
+      });
+    }
 
-
+    // 3️⃣ RESPONSE (KO DA TSOHO KO SABO)
     res.json({
       success: true,
+      userId: user.userId,
       balance: user.balance,
-      energy: user.energy,
-      userId: user.userId
+      energy: user.energy
     });
 
   } catch (err) {
