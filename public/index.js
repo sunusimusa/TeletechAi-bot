@@ -43,51 +43,83 @@ async function syncUser() {
     const data = await res.json();
     if (!data.success) return;
 
-    USER_ID = data.userId;
-
-    wallet = data.wallet || "";
-    balance = Number(data.balance || 0);
-    energy = Number(data.energy || 0);
-    tokens = Number(data.tokens || 0);
-    freeTries = Number(data.freeTries || 0);
-    proLevel = Number(data.proLevel || 0);
-    role = data.role || "user";
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
 
     MAX_ENERGY =
-      proLevel >= 4 ? 999 :
-      proLevel >= 3 ? 300 :
-      proLevel >= 2 ? 200 :
-      proLevel >= 1 ? 150 : 100;
+      data.proLevel >= 4 ? 999 :
+      data.proLevel >= 3 ? 300 :
+      data.proLevel >= 2 ? 200 :
+      data.proLevel >= 1 ? 150 : 100;
 
     updateUI();
-    fillReferralLink();
 
-    if (data.dailyRemaining && data.dailyRemaining > 0) {
-      startDailyCooldown(data.dailyRemaining);
-    }
-
-  } catch (err) {
-    console.error("SYNC ERROR:", err);
+  } catch (e) {
+    console.error("SYNC ERROR", e);
   }
 }
 
 /* ================= UI ================= */
 function updateUI() {
   setText("balance", `Balance: ${balance}`);
-  setText("tokens", `Tokens: ${tokens}`);
   setText("freeTries", `Free tries: ${freeTries}`);
   setText("energy", `Energy: ${energy} / ${MAX_ENERGY}`);
 
   const bar = document.getElementById("energyFill");
   if (bar) {
-    bar.style.width =
-      Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
+    bar.style.width = Math.min((energy / MAX_ENERGY) * 100, 100) + "%";
   }
 }
 
 function setText(id, text) {
   const el = document.getElementById(id);
   if (el) el.innerText = text;
+}
+
+/* ================= OPEN BOX (API ONLY) ================= */
+async function openBox(type, boxEl) {
+  if (!navigator.onLine) {
+    alert("📡 Internet required");
+    return;
+  }
+
+  if (openingLocked) return;
+  openingLocked = true;
+
+  try {
+    const res = await fetch("/api/open", {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ type })
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      alert(data.error);
+      return;
+    }
+
+    // ✅ UPDATE STATE
+    balance = data.balance;
+    energy = data.energy;
+    freeTries = data.freeTries;
+
+    // 🎁 animation (script.js)
+    if (boxEl && window.animateBox) {
+      animateBox(boxEl, data.reward);
+    }
+
+    setTimeout(updateUI, 800);
+
+  } catch (e) {
+    console.error("OPEN BOX ERROR", e);
+    alert("❌ Network error");
+  } finally {
+    openingLocked = false;
+  }
 }
 
 /* ================= DAILY COOLDOWN ================= */
@@ -189,57 +221,6 @@ async function convertBalance() {
     alert("❌ Network error");
   }
 }
-
-async function openBox(type, boxEl) {
-  if (!navigator.onLine) {
-    alert("📡 Internet required");
-    return;
-  }
-
-  if (openingLocked) return;
-  openingLocked = true;
-
-  try {
-    const res = await fetch("/api/open", {
-      method: "POST",
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ type })
-    });
-
-    if (!res.ok) {
-      throw new Error("SERVER_DOWN");
-    }
-
-    const data = await res.json();
-
-    if (data.error) {
-      alert("❌ " + data.error);
-      return;
-    }
-
-    // 🔄 UPDATE STATE (SERVER = SOURCE OF TRUTH)
-    balance   = data.balance;
-    energy    = data.energy;
-    freeTries = data.freeTries;
-
-    // 🎁 UI animation (script.js)
-    if (boxEl && typeof animateBox === "function") {
-      animateBox(boxEl, data.reward);
-    }
-
-    // ⏳ bari animation ta fara
-    setTimeout(() => {
-      updateUI();
-    }, 700);
-
-  } catch (err) {
-    console.error("OPEN BOX FETCH ERROR:", err);
-    alert("❌ Network error");
-  } finally {
-    openingLocked = false;
-  }
- }
 
 /* ================= NAV ================= */
 function openWallet() {
