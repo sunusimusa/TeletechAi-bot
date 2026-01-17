@@ -12,18 +12,18 @@ function playSound(id) {
   s.play().catch(() => {});
 }
 
-// 🔓 Android sound unlock (run once)
-document.addEventListener(
-  "click",
-  () => {
-    ["clickSound", "winSound", "loseSound", "errorSound"].forEach(id => {
-      const s = document.getElementById(id);
-      if (!s) return;
-      s.play().then(() => s.pause()).catch(() => {});
-    });
-  },
-  { once: true }
-);
+// 🔓 Android unlock (MUHIMMI)
+document.addEventListener("click", () => {
+  ["winSound", "loseSound", "errorSound"].forEach(id => {
+    const s = document.getElementById(id);
+    if (s) {
+      s.play().then(() => {
+        s.pause();
+        s.currentTime = 0;
+      }).catch(() => {});
+    }
+  });
+}, { once: true });
 
 /* ================= BOX ANIMATION ================= */
 function animateBox(box, reward) {
