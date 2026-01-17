@@ -1,12 +1,6 @@
-/* =====================================================
-   INDEX.JS – GAME LOGIC ONLY
-===================================================== */
-
-let balance = 0;
-let energy = 0;
+let USER = null;
 let opening = false;
 
-/* ================= INIT ================= */
 document.addEventListener("DOMContentLoaded", init);
 
 async function init() {
@@ -16,39 +10,37 @@ async function init() {
       credentials: "include"
     });
 
-    const data = await res.json();
-
-    // ❗ idan babu session, sake init
-    if (!data.success) {
-      await fetch("/api/user", {
-        method: "POST",
-        credentials: "include"
-      });
-      return init();
-    }
-
-    balance = data.balance;
-    energy = data.energy;
+    USER = await res.json();
+    if (!USER.success) throw 1;
 
     updateUI();
 
   } catch {
-    // ❌ kar a nuna error ga user
-    console.log("Re-initializing user…");
+    alert("User init failed");
   }
 }
 
-/* ================= OFFLINE ================= */
-function handleOffline() {
-  const msg = document.getElementById("offlineMsg");
-  if (!msg) return;
-  msg.classList.toggle("hidden", navigator.onLine);
+function updateUI() {
+  document.getElementById("balance").innerText =
+    "Balance: " + USER.balance;
+  document.getElementById("energy").innerText =
+    "Energy: " + USER.energy;
 }
-window.addEventListener("online", handleOffline);
-window.addEventListener("offline", handleOffline);
 
-/* ================= OPEN BOX ================= */
-async function openBox(boxEl) {
+async function watchAd() {
+  const res = await fetch("/api/ads/watch", {
+    method: "POST",
+    credentials: "include"
+  });
+
+  const data = await res.json();
+  if (data.error) return alert(data.error);
+
+  USER.energy = data.energy;
+  updateUI();
+}
+
+async function openBox(box) {
   if (opening) return;
   opening = true;
 
@@ -59,35 +51,15 @@ async function openBox(boxEl) {
     });
 
     const data = await res.json();
-    if (data.error) {
-      alert(data.error);
-      return;
-    }
+    if (data.error) return alert(data.error);
 
-    balance = data.balance;
-    energy = data.energy;
+    USER.balance = data.balance;
+    USER.energy = data.energy;
 
-    // 🎁 UI animation (script.js)
-    if (typeof animateBox === "function") {
-      animateBox(boxEl, data.reward);
-    }
-
+    animateBox(box, data.reward);
     setTimeout(updateUI, 600);
 
-  } catch {
-    alert("❌ Network error");
   } finally {
     opening = false;
   }
 }
-
-/* ================= UI ================= */
-function updateUI() {
-  document.getElementById("balance").innerText = `Balance: ${balance}`;
-  document.getElementById("energy").innerText = `Energy: ${energy}`;
-
-  const bar = document.getElementById("energyFill");
-  if (bar) {
-    bar.style.width = Math.min(energy * 10, 100) + "%";
-  }
-                          }
