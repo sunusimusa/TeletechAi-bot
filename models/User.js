@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
-    /* ================= CORE ID ================= */
+    /* ================= CORE ================= */
     userId: {
       type: String,
       required: true,
@@ -18,8 +18,12 @@ const UserSchema = new mongoose.Schema(
       index: true
     },
 
-    /* ================= BASIC INFO ================= */
-    telegramId: { type: String }
+    /* ================= OPTIONAL ID ================= */
+    // ⚠️ BA UNIQUE – domin kauce wa E11000
+    telegramId: {
+      type: String,
+      default: undefined
+    },
 
     username: {
       type: String,
@@ -41,12 +45,11 @@ const UserSchema = new mongoose.Schema(
     /* ================= WALLET ================= */
     walletAddress: {
       type: String,
-      default: null,
-      unique: true,
+      default: undefined,
       sparse: true
     },
 
-    /* ================= GAME CORE ================= */
+    /* ================= GAME ================= */
     balance: {
       type: Number,
       default: 0
@@ -57,10 +60,9 @@ const UserSchema = new mongoose.Schema(
       default: 0
     },
 
-    // 🔥 SAU 5 FREE OPEN BOX (ABIN DA KA BUKATA)
     freeTries: {
       type: Number,
-      default: 5
+      default: 5   // 🎁 FREE BOX ×5
     },
 
     tokens: {
@@ -68,13 +70,17 @@ const UserSchema = new mongoose.Schema(
       default: 0
     },
 
-    /* ================= TIMERS ================= */
     lastEnergyAt: {
       type: Number,
       default: Date.now
     },
 
     lastOpenAt: {
+      type: Number,
+      default: 0
+    },
+
+    lastConvertAt: {
       type: Number,
       default: 0
     },
@@ -104,6 +110,12 @@ const UserSchema = new mongoose.Schema(
     lastAdDay: {
       type: String,
       default: ""
+    },
+
+    /* ================= DAILY ================= */
+    lastDailyAt: {
+      type: Number,
+      default: 0
     },
 
     /* ================= META ================= */
