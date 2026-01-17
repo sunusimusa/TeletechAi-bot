@@ -144,7 +144,7 @@ app.post("/api/open", async (req, res) => {
       balance: user.balance,
       energy: user.energy,
       freeBox: user.freeBox,
-      usedFree
+      usedFree: usedFree // true / false
     });
 
   } catch (err) {
