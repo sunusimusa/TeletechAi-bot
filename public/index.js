@@ -1,6 +1,6 @@
 /* =====================================================
-   INDEX.JS – GLOBAL SAFE USER FLOW
-   STABLE FOR RENDER + ANDROID WEBVIEW
+   INDEX.JS – FINAL GLOBAL USER FLOW
+   RENDER + ANDROID WEBVIEW SAFE
 ===================================================== */
 
 let USER = null;
@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   initUser();
 });
 
-/* ================= USER INIT (SAFE) ================= */
+/* ================= USER INIT ================= */
 async function initUser() {
   try {
     const res = await fetch("/api/user", {
@@ -24,13 +24,14 @@ async function initUser() {
 
     const data = await res.json();
 
-    if (!data.success) {
-      throw new Error("NO_USER");
+    if (!data || !data.success) {
+      throw new Error("INIT_FAILED");
     }
 
     USER = data;
-    console.log("✅ User initialized");
+    console.log("✅ User initialized:", USER.userId);
 
+    hideStatus();
     updateUI();
 
   } catch (err) {
@@ -38,7 +39,7 @@ async function initUser() {
     console.warn("⏳ Waiting for session...", INIT_TRIES);
 
     if (INIT_TRIES < MAX_INIT_TRIES) {
-      setTimeout(initUser, 1000); // 🔁 jira cookie
+      setTimeout(initUser, 1000);
     } else {
       showStatus("❌ Unable to initialize user. Reload app.");
     }
@@ -57,15 +58,23 @@ function updateUI() {
   if (en) en.innerText = `Energy: ${USER.energy}`;
 
   if (bar) {
-    bar.style.width = Math.min(USER.energy * 10, 100) + "%";
+    const percent = Math.min(USER.energy * 10, 100);
+    bar.style.width = percent + "%";
   }
 }
 
+/* ================= STATUS ================= */
 function showStatus(text) {
   const el = document.getElementById("statusMsg");
   if (!el) return;
-  el.classList.remove("hidden");
   el.innerText = text;
+  el.classList.remove("hidden");
+}
+
+function hideStatus() {
+  const el = document.getElementById("statusMsg");
+  if (!el) return;
+  el.classList.add("hidden");
 }
 
 /* ================= WATCH AD ================= */
@@ -131,10 +140,12 @@ async function openBox(boxEl) {
       USER.freeTries = data.freeTries;
     }
 
-    // 🎁 LOG FREE BOX
+    // 🎁 FREE OPEN LOG
     if (data.usedFree === true) {
       console.log("🎁 Free box used");
       showStatus("🎁 Free Open Used!");
+    } else {
+      hideStatus();
     }
 
     // 🎬 ANIMATION
