@@ -3,9 +3,15 @@ import mongoose from "mongoose";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import crypto from "crypto";
+import path from "path";
+import { fileURLToPath } from "url";
 import User from "./models/User.js";
 
 const app = express();
+
+/* ================= PATH FIX ================= */
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
@@ -15,6 +21,14 @@ app.use(cors({
   origin: true,
   credentials: true
 }));
+
+/* ================= SERVE FRONTEND ================= */
+app.use(express.static(path.join(__dirname, "public")));
+
+/* ================= ROOT ================= */
+app.get("/", (req, res) => {
+  res.sendFile(path.join(__dirname, "public", "index.html"));
+});
 
 /* ================= DB ================= */
 mongoose.connect(process.env.MONGODB_URI)
