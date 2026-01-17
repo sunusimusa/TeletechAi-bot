@@ -19,12 +19,7 @@ const UserSchema = new mongoose.Schema(
     },
 
     /* ================= BASIC INFO ================= */
-    telegramId: {
-      type: String,
-      default: null,
-      unique: true,
-      sparse: true
-    },
+    telegramId: { type: String }
 
     username: {
       type: String,
