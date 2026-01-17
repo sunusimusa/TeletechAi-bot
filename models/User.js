@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 const UserSchema = new mongoose.Schema(
   {
-    /* ===== CORE ID ===== */
+    /* ================= CORE ID ================= */
     userId: {
       type: String,
       required: true,
@@ -11,11 +11,19 @@ const UserSchema = new mongoose.Schema(
       index: true
     },
 
+    sessionId: {
+      type: String,
+      required: true,
+      unique: true,
+      index: true
+    },
+
+    /* ================= BASIC INFO ================= */
     telegramId: {
       type: String,
       default: null,
       unique: true,
-      sparse: true // ✅ yana hana duplicate null
+      sparse: true
     },
 
     username: {
@@ -23,15 +31,19 @@ const UserSchema = new mongoose.Schema(
       default: ""
     },
 
-    /* ===== ROLE / PRO ===== */
+    /* ================= ROLE / PRO ================= */
     role: {
       type: String,
       enum: ["user", "founder"],
       default: "user"
     },
-    proLevel: { type: Number, default: 0 },
 
-    /* ===== WALLET ===== */
+    proLevel: {
+      type: Number,
+      default: 0
+    },
+
+    /* ================= WALLET ================= */
     walletAddress: {
       type: String,
       default: null,
@@ -39,34 +51,76 @@ const UserSchema = new mongoose.Schema(
       sparse: true
     },
 
-    /* ===== GAME ===== */
-    balance: { type: Number, default: 0 },
-    energy: { type: Number, default: 100 },
-    freeTries: { type: Number, default: 3 },
-    tokens: { type: Number, default: 0 },
+    /* ================= GAME CORE ================= */
+    balance: {
+      type: Number,
+      default: 0
+    },
 
-    lastEnergyAt: { type: Number, default: Date.now },
-    lastOpenAt: { type: Number, default: 0 },
-    lastConvertAt: { type: Number, default: 0 },
+    energy: {
+      type: Number,
+      default: 0
+    },
 
-    /* ===== REFERRAL ===== */
-    referredBy: { type: String, default: null },
-    referralsCount: { type: Number, default: 0 },
-    joinedByRef: { type: Boolean, default: false },
+    // 🔥 SAU 5 FREE OPEN BOX (ABIN DA KA BUKATA)
+    freeTries: {
+      type: Number,
+      default: 5
+    },
 
-    /* ===== ADS / DAILY ===== */
-    adsWatchedToday: { type: Number, default: 0 },
-    lastAdDay: { type: String, default: "" },
-    lastDaily: { type: String, default: "" },
+    tokens: {
+      type: Number,
+      default: 0
+    },
 
-    /* ===== META ===== */
+    /* ================= TIMERS ================= */
+    lastEnergyAt: {
+      type: Number,
+      default: Date.now
+    },
+
+    lastOpenAt: {
+      type: Number,
+      default: 0
+    },
+
+    /* ================= REFERRAL ================= */
+    referredBy: {
+      type: String,
+      default: null
+    },
+
+    referralsCount: {
+      type: Number,
+      default: 0
+    },
+
+    joinedByRef: {
+      type: Boolean,
+      default: false
+    },
+
+    /* ================= ADS ================= */
+    adsWatchedToday: {
+      type: Number,
+      default: 0
+    },
+
+    lastAdDay: {
+      type: String,
+      default: ""
+    },
+
+    /* ================= META ================= */
     createdFrom: {
       type: String,
       enum: ["web", "telegram"],
       default: "web"
     }
   },
-  { timestamps: true }
+  {
+    timestamps: true
+  }
 );
 
 export default mongoose.model("User", UserSchema);
