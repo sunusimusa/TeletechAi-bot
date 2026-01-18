@@ -245,3 +245,21 @@ function spawnCoins(amount = 10) {
   }
 }
 
+/* =====================================================
+   CONFETTI (SAFE LIGHT VERSION)
+===================================================== */
+
+function launchConfetti(count = 30) {
+  for (let i = 0; i < count; i++) {
+    const conf = document.createElement("div");
+    conf.className = "confetti";
+
+    conf.style.left = Math.random() * window.innerWidth + "px";
+    conf.style.background =
+      ["#ffd700", "#ff9800", "#ffffff"][Math.floor(Math.random() * 3)];
+
+    document.body.appendChild(conf);
+
+    setTimeout(() => conf.remove(), 1500);
+  }
+}
