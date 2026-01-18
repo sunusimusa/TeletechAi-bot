@@ -91,6 +91,90 @@ app.post("/api/user", async (req, res) => {
   }
 });
 
+function todayString() {
+  const d = new Date();
+  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
+}
+
+function getScratchReward() {
+  const roll = Math.random() * 100;
+
+  if (roll < 40) return { points: 10, energy: 0 };
+  if (roll < 65) return { points: 20, energy: 0 };
+  if (roll < 80) return { points: 50, energy: 0 };
+  if (roll < 90) return { points: 0, energy: 10 };
+  if (roll < 98) return { points: 0, energy: 20 };
+
+  // 🎉 JACKPOT
+  return { points: 100, energy: 0 };
+}
+
+app.post("/api/scratch", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) {
+      return res.status(401).json({ error: "NO_SESSION" });
+    }
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    const today = todayString();
+
+    // 🔁 reset daily count
+    if (user.lastScratchDay !== today) {
+      user.lastScratchDay = today;
+      user.scratchToday = 0;
+    }
+
+    // 🚫 daily limit
+    if (user.scratchToday >= 5) {
+      return res.json({ error: "SCRATCH_LIMIT_REACHED" });
+    }
+
+    const mode = req.body?.mode || "ad"; 
+    // mode = "ad" | "energy" | "daily"
+
+    // 🎁 DAILY FREE (1x)
+    if (mode === "daily") {
+      if (user.scratchToday > 0) {
+        return res.json({ error: "DAILY_ALREADY_USED" });
+      }
+    }
+
+    // ⚡ ENERGY MODE
+    if (mode === "energy") {
+      if (user.energy < 20) {
+        return res.json({ error: "NO_ENERGY" });
+      }
+      user.energy -= 20;
+    }
+
+    // 🎁 GET REWARD
+    const reward = getScratchReward();
+
+    user.balance += reward.points;
+    user.energy += reward.energy;
+    user.scratchToday += 1;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      reward,
+      scratchLeft: Math.max(0, 5 - user.scratchToday),
+      balance: user.balance,
+      energy: user.energy
+    });
+
+  } catch (err) {
+    console.error("SCRATCH ERROR:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= API: WATCH AD (ENERGY ONLY) ================= */
 app.post("/api/ads/watch", async (req, res) => {
   try {
