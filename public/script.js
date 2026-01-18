@@ -83,3 +83,62 @@ function animateBox(box, reward) {
     box.classList.remove("opened");
   }, 1200);
 }
+
+const canvas = document.getElementById("scratchCanvas");
+const ctx = canvas.getContext("2d");
+
+let scratching = false;
+let scratched = false;
+
+// fill cover
+ctx.fillStyle = "#9e9e9e";
+ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.globalCompositeOperation = "destination-out";
+
+// draw scratch circle
+function scratch(x, y) {
+  ctx.beginPath();
+  ctx.arc(x, y, 18, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// get % cleared
+function getScratchedPercent() {
+  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+  let cleared = 0;
+
+  for (let i = 3; i < img.data.length; i += 4) {
+    if (img.data[i] === 0) cleared++;
+  }
+
+  return (cleared / (canvas.width * canvas.height)) * 100;
+}
+
+// mouse
+canvas.addEventListener("mousedown", () => scratching = true);
+canvas.addEventListener("mouseup", () => scratching = false);
+canvas.addEventListener("mousemove", e => {
+  if (!scratching || scratched) return;
+  scratch(e.offsetX, e.offsetY);
+  checkScratch();
+});
+
+// touch (mobile)
+canvas.addEventListener("touchstart", () => scratching = true);
+canvas.addEventListener("touchend", () => scratching = false);
+canvas.addEventListener("touchmove", e => {
+  if (!scratching || scratched) return;
+  const rect = canvas.getBoundingClientRect();
+  const t = e.touches[0];
+  scratch(t.clientX - rect.left, t.clientY - rect.top);
+  checkScratch();
+});
+
+async function checkScratch() {
+  const percent = getScratchedPercent();
+  if (percent > 60 && !scratched) {
+    scratched = true;
+    canvas.style.display = "none";
+    claimScratchReward();
+  }
+}
