@@ -253,3 +253,35 @@ async function claimScratchReward() {
     showStatus("❌ Network error");
   }
 }
+
+let SCRATCH_UNLOCKED = false;
+
+async function unlockScratchByAd() {
+  showStatus("📺 Watching ad...");
+
+  try {
+    const res = await fetch("/api/ads/watch", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      showStatus("❌ " + data.error);
+      return;
+    }
+
+    SCRATCH_UNLOCKED = true;
+
+    document.getElementById("scratchLock").classList.add("hidden");
+    document.getElementById("scratchCard").classList.remove("hidden");
+
+    USER.energy = data.energy;
+    updateUI();
+
+    showStatus("🎟️ Scratch unlocked!");
+
+  } catch {
+    showStatus("❌ Network error");
+  }
+}
