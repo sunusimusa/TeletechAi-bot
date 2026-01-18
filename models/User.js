@@ -113,6 +113,9 @@ const UserSchema = new mongoose.Schema(
     },
 
     /* ================= DAILY ================= */
+    // SCRATCH
+scratchToday: { type: Number, default: 0 },
+lastScratchDay: { type: String, default: "" },
     lastDailyEnergy: { type: String, default: "" },
     
     lastDailyAt: {
