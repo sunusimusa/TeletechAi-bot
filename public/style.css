@@ -148,3 +148,10 @@ body.offline button {
 .hidden {
   display: none !important;
 }
+
+button.disabled,
+button:disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  filter: grayscale(0.4);
+}
