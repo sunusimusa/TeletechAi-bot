@@ -34,41 +34,54 @@ app.get("/", (req, res) => {
 mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB error", err));
-/* ================= API USER ================= */
+/* ================= API: USER INIT ================= */
 app.post("/api/user", async (req, res) => {
   try {
     let sid = req.cookies.sid;
     let user = null;
 
+    // 📅 today string (don daily)
+    const TODAY_STRING = new Date().toISOString().slice(0, 10);
+
+    // 1️⃣ Idan akwai session → nemo user
     if (sid) {
       user = await User.findOne({ sessionId: sid });
     }
 
+    // 2️⃣ Idan babu user → ƙirƙiri sabo
     if (!user) {
       sid = crypto.randomUUID();
 
       user = await User.create({
         userId: "USER_" + Date.now(),
         sessionId: sid,
+
         balance: 0,
         energy: 0,
-        freeTries: 5   // 🎁 FREE OPEN ×5
+
+        freeTries: 5,        // 🎁 FREE OPEN ×5
+        lastDaily: ""        // don daily energy
       });
 
+      // 🍪 COOKIE (Render + Android WebView SAFE)
       res.cookie("sid", sid, {
         httpOnly: true,
-        sameSite: "lax",
-        secure: true,
+        sameSite: "lax",     // ✅ mafi aminci
+        secure: process.env.NODE_ENV === "production",
         path: "/"
       });
     }
 
+    // 3️⃣ Response (SOURCE OF TRUTH)
     res.json({
       success: true,
+
       userId: user.userId,
       balance: user.balance,
       energy: user.energy,
-      freeTries: user.freeTries
+      freeTries: user.freeTries,
+
+      // 🗓️ daily status
       dailyClaimed: user.lastDaily === TODAY_STRING
     });
 
