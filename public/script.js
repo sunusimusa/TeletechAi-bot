@@ -84,51 +84,49 @@ function animateBox(box, reward) {
 /* =====================================================
    SCRATCH CARD (REAL SWIPE / RUB)
 ===================================================== */
-
 const canvas = document.getElementById("scratchCanvas");
 let ctx, W, H;
+
+let scratching = false;
+let scratched = false;
+
+function scratch(x, y) {
+  ctx.beginPath();
+  ctx.arc(x, y, 18, 0, Math.PI * 2);
+  ctx.fill();
+}
 
 if (canvas) {
   ctx = canvas.getContext("2d");
   W = canvas.width;
   H = canvas.height;
 
-  let scratching = false;
-  let scratched = false;
-
+  /* ===== INIT SCRATCH ===== */
   function initScratch() {
     ctx.globalCompositeOperation = "source-over";
+    ctx.clearRect(0, 0, W, H);
+
     ctx.fillStyle = "#9e9e9e";
     ctx.fillRect(0, 0, W, H);
+
     ctx.globalCompositeOperation = "destination-out";
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+
     scratched = false;
+    scratching = false;
     canvas.style.display = "block";
   }
 
+  /* 🌍 expose reset globally */
+  window.resetScratchCard = initScratch;
+
   initScratch();
-   function resetScratchCard() {
-  if (!canvas) return;
 
-  // reset state
-  scratched = false;
-  scratching = false;
-
-  // show canvas again
-  canvas.style.display = "block";
-
-  // reset drawing
-  ctx.globalCompositeOperation = "source-over";
-  ctx.clearRect(0, 0, W, H);
-
-  ctx.fillStyle = "#9e9e9e";
-  ctx.fillRect(0, 0, W, H);
-
-  ctx.globalCompositeOperation = "destination-out";
-   }
-  
   function scratchedPercent() {
     const img = ctx.getImageData(0, 0, W, H).data;
     let cleared = 0;
+
     for (let i = 3; i < img.length; i += 4) {
       if (img[i] === 0) cleared++;
     }
@@ -137,6 +135,7 @@ if (canvas) {
 
   function checkScratch() {
     if (scratched) return;
+
     if (scratchedPercent() >= 60) {
       scratched = true;
       canvas.style.display = "none";
@@ -144,19 +143,30 @@ if (canvas) {
     }
   }
 
-  /* mouse */
-  canvas.addEventListener("mousedown", () => scratching = true);
+  /* ===== MOUSE ===== */
+  canvas.addEventListener("mousedown", e => {
+    scratching = true;
+    scratch(e.offsetX, e.offsetY);
+    checkScratch();
+  });
+
   canvas.addEventListener("mouseup", () => scratching = false);
+
   canvas.addEventListener("mousemove", e => {
     if (!scratching || scratched) return;
     scratch(e.offsetX, e.offsetY);
     checkScratch();
   });
 
-  /* touch */
+  /* ===== TOUCH (ANDROID SAFE) ===== */
   canvas.addEventListener("touchstart", e => {
     e.preventDefault();
     scratching = true;
+
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    scratch(t.clientX - rect.left, t.clientY - rect.top);
+    checkScratch();
   }, { passive: false });
 
   canvas.addEventListener("touchend", e => {
@@ -167,6 +177,7 @@ if (canvas) {
   canvas.addEventListener("touchmove", e => {
     e.preventDefault();
     if (!scratching || scratched) return;
+
     const rect = canvas.getBoundingClientRect();
     const t = e.touches[0];
     scratch(t.clientX - rect.left, t.clientY - rect.top);
