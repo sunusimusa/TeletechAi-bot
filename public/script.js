@@ -291,11 +291,32 @@ function launchConfetti(count = 30) {
     conf.className = "confetti";
 
     conf.style.left = Math.random() * window.innerWidth + "px";
-    conf.style.background =
-      ["#ffd700", "#ff9800", "#ffffff"][Math.floor(Math.random() * 3)];
+    conf.style.backgroundColor =
+      ["#ffd700", "#ff5722", "#4caf50", "#03a9f4"][
+        Math.floor(Math.random() * 4)
+      ];
 
     document.body.appendChild(conf);
 
-    setTimeout(() => conf.remove(), 1500);
+    const duration = 1000 + Math.random() * 1000;
+    const x = (Math.random() - 0.5) * 300;
+
+    conf.animate(
+      [
+        { transform: "translate(0,0)", opacity: 1 },
+        {
+          transform: `translate(${x}px, ${
+            window.innerHeight
+          }px) rotate(${Math.random() * 720}deg)`,
+          opacity: 0
+        }
+      ],
+      {
+        duration,
+        easing: "ease-out"
+      }
+    );
+
+    setTimeout(() => conf.remove(), duration);
   }
 }
