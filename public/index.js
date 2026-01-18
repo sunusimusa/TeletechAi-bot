@@ -263,12 +263,7 @@ async function unlockScratchByAd() {
 }
 
 async function claimScratchReward() {
-  if (!SCRATCH_UNLOCKED) {
-    showStatus("📺 Watch ad to unlock scratch");
-    return;
-  }
-
-  showStatus("🎁 Checking reward...");
+  showStatus("🎁 Claiming reward...");
 
   try {
     const res = await fetch("/api/scratch", {
@@ -277,23 +272,37 @@ async function claimScratchReward() {
     });
 
     const data = await res.json();
-
     if (data.error) {
       showStatus("❌ " + data.error);
       return;
     }
 
+    // update user
     USER.balance = data.balance;
     USER.energy  = data.energy;
-
-    SCRATCH_UNLOCKED = false;
     updateUI();
 
     showStatus(
       `🎉 +${data.reward.points} points, ⚡ +${data.reward.energy} energy`
     );
 
-  } catch (err) {
+    // 🎉 feedback
+    if (data.reward.points > 0) spawnCoins(10);
+    if (data.reward.energy >= 20) launchConfetti(25);
+
+    // 🔒 LOCK SCRATCH AGAIN
+    SCRATCH_UNLOCKED = false;
+
+    const card = document.getElementById("scratchCard");
+    const lock = document.getElementById("scratchLock");
+
+    if (card) card.classList.add("hidden");
+    if (lock) lock.classList.remove("hidden");
+
+    // 🔁 RESET CANVAS (KEY FIX)
+    resetScratchCard();
+
+  } catch {
     showStatus("❌ Network error");
   }
-  }
+}
