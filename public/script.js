@@ -1,5 +1,5 @@
 /* =====================================================
-   SCRIPT.JS – UI + ANIMATION + SOUND (FINAL)
+   SCRIPT.JS – UI + ANIMATION + SOUND (FINAL CLEAN)
    ANDROID WEBVIEW & PWA SAFE
 ===================================================== */
 
@@ -17,17 +17,12 @@ function playSound(id) {
     s.pause();
     s.currentTime = 0;
     s.play().catch(() => {});
-  } catch (e) {
-    // shiru – Android/WebView zai iya hana
+  } catch {
+    // Android/WebView na iya hana autoplay
   }
 }
 
 /* ================= AUDIO UNLOCK (ONCE) ================= */
-/*
-  ⚠️ MUHIMMI:
-  Android / WebView ba zai yarda da sound ba
-  sai an sami USER INTERACTION (click / touch)
-*/
 function unlockSounds() {
   if (SOUND_UNLOCKED) return;
 
@@ -36,12 +31,12 @@ function unlockSounds() {
     if (!s) return;
 
     try {
-      s.volume = 0; // 🔕 fara shiru
+      s.volume = 0;
       s.play()
         .then(() => {
           s.pause();
           s.currentTime = 0;
-          s.volume = 1; // 🔊 dawo da sauti
+          s.volume = 1;
         })
         .catch(() => {});
     } catch {}
@@ -58,7 +53,6 @@ document.addEventListener("touchstart", unlockSounds, { once: true });
 function animateBox(box, reward) {
   if (!box) return;
 
-  // tabbata akwai label
   let label = box.querySelector(".box-label");
   if (!label) {
     label = document.createElement("span");
@@ -84,75 +78,98 @@ function animateBox(box, reward) {
   }, 1200);
 }
 
+/* =====================================================
+   SCRATCH CARD (REAL SWIPE / RUB)
+===================================================== */
+
 const canvas = document.getElementById("scratchCanvas");
-const ctx = canvas.getContext("2d");
+if (!canvas) {
+  console.warn("⚠️ scratchCanvas not found");
+} else {
+  const ctx = canvas.getContext("2d");
 
-let scratching = false;
-let scratched = false;
+  let scratching = false;
+  let scratched = false;
 
-// fill cover
-ctx.fillStyle = "#9e9e9e";
-ctx.fillRect(0, 0, canvas.width, canvas.height);
-ctx.globalCompositeOperation = "destination-out";
+  /* ===== INIT COVER ===== */
+  ctx.fillStyle = "#9e9e9e";
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.globalCompositeOperation = "destination-out";
 
-// draw scratch circle
-function scratch(x, y) {
-  ctx.beginPath();
-  ctx.arc(x, y, 18, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-// get % cleared
-function getScratchedPercent() {
-  const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
-  let cleared = 0;
-
-  for (let i = 3; i < img.data.length; i += 4) {
-    if (img.data[i] === 0) cleared++;
+  /* ===== DRAW SCRATCH ===== */
+  function drawScratch(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fill();
   }
 
-  return (cleared / (canvas.width * canvas.height)) * 100;
-}
+  /* ===== CALC CLEARED % ===== */
+  function getScratchedPercent() {
+    const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    let cleared = 0;
 
-// mouse
-canvas.addEventListener("mousedown", () => scratching = true);
-canvas.addEventListener("mouseup", () => scratching = false);
-canvas.addEventListener("mousemove", e => {
-  if (!scratching || scratched) return;
-  scratch(e.offsetX, e.offsetY);
-  checkScratch();
-});
+    for (let i = 3; i < img.data.length; i += 4) {
+      if (img.data[i] === 0) cleared++;
+    }
 
-// touch (mobile)
-canvas.addEventListener("touchstart", () => scratching = true);
-canvas.addEventListener("touchend", () => scratching = false);
-canvas.addEventListener("touchmove", e => {
-  if (!scratching || scratched) return;
-  const rect = canvas.getBoundingClientRect();
-  const t = e.touches[0];
-  scratch(t.clientX - rect.left, t.clientY - rect.top);
-  checkScratch();
-});
-
-async function checkScratch() {
-  const percent = getScratchedPercent();
-  if (percent > 60 && !scratched) {
-    scratched = true;
-    canvas.style.display = "none";
-    claimScratchReward();
+    return (cleared / (canvas.width * canvas.height)) * 100;
   }
-}
 
-let scratched = false;
+  /* ===== CHECK SCRATCH ===== */
+  function checkScratchProgress() {
+    if (!SCRATCH_UNLOCKED || scratched) return;
 
-function checkScratch(percent) {
-  if (!SCRATCH_UNLOCKED || scratched) return;
-
-  if (percent >= 60) {
-    scratched = true;
-    claimScratchReward();
+    const percent = getScratchedPercent();
+    if (percent >= 60) {
+      scratched = true;
+      canvas.style.display = "none";
+      claimScratchReward();
+    }
   }
+
+  /* ===== MOUSE EVENTS ===== */
+  canvas.addEventListener("mousedown", () => (scratching = true));
+  canvas.addEventListener("mouseup", () => (scratching = false));
+  canvas.addEventListener("mouseleave", () => (scratching = false));
+
+  canvas.addEventListener("mousemove", e => {
+    if (!scratching || scratched) return;
+    drawScratch(e.offsetX, e.offsetY);
+    checkScratchProgress();
+  });
+
+  /* ===== TOUCH EVENTS ===== */
+  canvas.addEventListener("touchstart", () => (scratching = true));
+  canvas.addEventListener("touchend", () => (scratching = false));
+  canvas.addEventListener("touchcancel", () => (scratching = false));
+
+  canvas.addEventListener("touchmove", e => {
+    if (!scratching || scratched) return;
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    drawScratch(t.clientX - rect.left, t.clientY - rect.top);
+    checkScratchProgress();
+  });
+
+  /* ===== RESET (CALLED AFTER CLAIM) ===== */
+  function resetScratchCard() {
+    scratched = false;
+    scratching = false;
+
+    canvas.style.display = "block";
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#9e9e9e";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalCompositeOperation = "destination-out";
+  }
+
+  /* expose reset if needed */
+  window.resetScratchCard = resetScratchCard;
 }
+
+/* =====================================================
+   SCRATCH CLAIM (SERVER)
+===================================================== */
 
 async function claimScratchReward() {
   showStatus("🎁 Claiming reward...");
@@ -172,20 +189,27 @@ async function claimScratchReward() {
     USER.balance = data.balance;
     USER.energy = data.energy;
 
-    showStatus(
-      `🎉 +${data.reward.points} points, +${data.reward.energy} energy`
-    );
-
     updateUI();
 
-    // 🔁 reset
-    SCRATCH_UNLOCKED = false;
-    scratched = false;
+    showStatus(
+      `🎉 +${data.reward.points} points, ⚡ +${data.reward.energy} energy`
+    );
 
-    document.getElementById("scratchCard").classList.add("hidden");
-    document.getElementById("scratchLock").classList.remove("hidden");
+    // 🔒 reset scratch state
+    SCRATCH_UNLOCKED = false;
+
+    const card = document.getElementById("scratchCard");
+    const lock = document.getElementById("scratchLock");
+
+    if (card) card.classList.add("hidden");
+    if (lock) lock.classList.remove("hidden");
+
+    if (window.resetScratchCard) {
+      window.resetScratchCard();
+    }
 
   } catch {
     showStatus("❌ Network error");
   }
 }
+
