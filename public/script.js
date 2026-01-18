@@ -3,8 +3,13 @@
    ANDROID WEBVIEW & PWA SAFE
 ===================================================== */
 
-/* ================= SOUND ================= */
+/* ================= AUDIO STATE ================= */
+let SOUND_UNLOCKED = false;
+
+/* ================= SOUND PLAY ================= */
 function playSound(id) {
+  if (!SOUND_UNLOCKED) return;
+
   const s = document.getElementById(id);
   if (!s) return;
 
@@ -13,34 +18,47 @@ function playSound(id) {
     s.currentTime = 0;
     s.play().catch(() => {});
   } catch (e) {
-    // shiru – Android ba zai yarda ba sai unlock
+    // shiru – Android/WebView zai iya hana
   }
 }
 
-/* 🔓 ANDROID / WEBVIEW AUDIO UNLOCK (ONCE) */
-document.addEventListener(
-  "click",
-  () => {
-    ["winSound", "loseSound"].forEach(id => {
-      const s = document.getElementById(id);
-      if (!s) return;
+/* ================= AUDIO UNLOCK (ONCE) ================= */
+/*
+  ⚠️ MUHIMMI:
+  Android / WebView ba zai yarda da sound ba
+  sai an sami USER INTERACTION (click / touch)
+*/
+function unlockSounds() {
+  if (SOUND_UNLOCKED) return;
 
+  ["winSound", "loseSound", "errorSound", "clickSound"].forEach(id => {
+    const s = document.getElementById(id);
+    if (!s) return;
+
+    try {
+      s.volume = 0; // 🔕 fara shiru
       s.play()
         .then(() => {
           s.pause();
           s.currentTime = 0;
+          s.volume = 1; // 🔊 dawo da sauti
         })
         .catch(() => {});
-    });
-  },
-  { once: true }
-);
+    } catch {}
+  });
+
+  SOUND_UNLOCKED = true;
+  console.log("🔊 Sounds unlocked");
+}
+
+document.addEventListener("click", unlockSounds, { once: true });
+document.addEventListener("touchstart", unlockSounds, { once: true });
 
 /* ================= BOX ANIMATION ================= */
 function animateBox(box, reward) {
   if (!box) return;
 
-  // tabbata OPEN BOX label ya kasance
+  // tabbata akwai label
   let label = box.querySelector(".box-label");
   if (!label) {
     label = document.createElement("span");
