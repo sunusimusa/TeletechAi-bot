@@ -213,3 +213,35 @@ async function claimScratchReward() {
   }
 }
 
+/* =====================================================
+   COIN FLY ANIMATION (REWARD FEEDBACK)
+===================================================== */
+
+function spawnCoins(amount = 10) {
+  const balanceEl = document.getElementById("balance");
+  if (!balanceEl) return;
+
+  const target = balanceEl.getBoundingClientRect();
+
+  for (let i = 0; i < amount; i++) {
+    const coin = document.createElement("div");
+    coin.className = "coin";
+
+    // start random position (center screen)
+    coin.style.left = window.innerWidth / 2 + (Math.random() * 60 - 30) + "px";
+    coin.style.top  = window.innerHeight / 2 + (Math.random() * 60 - 30) + "px";
+
+    document.body.appendChild(coin);
+
+    // animate to balance
+    setTimeout(() => {
+      coin.style.left = target.left + 20 + "px";
+      coin.style.top  = target.top + 10 + "px";
+      coin.style.opacity = "0";
+      coin.style.transform = "scale(0.5)";
+    }, 50);
+
+    setTimeout(() => coin.remove(), 900);
+  }
+}
+
