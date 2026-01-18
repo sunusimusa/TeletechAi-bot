@@ -81,19 +81,14 @@ app.post("/api/user", async (req, res) => {
 app.post("/api/ads/watch", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) {
-      return res.status(401).json({ error: "NO_SESSION" });
-    }
+    if (!sid) return res.json({ error: "NO_SESSION" });
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) {
-      return res.status(404).json({ error: "USER_NOT_FOUND" });
-    }
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    // 🎥 REWARD FROM AD
-    const ENERGY_REWARD = 5;
+    const ENERGY_REWARD = 10;
+
     user.energy += ENERGY_REWARD;
-
     await user.save();
 
     res.json({
@@ -116,17 +111,23 @@ app.post("/api/open", async (req, res) => {
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
+    const OPEN_COST = 10; // 🔋 energy cost
     let usedFree = false;
 
-    // 🎁 FREE OPEN
+    /* ================= FREE OPEN ================= */
     if (user.freeTries > 0) {
       user.freeTries -= 1;
       usedFree = true;
+
+    /* ================= ENERGY OPEN ================= */
+    } else if (user.energy >= OPEN_COST) {
+      user.energy -= OPEN_COST;
+
     } else {
-      return res.json({ error: "NO_FREE_TRIES" });
+      return res.json({ error: "NO_ENERGY" });
     }
 
-    // 🎁 reward (simple)
+    /* ================= REWARD ================= */
     const rewards = [0, 50, 100];
     const reward =
       rewards[Math.floor(Math.random() * rewards.length)];
