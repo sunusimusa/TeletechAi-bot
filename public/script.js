@@ -142,3 +142,50 @@ async function checkScratch() {
     claimScratchReward();
   }
 }
+
+let scratched = false;
+
+function checkScratch(percent) {
+  if (!SCRATCH_UNLOCKED || scratched) return;
+
+  if (percent >= 60) {
+    scratched = true;
+    claimScratchReward();
+  }
+}
+
+async function claimScratchReward() {
+  showStatus("🎁 Claiming reward...");
+
+  try {
+    const res = await fetch("/api/scratch", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+    if (data.error) {
+      showStatus("❌ " + data.error);
+      return;
+    }
+
+    USER.balance = data.balance;
+    USER.energy = data.energy;
+
+    showStatus(
+      `🎉 +${data.reward.points} points, +${data.reward.energy} energy`
+    );
+
+    updateUI();
+
+    // 🔁 reset
+    SCRATCH_UNLOCKED = false;
+    scratched = false;
+
+    document.getElementById("scratchCard").classList.add("hidden");
+    document.getElementById("scratchLock").classList.remove("hidden");
+
+  } catch {
+    showStatus("❌ Network error");
+  }
+}
