@@ -110,17 +110,38 @@ async function watchAd() {
 }
 
 async function claimDailyEnergy() {
-  const res = await fetch("/api/daily-energy", {
-    method: "POST",
-    credentials: "include"
-  });
+  if (!USER) {
+    showStatus("⏳ Initializing user...");
+    return;
+  }
 
-  const data = await res.json();
-  if (data.error) return showStatus("⏳ Already claimed today");
+  showStatus("🎁 Claiming daily energy...");
 
-  USER.energy = data.energy;
-  updateUI();
-  showStatus("🎁 Daily +50 Energy!");
+  try {
+    const res = await fetch("/api/daily-energy", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      if (data.error === "ALREADY_CLAIMED") {
+        showStatus("❌ Daily energy already claimed today");
+      } else {
+        showStatus("❌ " + data.error);
+      }
+      return;
+    }
+
+    USER.energy = data.energy;
+    updateUI();
+
+    showStatus(`⚡ +${data.added} Daily Energy!`);
+
+  } catch (err) {
+    showStatus("❌ Network error");
+  }
 }
 
 /* ================= OPEN BOX ================= */
