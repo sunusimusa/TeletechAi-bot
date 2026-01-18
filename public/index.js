@@ -14,6 +14,21 @@ document.addEventListener("DOMContentLoaded", () => {
   initUser();
 });
 
+function setDailyButtonDisabled(disabled, text) {
+  const btn = document.getElementById("dailyBtn");
+  if (!btn) return;
+
+  btn.disabled = disabled;
+
+  if (disabled) {
+    btn.classList.add("disabled");
+    btn.innerText = text || "🎁 Daily Claimed";
+  } else {
+    btn.classList.remove("disabled");
+    btn.innerText = "🎁 Daily Free Energy";
+  }
+}
+
 /* ================= USER INIT ================= */
 async function initUser() {
   try {
@@ -115,6 +130,9 @@ async function claimDailyEnergy() {
     return;
   }
 
+  const btn = document.getElementById("dailyBtn");
+  if (btn) btn.disabled = true;
+
   showStatus("🎁 Claiming daily energy...");
 
   try {
@@ -125,28 +143,29 @@ async function claimDailyEnergy() {
 
     const data = await res.json();
 
-    // ❌ an riga an karɓa yau
     if (data.error === "DAILY_ALREADY_CLAIMED") {
       showStatus("❌ Daily bonus already claimed. Come back tomorrow 🎁");
+      setDailyButtonDisabled(true, "🎁 Come back tomorrow");
       return;
     }
 
-    // ❌ wani kuskure
     if (data.error) {
       showStatus("❌ " + data.error);
+      setDailyButtonDisabled(false);
       return;
     }
 
     // ✅ update state
     USER.energy = data.energy;
-
     updateUI();
 
     showStatus(`⚡ +${data.added} Daily Energy!`);
+    setDailyButtonDisabled(true, "🎁 Come back tomorrow");
 
   } catch (err) {
     console.error("DAILY ENERGY ERROR:", err);
     showStatus("❌ Network error");
+    setDailyButtonDisabled(false);
   }
 }
 
