@@ -245,6 +245,42 @@ function spawnCoins(amount = 10) {
   }
 }
 
+function spawnCoins(count = 10) {
+  const container = document.body;
+
+  for (let i = 0; i < count; i++) {
+    const coin = document.createElement("div");
+    coin.className = "coin";
+
+    // random start
+    coin.style.left = Math.random() * window.innerWidth + "px";
+    coin.style.top = "-30px";
+
+    container.appendChild(coin);
+
+    const duration = 1200 + Math.random() * 800;
+    const xMove = (Math.random() - 0.5) * 200;
+
+    coin.animate(
+      [
+        { transform: "translate(0,0) scale(1)", opacity: 1 },
+        {
+          transform: `translate(${xMove}px, ${
+            window.innerHeight + 100
+          }px) scale(0.6)`,
+          opacity: 0
+        }
+      ],
+      {
+        duration,
+        easing: "cubic-bezier(.25,.8,.25,1)"
+      }
+    );
+
+    setTimeout(() => coin.remove(), duration);
+  }
+}
+
 /* =====================================================
    CONFETTI (SAFE LIGHT VERSION)
 ===================================================== */
