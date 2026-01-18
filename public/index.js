@@ -143,19 +143,23 @@ async function openBox(boxEl) {
 
     if (data.error) {
       showStatus("❌ " + data.error);
+      opening = false;
       return;
     }
 
-    USER.balance = data.balance;
+    // 🔄 UPDATE USER (MUHIMMI)
+    USER.balance   = data.balance;
+    USER.energy    = data.energy;
     USER.freeTries = data.freeTries;
 
+    // 📝 STATUS
     if (data.usedFree) {
-       showStatus(`🎁 Free Open Used ($
-   {USER.freeTries} left)`);
+      showStatus(`🎁 Free Open Used (${USER.freeTries} left)`);
     } else {
-       showStatus("⚡ Energy used (-10)");
+      showStatus("⚡ Energy used (-10)");
     }
 
+    // 🎬 ANIMATION
     if (typeof animateBox === "function") {
       animateBox(boxEl, data.reward);
     }
@@ -163,6 +167,7 @@ async function openBox(boxEl) {
     setTimeout(updateUI, 600);
 
   } catch (err) {
+    console.error("OPEN BOX ERROR:", err);
     showStatus("❌ Network error");
   } finally {
     opening = false;
