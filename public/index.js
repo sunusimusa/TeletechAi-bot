@@ -10,7 +10,9 @@ let INIT_TRIES = 0;
 const MAX_INIT_TRIES = 5;
 
 /* ================= INIT ================= */
-document.addEventListener("DOMContentLoaded", initUser);
+document.addEventListener("DOMContentLoaded", () => {
+  initUser();
+});
 
 /* ================= DAILY BUTTON ================= */
 function setDailyButtonDisabled(disabled, text) {
@@ -95,7 +97,7 @@ function hideStatus() {
   el.classList.add("hidden");
 }
 
-/* ================= WATCH AD ================= */
+/* ================= WATCH AD (ENERGY ONLY) ================= */
 async function watchAd() {
   if (!USER) {
     showStatus("⏳ Initializing user...");
@@ -203,7 +205,7 @@ async function openBox(boxEl) {
     USER.freeTries = data.freeTries;
 
     // 📝 STATUS MESSAGE
-    if (data.usedFree) {
+    if (data.usedFree === true) {
       showStatus(`🎁 Free Open Used (${USER.freeTries} left)`);
     } else {
       showStatus("⚡ Energy used (-10)");
@@ -224,36 +226,7 @@ async function openBox(boxEl) {
   }
 }
 
-async function claimScratchReward() {
-  showStatus("🎁 Checking reward...");
-
-  try {
-    const res = await fetch("/api/scratch", {
-      method: "POST",
-      credentials: "include"
-    });
-
-    const data = await res.json();
-
-    if (data.error) {
-      showStatus("❌ " + data.error);
-      return;
-    }
-
-    USER.balance = data.balance;
-    USER.energy = data.energy;
-
-    updateUI();
-
-    showStatus(
-      `🎉 +${data.reward.points} points, ⚡ +${data.reward.energy} energy`
-    );
-
-  } catch (err) {
-    showStatus("❌ Network error");
-  }
-}
-
+/* ================= SCRATCH ================= */
 let SCRATCH_UNLOCKED = false;
 
 async function unlockScratchByAd() {
@@ -273,15 +246,54 @@ async function unlockScratchByAd() {
 
     SCRATCH_UNLOCKED = true;
 
-    document.getElementById("scratchLock").classList.add("hidden");
-    document.getElementById("scratchCard").classList.remove("hidden");
+    const lock = document.getElementById("scratchLock");
+    const card = document.getElementById("scratchCard");
+
+    if (lock) lock.classList.add("hidden");
+    if (card) card.classList.remove("hidden");
 
     USER.energy = data.energy;
     updateUI();
 
     showStatus("🎟️ Scratch unlocked!");
 
-  } catch {
+  } catch (err) {
     showStatus("❌ Network error");
   }
 }
+
+async function claimScratchReward() {
+  if (!SCRATCH_UNLOCKED) {
+    showStatus("📺 Watch ad to unlock scratch");
+    return;
+  }
+
+  showStatus("🎁 Checking reward...");
+
+  try {
+    const res = await fetch("/api/scratch", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      showStatus("❌ " + data.error);
+      return;
+    }
+
+    USER.balance = data.balance;
+    USER.energy  = data.energy;
+
+    SCRATCH_UNLOCKED = false;
+    updateUI();
+
+    showStatus(
+      `🎉 +${data.reward.points} points, ⚡ +${data.reward.energy} energy`
+    );
+
+  } catch (err) {
+    showStatus("❌ Network error");
+  }
+  }
