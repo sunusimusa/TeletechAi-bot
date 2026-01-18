@@ -5,63 +5,45 @@
   <title>Lucky Box Game</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <!-- STYLE -->
   <link rel="stylesheet" href="style.css" />
-
-  <!-- PWA -->
   <link rel="manifest" href="/manifest.json" />
   <meta name="theme-color" content="#ffd700" />
 </head>
 <body>
 
-  <!-- ===== TITLE ===== -->
   <h2 class="title">🎁 Lucky Box Game</h2>
 
   <!-- ===== SOUNDS ===== -->
   <audio id="clickSound" src="/sounds/click.mp3" preload="auto"></audio>
-  <audio id="winSound" src="/sounds/win.mp3" preload="auto"></audio>
-  <audio id="loseSound" src="/sounds/lose.mp3" preload="auto"></audio>
+  <audio id="winSound"   src="/sounds/win.mp3" preload="auto"></audio>
+  <audio id="loseSound"  src="/sounds/lose.mp3" preload="auto"></audio>
   <audio id="errorSound" src="/sounds/error.mp3" preload="auto"></audio>
 
-  <!-- ===== SINGLE BOX ===== -->
+  <!-- ===== OPEN BOX ===== -->
   <div class="box" onclick="openBox(this)">
     <span class="box-label">OPEN BOX</span>
   </div>
 
-  <!-- ===== SCRATCH SECTION ===== -->
+  <!-- ===== SCRATCH AREA ===== -->
   <div class="scratch-wrapper">
 
-    <!-- 🔒 LOCKED STATE -->
+    <!-- LOCK -->
     <div id="scratchLock">
-  <button onclick="unlockScratchByAd()">
-    📺 Watch Ad to Unlock Scratch
-  </button>
-</div>
-
-<div id="scratchCard" class="hidden">
-  <canvas id="scratchCanvas" width="260"
-    height="140"></canvas>
-  <p>🎟️ Scratch to Win</p>
-</div>
-
-
-      <canvas
-        id="scratchCanvas"
-        width="260"
-        height="140">
-      </canvas>
+      <button onclick="unlockScratchByAd()">
+        📺 Watch Ad to Unlock Scratch
+      </button>
     </div>
 
-    <p id="scratchStatus"></p>
+    <!-- CARD -->
+    <div id="scratchCard" class="hidden">
+      <canvas id="scratchCanvas" width="260" height="140"></canvas>
+      <p class="scratch-text">🎟️ Scratch to Win</p>
+    </div>
+
   </div>
 
-  <!-- ===== STATUS MESSAGE ===== -->
+  <!-- ===== STATUS ===== -->
   <p id="statusMsg" class="hidden"></p>
-
-  <!-- ===== OFFLINE MESSAGE ===== -->
-  <p id="offlineMsg" class="hidden" style="color: orange;">
-    ⚠️ You are offline. Connect to internet to continue.
-  </p>
 
   <!-- ===== ENERGY BAR ===== -->
   <div class="energy-bar">
@@ -72,7 +54,7 @@
   <p id="balance">Balance: 0</p>
   <p id="energy">Energy: 0</p>
 
-  <!-- ===== TASKS / ADS ===== -->
+  <!-- ===== ACTIONS ===== -->
   <button class="primary-btn" onclick="location.href='/tasks.html'">
     📺 Watch Ads → Get Energy
   </button>
@@ -81,7 +63,6 @@
     🎁 Daily Free Energy
   </button>
 
-  <!-- ===== REFERRAL ===== -->
   <button class="secondary-btn" onclick="location.href='/referral.html'">
     👥 Referral Program
   </button>
@@ -92,27 +73,8 @@
     <a href="/terms.html">Terms of Service</a>
   </p>
 
-  <!-- ===== AGREEMENT MODAL ===== -->
-  <div id="agreementModal" class="agree-modal hidden">
-    <div class="agree-box">
-      <p>By using this app you agree to our Terms & Privacy.</p>
-      <button id="agreeBtn">✅ I Agree</button>
-    </div>
-  </div>
-
-  <!-- ===== SERVICE WORKER ===== -->
-  <script>
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker
-        .register("/service-worker.js")
-        .then(() => console.log("✅ App ready"))
-        .catch(err => console.error("❌ SW error", err));
-    }
-  </script>
-
   <!-- ===== SCRIPTS ===== -->
   <script src="/index.js"></script>
   <script src="/script.js"></script>
-
 </body>
 </html>
