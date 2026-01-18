@@ -112,65 +112,75 @@ function getScratchReward() {
 app.post("/api/scratch", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) {
-      return res.status(401).json({ error: "NO_SESSION" });
-    }
+    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) {
-      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+
+    // 🛑 dole sai an kalli ad
+    if (!user.scratchUnlocked) {
+      return res.json({ error: "WATCH_AD_FIRST" });
     }
 
-    const today = todayString();
-
-    // 🔁 reset daily count
-    if (user.lastScratchDay !== today) {
-      user.lastScratchDay = today;
-      user.scratchToday = 0;
+    if (user.scratchLeft <= 0) {
+      return res.json({ error: "NO_SCRATCH_LEFT" });
     }
 
-    // 🚫 daily limit
-    if (user.scratchToday >= 5) {
-      return res.json({ error: "SCRATCH_LIMIT_REACHED" });
-    }
-
-    const mode = req.body?.mode || "ad"; 
-    // mode = "ad" | "energy" | "daily"
-
-    // 🎁 DAILY FREE (1x)
-    if (mode === "daily") {
-      if (user.scratchToday > 0) {
-        return res.json({ error: "DAILY_ALREADY_USED" });
-      }
-    }
-
-    // ⚡ ENERGY MODE
-    if (mode === "energy") {
-      if (user.energy < 20) {
-        return res.json({ error: "NO_ENERGY" });
-      }
-      user.energy -= 20;
-    }
-
-    // 🎁 GET REWARD
-    const reward = getScratchReward();
+    // 🎁 reward
+    const rewards = [
+      { points: 10, energy: 0 },
+      { points: 20, energy: 5 },
+      { points: 50, energy: 10 }
+    ];
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
     user.balance += reward.points;
     user.energy += reward.energy;
-    user.scratchToday += 1;
+    user.scratchLeft -= 1;
+
+    // 🔒 lock scratch again
+    user.scratchUnlocked = false;
 
     await user.save();
 
     res.json({
       success: true,
       reward,
-      scratchLeft: Math.max(0, 5 - user.scratchToday),
+      scratchLeft: user.scratchLeft,
       balance: user.balance,
       energy: user.energy
     });
 
   } catch (err) {
     console.error("SCRATCH ERROR:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+app.post("/api/ads/watch", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
+
+    // 🔓 bada damar scratch
+    user.scratchUnlocked = true;
+
+    // ⚡ energy daga ads
+    user.energy += 20;
+
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy,
+      scratchUnlocked: true
+    });
+
+  } catch (err) {
+    console.error("ADS ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
