@@ -1,5 +1,5 @@
 /* =====================================================
-   INDEX.JS – FINAL GLOBAL USER FLOW
+   INDEX.JS – FINAL GLOBAL USER FLOW (CLEAN)
    RENDER + ANDROID WEBVIEW SAFE
 ===================================================== */
 
@@ -10,10 +10,9 @@ let INIT_TRIES = 0;
 const MAX_INIT_TRIES = 5;
 
 /* ================= INIT ================= */
-document.addEventListener("DOMContentLoaded", () => {
-  initUser();
-});
+document.addEventListener("DOMContentLoaded", initUser);
 
+/* ================= DAILY BUTTON ================= */
 function setDailyButtonDisabled(disabled, text) {
   const btn = document.getElementById("dailyBtn");
   if (!btn) return;
@@ -38,13 +37,17 @@ async function initUser() {
     });
 
     const data = await res.json();
-
-    if (!data || !data.success) {
-      throw new Error("INIT_FAILED");
-    }
+    if (!data || !data.success) throw new Error("INIT_FAILED");
 
     USER = data;
     console.log("✅ User initialized:", USER.userId);
+
+    // 🔒 DAILY STATUS
+    if (data.dailyClaimed === true) {
+      setDailyButtonDisabled(true, "🎁 Come back tomorrow");
+    } else {
+      setDailyButtonDisabled(false);
+    }
 
     hideStatus();
     updateUI();
@@ -66,11 +69,11 @@ function updateUI() {
   if (!USER) return;
 
   const bal = document.getElementById("balance");
-  const en = document.getElementById("energy");
+  const en  = document.getElementById("energy");
   const bar = document.getElementById("energyFill");
 
   if (bal) bal.innerText = `Balance: ${USER.balance}`;
-  if (en) en.innerText = `Energy: ${USER.energy}`;
+  if (en)  en.innerText  = `Energy: ${USER.energy}`;
 
   if (bar) {
     const percent = Math.min(USER.energy * 10, 100);
@@ -108,7 +111,6 @@ async function watchAd() {
     });
 
     const data = await res.json();
-
     if (data.error) {
       showStatus("❌ " + data.error);
       return;
@@ -124,15 +126,14 @@ async function watchAd() {
   }
 }
 
+/* ================= DAILY ENERGY ================= */
 async function claimDailyEnergy() {
   if (!USER) {
     showStatus("⏳ Initializing user...");
     return;
   }
 
-  const btn = document.getElementById("dailyBtn");
-  if (btn) btn.disabled = true;
-
+  setDailyButtonDisabled(true, "⏳ Claiming...");
   showStatus("🎁 Claiming daily energy...");
 
   try {
@@ -155,7 +156,6 @@ async function claimDailyEnergy() {
       return;
     }
 
-    // ✅ update state
     USER.energy = data.energy;
     updateUI();
 
@@ -176,6 +176,12 @@ async function openBox(boxEl) {
     return;
   }
 
+  // 🛑 BLOCK IF NO ENERGY & NO FREE
+  if (USER.freeTries <= 0 && USER.energy < 10) {
+    showStatus("⚡ Watch ads to get energy");
+    return;
+  }
+
   if (opening) return;
   opening = true;
 
@@ -186,19 +192,17 @@ async function openBox(boxEl) {
     });
 
     const data = await res.json();
-
     if (data.error) {
       showStatus("❌ " + data.error);
-      opening = false;
       return;
     }
 
-    // 🔄 UPDATE USER (MUHIMMI)
+    // 🔄 UPDATE USER STATE
     USER.balance   = data.balance;
     USER.energy    = data.energy;
     USER.freeTries = data.freeTries;
 
-    // 📝 STATUS
+    // 📝 STATUS MESSAGE
     if (data.usedFree) {
       showStatus(`🎁 Free Open Used (${USER.freeTries} left)`);
     } else {
