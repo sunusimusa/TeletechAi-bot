@@ -162,14 +162,18 @@ app.post("/api/daily-energy", async (req, res) => {
       return res.json({ error: "NO_USER" });
     }
 
+    // 📅 RANAR YAU (YYYY-MM-DD)
     const today = new Date().toISOString().slice(0, 10);
 
-    // ❌ idan an riga an karɓa yau
+    // ❌ an riga an karɓa yau
     if (user.lastDaily === today) {
-      return res.json({ error: "ALREADY_CLAIMED" });
+      return res.json({
+        error: "DAILY_ALREADY_CLAIMED",
+        next: "tomorrow"
+      });
     }
 
-    // ✅ ba da free energy
+    // ✅ bayarwa sau 1
     const DAILY_ENERGY = 50;
 
     user.energy += DAILY_ENERGY;
@@ -179,8 +183,9 @@ app.post("/api/daily-energy", async (req, res) => {
 
     res.json({
       success: true,
+      added: DAILY_ENERGY,
       energy: user.energy,
-      added: DAILY_ENERGY
+      date: today
     });
 
   } catch (err) {
