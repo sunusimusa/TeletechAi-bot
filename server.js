@@ -137,13 +137,13 @@ app.post("/api/scratch", async (req, res) => {
       { points: 10, energy: 0 },
       { points: 20, energy: 0 },
       { points: 50, energy: 10 },
-      { points: 0, energy: 20 }
+      { points: 0,  energy: 20 }
     ];
 
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
     user.balance += reward.points;
-    user.energy += reward.energy;
+    user.energy  += reward.energy;
     user.scratchLeft -= 1;
     user.scratchUnlocked = false;
 
@@ -154,7 +154,13 @@ app.post("/api/scratch", async (req, res) => {
       reward,
       scratchLeft: user.scratchLeft,
       balance: user.balance,
-      energy: user.energy
+      energy: user.energy,
+
+      // 🎬 UI HINTS
+      ui: {
+        coins: reward.points > 0 ? 15 : 0,
+        confetti: reward.points >= 50
+      }
     });
 
   } catch (err) {
@@ -186,8 +192,8 @@ app.post("/api/open", async (req, res) => {
 
     const rewards = [0, 50, 100];
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
-    user.balance += reward;
 
+    user.balance += reward;
     await user.save();
 
     res.json({
@@ -196,7 +202,13 @@ app.post("/api/open", async (req, res) => {
       balance: user.balance,
       energy: user.energy,
       freeTries: user.freeTries,
-      usedFree
+      usedFree,
+
+      // 🎬 UI HINTS
+      ui: {
+        coins: reward > 0 ? 12 : 0,
+        confetti: reward >= 50
+      }
     });
 
   } catch (err) {
@@ -228,7 +240,12 @@ app.post("/api/daily-energy", async (req, res) => {
     res.json({
       success: true,
       added: DAILY,
-      energy: user.energy
+      energy: user.energy,
+
+      // 🎬 UI HINTS
+      ui: {
+        confetti: true
+      }
     });
 
   } catch (err) {
