@@ -111,15 +111,15 @@ app.post("/api/open", async (req, res) => {
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const OPEN_COST = 10; // 🔋 energy cost
+    const OPEN_COST = 10;
     let usedFree = false;
 
-    /* ================= FREE OPEN ================= */
+    // 🟢 FREE TRIES FARKO
     if (user.freeTries > 0) {
       user.freeTries -= 1;
       usedFree = true;
 
-    /* ================= ENERGY OPEN ================= */
+    // 🔋 ENERGY OPEN
     } else if (user.energy >= OPEN_COST) {
       user.energy -= OPEN_COST;
 
@@ -127,15 +127,15 @@ app.post("/api/open", async (req, res) => {
       return res.json({ error: "NO_ENERGY" });
     }
 
-    /* ================= REWARD ================= */
+    // 🎁 REWARD
     const rewards = [0, 50, 100];
-    const reward =
-      rewards[Math.floor(Math.random() * rewards.length)];
-
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
+
+    // 🔐 MUHIMMI
     await user.save();
 
-    res.json({
+    return res.json({
       success: true,
       reward,
       balance: user.balance,
@@ -146,6 +146,35 @@ app.post("/api/open", async (req, res) => {
 
   } catch (err) {
     console.error("OPEN ERROR:", err);
+    return res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+app.post("/api/daily-energy", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) return res.json({ error: "NO_SESSION" });
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+    if (user.lastDailyEnergy === today) {
+      return res.json({ error: "ALREADY_CLAIMED" });
+    }
+
+    user.energy += 50;
+    user.lastDailyEnergy = today;
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy
+    });
+
+  } catch (err) {
+    console.error("DAILY ENERGY ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
