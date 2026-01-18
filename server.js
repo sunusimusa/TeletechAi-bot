@@ -69,6 +69,7 @@ app.post("/api/user", async (req, res) => {
       balance: user.balance,
       energy: user.energy,
       freeTries: user.freeTries
+      dailyClaimed: user.lastDaily === TODAY_STRING
     });
 
   } catch (err) {
