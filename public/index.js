@@ -223,3 +223,33 @@ async function openBox(boxEl) {
     opening = false;
   }
 }
+
+async function claimScratchReward() {
+  showStatus("🎁 Checking reward...");
+
+  try {
+    const res = await fetch("/api/scratch", {
+      method: "POST",
+      credentials: "include"
+    });
+
+    const data = await res.json();
+
+    if (data.error) {
+      showStatus("❌ " + data.error);
+      return;
+    }
+
+    USER.balance = data.balance;
+    USER.energy = data.energy;
+
+    updateUI();
+
+    showStatus(
+      `🎉 +${data.reward.points} points, ⚡ +${data.reward.energy} energy`
+    );
+
+  } catch (err) {
+    showStatus("❌ Network error");
+  }
+}
