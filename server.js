@@ -153,24 +153,34 @@ app.post("/api/open", async (req, res) => {
 app.post("/api/daily-energy", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.json({ error: "NO_SESSION" });
+    if (!sid) {
+      return res.json({ error: "NO_SESSION" });
+    }
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+    if (!user) {
+      return res.json({ error: "NO_USER" });
+    }
 
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = new Date().toISOString().slice(0, 10);
 
-    if (user.lastDailyEnergy === today) {
+    // ❌ idan an riga an karɓa yau
+    if (user.lastDaily === today) {
       return res.json({ error: "ALREADY_CLAIMED" });
     }
 
-    user.energy += 50;
-    user.lastDailyEnergy = today;
+    // ✅ ba da free energy
+    const DAILY_ENERGY = 50;
+
+    user.energy += DAILY_ENERGY;
+    user.lastDaily = today;
+
     await user.save();
 
     res.json({
       success: true,
-      energy: user.energy
+      energy: user.energy,
+      added: DAILY_ENERGY
     });
 
   } catch (err) {
