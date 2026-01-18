@@ -33,16 +33,17 @@
 
     <!-- 🔒 LOCKED STATE -->
     <div id="scratchLock">
-      <button onclick="unlockScratchByAd()">
-        📺 Watch Ad to Unlock Scratch
-      </button>
-    </div>
+  <button onclick="unlockScratchByAd()">
+    📺 Watch Ad to Unlock Scratch
+  </button>
+</div>
 
-    <!-- 🎟️ SCRATCH CARD -->
-    <div id="scratchCard" class="hidden">
-      <div class="scratch-reward">
-        🎁 SCRATCH & WIN
-      </div>
+<div id="scratchCard" class="hidden">
+  <canvas id="scratchCanvas" width="260"
+    height="140"></canvas>
+  <p>🎟️ Scratch to Win</p>
+</div>
+
 
       <canvas
         id="scratchCanvas"
