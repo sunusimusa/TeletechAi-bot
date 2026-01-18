@@ -109,6 +109,20 @@ async function watchAd() {
   }
 }
 
+async function claimDailyEnergy() {
+  const res = await fetch("/api/daily-energy", {
+    method: "POST",
+    credentials: "include"
+  });
+
+  const data = await res.json();
+  if (data.error) return showStatus("⏳ Already claimed today");
+
+  USER.energy = data.energy;
+  updateUI();
+  showStatus("🎁 Daily +50 Energy!");
+}
+
 /* ================= OPEN BOX ================= */
 async function openBox(boxEl) {
   if (!USER) {
