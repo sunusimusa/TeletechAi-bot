@@ -237,6 +237,109 @@ app.post("/api/daily-energy", async (req, res) => {
   }
 });
 
+/* ================= ADS = ENERGY + UNLOCK SCRATCH ================= */
+app.post("/api/ads/watch", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) {
+      return res.status(401).json({ error: "NO_SESSION" });
+    }
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    // 📅 yau (don iyaka ads/day)
+    const TODAY = new Date().toISOString().slice(0, 10);
+
+    // 🔄 reset count idan sabuwar rana
+    if (user.lastAdDay !== TODAY) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = TODAY;
+    }
+
+    // ⛔ iyaka (misali 10 ads a rana)
+    const MAX_ADS_PER_DAY = 10;
+    if (user.adsWatchedToday >= MAX_ADS_PER_DAY) {
+      return res.json({ error: "ADS_LIMIT_REACHED" });
+    }
+
+    // ⚡ sakamako
+    const ENERGY_REWARD = 20;
+
+    user.energy += ENERGY_REWARD;     // ⚡ energy kawai
+    user.scratchUnlocked = true;      // 🎟️ buɗe scratch
+    user.adsWatchedToday += 1;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      added: ENERGY_REWARD,
+      energy: user.energy,
+      scratchUnlocked: true,
+      adsWatchedToday: user.adsWatchedToday
+    });
+
+  } catch (err) {
+    console.error("ADS WATCH ERROR:", err);
+    return res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= ADS → FREE OPEN BOX ================= */
+app.post("/api/ads/open-box", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) {
+      return res.status(401).json({ error: "NO_SESSION" });
+    }
+
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
+
+    // 📅 yau (iyaka ads/day)
+    const TODAY = new Date().toISOString().slice(0, 10);
+
+    // 🔄 reset idan sabuwar rana
+    if (user.lastAdDay !== TODAY) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = TODAY;
+    }
+
+    const MAX_ADS_OPEN_PER_DAY = 5; // 🔧 zaka iya canzawa
+    if (user.adsWatchedToday >= MAX_ADS_OPEN_PER_DAY) {
+      return res.json({ error: "ADS_OPEN_LIMIT_REACHED" });
+    }
+
+    // 🎁 REWARD LOGIC (OPEN BOX)
+    const rewards = [0, 50, 100];
+    const reward = rewards[Math.floor(Math.random() * rewards.length)];
+
+    // 🧠 ADS OPEN = babu energy cost
+    user.balance += reward;
+    user.adsWatchedToday += 1;
+
+    await user.save();
+
+    return res.json({
+      success: true,
+      from: "ads",
+      reward,
+      balance: user.balance,
+      energy: user.energy,          // bai canza ba
+      adsWatchedToday: user.adsWatchedToday
+    });
+
+  } catch (err) {
+    console.error("ADS OPEN BOX ERROR:", err);
+    return res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
 /* ================= START ================= */
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
