@@ -136,7 +136,10 @@ async function openBox(boxEl) {
     USER.freeTries = data.freeTries;
 
     if (data.usedFree) {
-      showStatus(`🎁 Free Open Used (${USER.freeTries} left)`);
+       showStatus(`🎁 Free Open Used ($
+   {USER.freeTries} left)`);
+    } else {
+       showStatus("⚡ Energy used (-10)");
     }
 
     if (typeof animateBox === "function") {
