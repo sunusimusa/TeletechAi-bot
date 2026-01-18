@@ -91,27 +91,51 @@ app.post("/api/user", async (req, res) => {
   }
 });
 
-/* ================= WATCH AD ================= */
+/* ================= API: WATCH AD (ENERGY ONLY) ================= */
 app.post("/api/ads/watch", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) return res.json({ error: "NO_SESSION" });
+    if (!sid) {
+      return res.status(401).json({ error: "NO_SESSION" });
+    }
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.json({ error: "USER_NOT_FOUND" });
+    if (!user) {
+      return res.status(404).json({ error: "USER_NOT_FOUND" });
+    }
 
-    const ENERGY_REWARD = 10;
+    // 📅 yau (don iyaka ads/day idan ka so daga baya)
+    const TODAY = new Date().toISOString().slice(0, 10);
+
+    // 🧠 reset idan sabuwar rana
+    if (user.lastAdDay !== TODAY) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = TODAY;
+    }
+
+    // ⛔ iyaka (misali 10 ads / day)
+    const MAX_ADS_PER_DAY = 10;
+    if (user.adsWatchedToday >= MAX_ADS_PER_DAY) {
+      return res.json({ error: "ADS_LIMIT_REACHED" });
+    }
+
+    // ⚡ ENERGY REWARD
+    const ENERGY_REWARD = 20;
 
     user.energy += ENERGY_REWARD;
+    user.adsWatchedToday += 1;
+
     await user.save();
 
     res.json({
       success: true,
-      energy: user.energy
+      added: ENERGY_REWARD,
+      energy: user.energy,
+      adsWatchedToday: user.adsWatchedToday
     });
 
   } catch (err) {
-    console.error("ADS ERROR:", err);
+    console.error("ADS WATCH ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
