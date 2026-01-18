@@ -155,3 +155,36 @@ button:disabled {
   pointer-events: none;
   filter: grayscale(0.4);
 }
+
+.scratch-wrapper {
+  margin: 20px auto;
+  text-align: center;
+}
+
+#scratchCard {
+  position: relative;
+  width: 260px;
+  height: 140px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #ffd700, #ff9800);
+  box-shadow: 0 12px 30px rgba(0,0,0,.7);
+}
+
+.scratch-reward {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 18px;
+  color: #000;
+}
+
+#scratchCanvas {
+  position: absolute;
+  inset: 0;
+  background: #999;
+  touch-action: none; /* 🔥 mobile swipe */
+}
