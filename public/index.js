@@ -125,21 +125,27 @@ async function claimDailyEnergy() {
 
     const data = await res.json();
 
-    if (data.error) {
-      if (data.error === "ALREADY_CLAIMED") {
-        showStatus("❌ Daily energy already claimed today");
-      } else {
-        showStatus("❌ " + data.error);
-      }
+    // ❌ an riga an karɓa yau
+    if (data.error === "DAILY_ALREADY_CLAIMED") {
+      showStatus("❌ Daily bonus already claimed. Come back tomorrow 🎁");
       return;
     }
 
+    // ❌ wani kuskure
+    if (data.error) {
+      showStatus("❌ " + data.error);
+      return;
+    }
+
+    // ✅ update state
     USER.energy = data.energy;
+
     updateUI();
 
     showStatus(`⚡ +${data.added} Daily Energy!`);
 
   } catch (err) {
+    console.error("DAILY ENERGY ERROR:", err);
     showStatus("❌ Network error");
   }
 }
