@@ -188,3 +188,33 @@ button:disabled {
   background: #999;
   touch-action: none; /* 🔥 mobile swipe */
 }
+
+/* ================= COIN ================= */
+.coin {
+  position: fixed;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: radial-gradient(circle, #fff176, #ffb300);
+  z-index: 9999;
+  pointer-events: none;
+  transition: all .8s ease;
+}
+
+/* ================= CONFETTI ================= */
+.confetti {
+  position: fixed;
+  top: -10px;
+  width: 8px;
+  height: 14px;
+  opacity: .9;
+  z-index: 9999;
+  animation: fall 1.5s linear forwards;
+}
+
+@keyframes fall {
+  to {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
