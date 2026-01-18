@@ -1,5 +1,5 @@
 /* =====================================================
-   SCRIPT.JS – UI + ANIMATION + SOUND (FINAL CLEAN)
+   SCRIPT.JS – UI + ANIMATION + SOUND (FINAL FIXED)
    ANDROID WEBVIEW & PWA SAFE
 ===================================================== */
 
@@ -8,35 +8,37 @@ let SOUND_UNLOCKED = false;
 
 /* ================= SOUND PLAY ================= */
 function playSound(id) {
-  if (!SOUND_UNLOCKED) return;
-
   const s = document.getElementById(id);
   if (!s) return;
 
+  if (!SOUND_UNLOCKED) {
+    console.log("🔇 Sound locked:", id);
+    return;
+  }
+
   try {
-    s.pause();
     s.currentTime = 0;
     s.play().catch(() => {});
-  } catch {
-    // Android/WebView na iya hana autoplay
-  }
+  } catch {}
 }
 
-/* ================= AUDIO UNLOCK (ONCE) ================= */
+/* ================= AUDIO UNLOCK (ANDROID SAFE) ================= */
 function unlockSounds() {
   if (SOUND_UNLOCKED) return;
 
-  ["winSound", "loseSound", "errorSound", "clickSound"].forEach(id => {
+  const ids = ["clickSound", "winSound", "loseSound", "errorSound"];
+
+  ids.forEach(id => {
     const s = document.getElementById(id);
     if (!s) return;
 
     try {
-      s.volume = 0;
+      s.muted = true;
       s.play()
         .then(() => {
           s.pause();
           s.currentTime = 0;
-          s.volume = 1;
+          s.muted = false;
         })
         .catch(() => {});
     } catch {}
@@ -62,6 +64,7 @@ function animateBox(box, reward) {
     box.appendChild(label);
   }
 
+  playSound("clickSound");
   box.classList.add("opened");
 
   if (reward > 0) {
@@ -82,247 +85,132 @@ function animateBox(box, reward) {
    SCRATCH CARD (REAL SWIPE / RUB)
 ===================================================== */
 
-/* ================= SCRATCH CANVAS ================= */
 const canvas = document.getElementById("scratchCanvas");
-if (!canvas) return;
+let ctx, W, H;
 
-const ctx = canvas.getContext("2d");
+if (canvas) {
+  ctx = canvas.getContext("2d");
+  W = canvas.width;
+  H = canvas.height;
 
-/* real canvas size (MUHIMMI) */
-const W = canvas.width;
-const H = canvas.height;
+  let scratching = false;
+  let scratched = false;
 
-/* state */
-let scratching = false;
-let scratched = false;
-
-/* fill cover */
-ctx.fillStyle = "#9e9e9e";
-ctx.fillRect(0, 0, W, H);
-ctx.globalCompositeOperation = "destination-out";
-
-/* scratch brush */
-function scratch(x, y) {
-  ctx.beginPath();
-  ctx.arc(x, y, 18, 0, Math.PI * 2);
-  ctx.fill();
-}
-
-/* % cleared */
-function scratchedPercent() {
-  const img = ctx.getImageData(0, 0, W, H).data;
-  let cleared = 0;
-
-  for (let i = 3; i < img.length; i += 4) {
-    if (img[i] === 0) cleared++;
+  function initScratch() {
+    ctx.globalCompositeOperation = "source-over";
+    ctx.fillStyle = "#9e9e9e";
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "destination-out";
+    scratched = false;
+    canvas.style.display = "block";
   }
 
-  return (cleared / (W * H)) * 100;
-}
+  initScratch();
+  window.resetScratchCard = initScratch;
 
-/* ================= MOUSE ================= */
-canvas.addEventListener("mousedown", e => {
-  scratching = true;
-});
-
-canvas.addEventListener("mouseup", () => {
-  scratching = false;
-});
-
-canvas.addEventListener("mousemove", e => {
-  if (!scratching || scratched) return;
-  scratch(e.offsetX, e.offsetY);
-  checkScratch();
-});
-
-/* ================= TOUCH (ANDROID) ================= */
-canvas.addEventListener("touchstart", e => {
-  e.preventDefault(); // 🔥 MUHIMMI
-  scratching = true;
-}, { passive: false });
-
-canvas.addEventListener("touchend", e => {
-  e.preventDefault();
-  scratching = false;
-}, { passive: false });
-
-canvas.addEventListener("touchmove", e => {
-  e.preventDefault(); // 🔥 MUHIMMI
-  if (!scratching || scratched) return;
-
-  const rect = canvas.getBoundingClientRect();
-  const t = e.touches[0];
-
-  scratch(
-    t.clientX - rect.left,
-    t.clientY - rect.top
-  );
-
-  checkScratch();
-}, { passive: false });
-
-/* ================= CHECK ================= */
-function checkScratch() {
-  if (scratched) return;
-
-  const p = scratchedPercent();
-  if (p >= 60) {
-    scratched = true;
-    canvas.style.display = "none";
-    claimScratchReward();
+  function scratch(x, y) {
+    ctx.beginPath();
+    ctx.arc(x, y, 18, 0, Math.PI * 2);
+    ctx.fill();
   }
+
+  function scratchedPercent() {
+    const img = ctx.getImageData(0, 0, W, H).data;
+    let cleared = 0;
+    for (let i = 3; i < img.length; i += 4) {
+      if (img[i] === 0) cleared++;
+    }
+    return (cleared / (W * H)) * 100;
+  }
+
+  function checkScratch() {
+    if (scratched) return;
+    if (scratchedPercent() >= 60) {
+      scratched = true;
+      canvas.style.display = "none";
+      claimScratchReward();
+    }
+  }
+
+  /* mouse */
+  canvas.addEventListener("mousedown", () => scratching = true);
+  canvas.addEventListener("mouseup", () => scratching = false);
+  canvas.addEventListener("mousemove", e => {
+    if (!scratching || scratched) return;
+    scratch(e.offsetX, e.offsetY);
+    checkScratch();
+  });
+
+  /* touch */
+  canvas.addEventListener("touchstart", e => {
+    e.preventDefault();
+    scratching = true;
+  }, { passive: false });
+
+  canvas.addEventListener("touchend", e => {
+    e.preventDefault();
+    scratching = false;
+  }, { passive: false });
+
+  canvas.addEventListener("touchmove", e => {
+    e.preventDefault();
+    if (!scratching || scratched) return;
+    const rect = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    scratch(t.clientX - rect.left, t.clientY - rect.top);
+    checkScratch();
+  }, { passive: false });
 }
 
 /* =====================================================
-   SCRATCH CLAIM (SERVER)
+   COIN FLY (ONE VERSION ONLY)
 ===================================================== */
+function spawnCoins(count = 12) {
+  const target = document.getElementById("balance");
+  if (!target) return;
 
-async function claimScratchReward() {
-  showStatus("🎁 Claiming reward...");
+  const rect = target.getBoundingClientRect();
 
-  try {
-    const res = await fetch("/api/scratch", {
-      method: "POST",
-      credentials: "include"
-    });
-
-    const data = await res.json();
-    if (data.error) {
-      showStatus("❌ " + data.error);
-      return;
-    }
-
-    USER.balance = data.balance;
-    USER.energy = data.energy;
-
-    updateUI();
-
-    showStatus(
-      `🎉 +${data.reward.points} points, ⚡ +${data.reward.energy} energy`
-    );
-
-    // 🔒 reset scratch state
-    SCRATCH_UNLOCKED = false;
-
-    const card = document.getElementById("scratchCard");
-    const lock = document.getElementById("scratchLock");
-
-    if (card) card.classList.add("hidden");
-    if (lock) lock.classList.remove("hidden");
-
-    if (window.resetScratchCard) {
-      window.resetScratchCard();
-    }
-
-  } catch {
-    showStatus("❌ Network error");
-  }
-}
-
-/* =====================================================
-   COIN FLY ANIMATION (REWARD FEEDBACK)
-===================================================== */
-
-function spawnCoins(amount = 10) {
-  const balanceEl = document.getElementById("balance");
-  if (!balanceEl) return;
-
-  const target = balanceEl.getBoundingClientRect();
-
-  for (let i = 0; i < amount; i++) {
+  for (let i = 0; i < count; i++) {
     const coin = document.createElement("div");
     coin.className = "coin";
-
-    // start random position (center screen)
-    coin.style.left = window.innerWidth / 2 + (Math.random() * 60 - 30) + "px";
-    coin.style.top  = window.innerHeight / 2 + (Math.random() * 60 - 30) + "px";
-
+    coin.style.left = window.innerWidth / 2 + "px";
+    coin.style.top = window.innerHeight / 2 + "px";
     document.body.appendChild(coin);
 
-    // animate to balance
     setTimeout(() => {
-      coin.style.left = target.left + 20 + "px";
-      coin.style.top  = target.top + 10 + "px";
+      coin.style.left = rect.left + 20 + "px";
+      coin.style.top = rect.top + 10 + "px";
       coin.style.opacity = "0";
-      coin.style.transform = "scale(0.5)";
     }, 50);
 
     setTimeout(() => coin.remove(), 900);
   }
 }
 
-function spawnCoins(count = 10) {
-  const container = document.body;
-
-  for (let i = 0; i < count; i++) {
-    const coin = document.createElement("div");
-    coin.className = "coin";
-
-    // random start
-    coin.style.left = Math.random() * window.innerWidth + "px";
-    coin.style.top = "-30px";
-
-    container.appendChild(coin);
-
-    const duration = 1200 + Math.random() * 800;
-    const xMove = (Math.random() - 0.5) * 200;
-
-    coin.animate(
-      [
-        { transform: "translate(0,0) scale(1)", opacity: 1 },
-        {
-          transform: `translate(${xMove}px, ${
-            window.innerHeight + 100
-          }px) scale(0.6)`,
-          opacity: 0
-        }
-      ],
-      {
-        duration,
-        easing: "cubic-bezier(.25,.8,.25,1)"
-      }
-    );
-
-    setTimeout(() => coin.remove(), duration);
-  }
-}
-
 /* =====================================================
-   CONFETTI (SAFE LIGHT VERSION)
+   CONFETTI
 ===================================================== */
-
 function launchConfetti(count = 30) {
   for (let i = 0; i < count; i++) {
-    const conf = document.createElement("div");
-    conf.className = "confetti";
-
-    conf.style.left = Math.random() * window.innerWidth + "px";
-    conf.style.backgroundColor =
+    const c = document.createElement("div");
+    c.className = "confetti";
+    c.style.left = Math.random() * window.innerWidth + "px";
+    c.style.backgroundColor =
       ["#ffd700", "#ff5722", "#4caf50", "#03a9f4"][
         Math.floor(Math.random() * 4)
       ];
 
-    document.body.appendChild(conf);
+    document.body.appendChild(c);
 
-    const duration = 1000 + Math.random() * 1000;
-    const x = (Math.random() - 0.5) * 300;
-
-    conf.animate(
+    c.animate(
       [
-        { transform: "translate(0,0)", opacity: 1 },
-        {
-          transform: `translate(${x}px, ${
-            window.innerHeight
-          }px) rotate(${Math.random() * 720}deg)`,
-          opacity: 0
-        }
+        { transform: "translateY(0)", opacity: 1 },
+        { transform: `translateY(${window.innerHeight}px)`, opacity: 0 }
       ],
-      {
-        duration,
-        easing: "ease-out"
-      }
+      { duration: 1500 + Math.random() * 1000 }
     );
 
-    setTimeout(() => conf.remove(), duration);
+    setTimeout(() => c.remove(), 2000);
   }
 }
