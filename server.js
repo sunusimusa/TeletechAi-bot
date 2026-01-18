@@ -9,80 +9,67 @@ import User from "./models/User.js";
 
 const app = express();
 
-/* ================= PATH FIX ================= */
+/* ================= PATH ================= */
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 /* ================= MIDDLEWARE ================= */
 app.use(express.json());
 app.use(cookieParser());
+app.use(cors({ origin: true, credentials: true }));
 
-app.use(cors({
-  origin: true,
-  credentials: true
-}));
-
-/* ================= SERVE FRONTEND ================= */
+/* ================= STATIC ================= */
 app.use(express.static(path.join(__dirname, "public")));
-
-/* ================= ROOT ================= */
-app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname, "public", "index.html"));
-});
+app.get("/", (req, res) =>
+  res.sendFile(path.join(__dirname, "public", "index.html"))
+);
 
 /* ================= DB ================= */
-mongoose.connect(process.env.MONGODB_URI)
+mongoose
+  .connect(process.env.MONGODB_URI)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.error("❌ MongoDB error", err));
-/* ================= API: USER INIT ================= */
+
+/* ================= HELPERS ================= */
+const todayString = () => new Date().toISOString().slice(0, 10);
+
+/* ================= USER INIT ================= */
 app.post("/api/user", async (req, res) => {
   try {
     let sid = req.cookies.sid;
-    let user = null;
+    let user = sid ? await User.findOne({ sessionId: sid }) : null;
 
-    // 📅 today string (don daily)
-    const TODAY_STRING = new Date().toISOString().slice(0, 10);
-
-    // 1️⃣ Idan akwai session → nemo user
-    if (sid) {
-      user = await User.findOne({ sessionId: sid });
-    }
-
-    // 2️⃣ Idan babu user → ƙirƙiri sabo
     if (!user) {
       sid = crypto.randomUUID();
 
       user = await User.create({
         userId: "USER_" + Date.now(),
         sessionId: sid,
-
         balance: 0,
         energy: 0,
-
-        freeTries: 5,        // 🎁 FREE OPEN ×5
-        lastDaily: ""        // don daily energy
+        freeTries: 5,           // 🎁 free opens
+        scratchLeft: 3,
+        scratchUnlocked: false,
+        lastDaily: ""
       });
 
-      // 🍪 COOKIE (Render + Android WebView SAFE)
       res.cookie("sid", sid, {
         httpOnly: true,
-        sameSite: "lax",     // ✅ mafi aminci
+        sameSite: "lax",
         secure: process.env.NODE_ENV === "production",
         path: "/"
       });
     }
 
-    // 3️⃣ Response (SOURCE OF TRUTH)
     res.json({
       success: true,
-
       userId: user.userId,
       balance: user.balance,
       energy: user.energy,
       freeTries: user.freeTries,
-
-      // 🗓️ daily status
-      dailyClaimed: user.lastDaily === TODAY_STRING
+      scratchLeft: user.scratchLeft,
+      scratchUnlocked: user.scratchUnlocked,
+      dailyClaimed: user.lastDaily === todayString()
     });
 
   } catch (err) {
@@ -91,24 +78,47 @@ app.post("/api/user", async (req, res) => {
   }
 });
 
-function todayString() {
-  const d = new Date();
-  return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate();
-}
+/* ================= ADS = ENERGY + UNLOCK SCRATCH ================= */
+app.post("/api/ads/watch", async (req, res) => {
+  try {
+    const sid = req.cookies.sid;
+    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
 
-function getScratchReward() {
-  const roll = Math.random() * 100;
+    const user = await User.findOne({ sessionId: sid });
+    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
 
-  if (roll < 40) return { points: 10, energy: 0 };
-  if (roll < 65) return { points: 20, energy: 0 };
-  if (roll < 80) return { points: 50, energy: 0 };
-  if (roll < 90) return { points: 0, energy: 10 };
-  if (roll < 98) return { points: 0, energy: 20 };
+    const TODAY = todayString();
 
-  // 🎉 JACKPOT
-  return { points: 100, energy: 0 };
-}
+    if (user.lastAdDay !== TODAY) {
+      user.adsWatchedToday = 0;
+      user.lastAdDay = TODAY;
+    }
 
+    const MAX_ADS = 10;
+    if (user.adsWatchedToday >= MAX_ADS) {
+      return res.json({ error: "ADS_LIMIT_REACHED" });
+    }
+
+    user.adsWatchedToday += 1;
+    user.energy += 20;              // ⚡ energy
+    user.scratchUnlocked = true;    // 🎟️ unlock scratch
+
+    await user.save();
+
+    res.json({
+      success: true,
+      energy: user.energy,
+      scratchUnlocked: true,
+      adsWatchedToday: user.adsWatchedToday
+    });
+
+  } catch (err) {
+    console.error("ADS ERROR:", err);
+    res.status(500).json({ error: "SERVER_ERROR" });
+  }
+});
+
+/* ================= SCRATCH ================= */
 app.post("/api/scratch", async (req, res) => {
   try {
     const sid = req.cookies.sid;
@@ -117,28 +127,24 @@ app.post("/api/scratch", async (req, res) => {
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
 
-    // 🛑 dole sai an kalli ad
-    if (!user.scratchUnlocked) {
+    if (!user.scratchUnlocked)
       return res.json({ error: "WATCH_AD_FIRST" });
-    }
 
-    if (user.scratchLeft <= 0) {
+    if (user.scratchLeft <= 0)
       return res.json({ error: "NO_SCRATCH_LEFT" });
-    }
 
-    // 🎁 reward
     const rewards = [
       { points: 10, energy: 0 },
-      { points: 20, energy: 5 },
-      { points: 50, energy: 10 }
+      { points: 20, energy: 0 },
+      { points: 50, energy: 10 },
+      { points: 0, energy: 20 }
     ];
+
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
 
     user.balance += reward.points;
     user.energy += reward.energy;
     user.scratchLeft -= 1;
-
-    // 🔒 lock scratch again
     user.scratchUnlocked = false;
 
     await user.save();
@@ -157,83 +163,6 @@ app.post("/api/scratch", async (req, res) => {
   }
 });
 
-app.post("/api/ads/watch", async (req, res) => {
-  try {
-    const sid = req.cookies.sid;
-    if (!sid) return res.status(401).json({ error: "NO_SESSION" });
-
-    const user = await User.findOne({ sessionId: sid });
-    if (!user) return res.status(404).json({ error: "USER_NOT_FOUND" });
-
-    // 🔓 bada damar scratch
-    user.scratchUnlocked = true;
-
-    // ⚡ energy daga ads
-    user.energy += 20;
-
-    await user.save();
-
-    res.json({
-      success: true,
-      energy: user.energy,
-      scratchUnlocked: true
-    });
-
-  } catch (err) {
-    console.error("ADS ERROR:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
-/* ================= API: WATCH AD (ENERGY ONLY) ================= */
-app.post("/api/ads/watch", async (req, res) => {
-  try {
-    const sid = req.cookies.sid;
-    if (!sid) {
-      return res.status(401).json({ error: "NO_SESSION" });
-    }
-
-    const user = await User.findOne({ sessionId: sid });
-    if (!user) {
-      return res.status(404).json({ error: "USER_NOT_FOUND" });
-    }
-
-    // 📅 yau (don iyaka ads/day idan ka so daga baya)
-    const TODAY = new Date().toISOString().slice(0, 10);
-
-    // 🧠 reset idan sabuwar rana
-    if (user.lastAdDay !== TODAY) {
-      user.adsWatchedToday = 0;
-      user.lastAdDay = TODAY;
-    }
-
-    // ⛔ iyaka (misali 10 ads / day)
-    const MAX_ADS_PER_DAY = 10;
-    if (user.adsWatchedToday >= MAX_ADS_PER_DAY) {
-      return res.json({ error: "ADS_LIMIT_REACHED" });
-    }
-
-    // ⚡ ENERGY REWARD
-    const ENERGY_REWARD = 20;
-
-    user.energy += ENERGY_REWARD;
-    user.adsWatchedToday += 1;
-
-    await user.save();
-
-    res.json({
-      success: true,
-      added: ENERGY_REWARD,
-      energy: user.energy,
-      adsWatchedToday: user.adsWatchedToday
-    });
-
-  } catch (err) {
-    console.error("ADS WATCH ERROR:", err);
-    res.status(500).json({ error: "SERVER_ERROR" });
-  }
-});
-
 /* ================= OPEN BOX ================= */
 app.post("/api/open", async (req, res) => {
   try {
@@ -243,31 +172,25 @@ app.post("/api/open", async (req, res) => {
     const user = await User.findOne({ sessionId: sid });
     if (!user) return res.json({ error: "USER_NOT_FOUND" });
 
-    const OPEN_COST = 10;
+    const COST = 10;
     let usedFree = false;
 
-    // 🟢 FREE TRIES FARKO
     if (user.freeTries > 0) {
-      user.freeTries -= 1;
+      user.freeTries--;
       usedFree = true;
-
-    // 🔋 ENERGY OPEN
-    } else if (user.energy >= OPEN_COST) {
-      user.energy -= OPEN_COST;
-
+    } else if (user.energy >= COST) {
+      user.energy -= COST;
     } else {
       return res.json({ error: "NO_ENERGY" });
     }
 
-    // 🎁 REWARD
     const rewards = [0, 50, 100];
     const reward = rewards[Math.floor(Math.random() * rewards.length)];
     user.balance += reward;
 
-    // 🔐 MUHIMMI
     await user.save();
 
-    return res.json({
+    res.json({
       success: true,
       reward,
       balance: user.balance,
@@ -278,55 +201,44 @@ app.post("/api/open", async (req, res) => {
 
   } catch (err) {
     console.error("OPEN ERROR:", err);
-    return res.status(500).json({ error: "SERVER_ERROR" });
+    res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
+/* ================= DAILY ENERGY ================= */
 app.post("/api/daily-energy", async (req, res) => {
   try {
     const sid = req.cookies.sid;
-    if (!sid) {
-      return res.json({ error: "NO_SESSION" });
-    }
+    if (!sid) return res.json({ error: "NO_SESSION" });
 
     const user = await User.findOne({ sessionId: sid });
-    if (!user) {
-      return res.json({ error: "NO_USER" });
-    }
+    if (!user) return res.json({ error: "NO_USER" });
 
-    // 📅 RANAR YAU (YYYY-MM-DD)
-    const today = new Date().toISOString().slice(0, 10);
-
-    // ❌ an riga an karɓa yau
+    const today = todayString();
     if (user.lastDaily === today) {
-      return res.json({
-        error: "DAILY_ALREADY_CLAIMED",
-        next: "tomorrow"
-      });
+      return res.json({ error: "DAILY_ALREADY_CLAIMED" });
     }
 
-    // ✅ bayarwa sau 1
-    const DAILY_ENERGY = 50;
-
-    user.energy += DAILY_ENERGY;
+    const DAILY = 50;
+    user.energy += DAILY;
     user.lastDaily = today;
 
     await user.save();
 
     res.json({
       success: true,
-      added: DAILY_ENERGY,
-      energy: user.energy,
-      date: today
+      added: DAILY,
+      energy: user.energy
     });
 
   } catch (err) {
-    console.error("DAILY ENERGY ERROR:", err);
+    console.error("DAILY ERROR:", err);
     res.status(500).json({ error: "SERVER_ERROR" });
   }
 });
 
 /* ================= START ================= */
-app.listen(3000, () =>
-  console.log("🚀 Server running")
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () =>
+  console.log("🚀 Server running on", PORT)
 );
