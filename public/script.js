@@ -106,14 +106,26 @@ if (canvas) {
   }
 
   initScratch();
-  window.resetScratchCard = initScratch;
+   function resetScratchCard() {
+  if (!canvas) return;
 
-  function scratch(x, y) {
-    ctx.beginPath();
-    ctx.arc(x, y, 18, 0, Math.PI * 2);
-    ctx.fill();
-  }
+  // reset state
+  scratched = false;
+  scratching = false;
 
+  // show canvas again
+  canvas.style.display = "block";
+
+  // reset drawing
+  ctx.globalCompositeOperation = "source-over";
+  ctx.clearRect(0, 0, W, H);
+
+  ctx.fillStyle = "#9e9e9e";
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.globalCompositeOperation = "destination-out";
+   }
+  
   function scratchedPercent() {
     const img = ctx.getImageData(0, 0, W, H).data;
     let cleared = 0;
