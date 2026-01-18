@@ -26,31 +26,32 @@
   <!-- ===== SINGLE BOX ===== -->
   <div class="box" onclick="openBox(this)">
     <span class="box-label">OPEN BOX</span>
-    <!-- reward text will be injected by script.js -->
   </div>
 
+  <!-- ===== SCRATCH SECTION ===== -->
   <div class="scratch-wrapper">
-  <div id="scratchCard">
-    <canvas id="scratchCanvas" width="260" height="140"></canvas>
 
-    <!-- reward a kasa -->
-    <div class="scratch-reward">
-      🎁 SCRATCH & WIN
-    </div>
-  </div>
-
+    <!-- 🔒 LOCKED STATE -->
     <div id="scratchLock">
-  <button onclick="unlockScratchByAd()">
-    📺 Watch Ad to Unlock Scratch
-  </button>
-</div>
+      <button onclick="unlockScratchByAd()">
+        📺 Watch Ad to Unlock Scratch
+      </button>
+    </div>
 
-<div id="scratchCard" class="hidden">
-  <canvas id="scratchCanvas" width="260" height="140"></canvas>
-  <p>🎟️ Scratch to Win</p>
-</div>
+    <!-- 🎟️ SCRATCH CARD -->
+    <div id="scratchCard" class="hidden">
+      <div class="scratch-reward">
+        🎁 SCRATCH & WIN
+      </div>
 
-  <p id="scratchStatus"></p>
+      <canvas
+        id="scratchCanvas"
+        width="260"
+        height="140">
+      </canvas>
+    </div>
+
+    <p id="scratchStatus"></p>
   </div>
 
   <!-- ===== STATUS MESSAGE ===== -->
@@ -75,9 +76,8 @@
     📺 Watch Ads → Get Energy
   </button>
 
-  <button id="dailyBtn"
-  onclick="claimDailyEnergy()">
-  🎁 Daily Free Energy
+  <button id="dailyBtn" onclick="claimDailyEnergy()">
+    🎁 Daily Free Energy
   </button>
 
   <!-- ===== REFERRAL ===== -->
